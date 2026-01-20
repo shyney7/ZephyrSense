@@ -19,10 +19,10 @@ struct SensorDataRaw {
     float latitude;           // 4 bytes - degrees
     float longitude;          // 4 bytes - degrees
     uint16_t co2;             // 2 bytes - ppm
-};                            // Total: 46 bytes
+};                            // Total: 42 bytes
 #pragma pack(pop)
 
-static_assert(sizeof(SensorDataRaw) == 46, "Struct packing mismatch!");
+static_assert(sizeof(SensorDataRaw) == 42, "Struct packing mismatch!");
 
 // Application-level sensor reading with QML integration
 class SensorReading

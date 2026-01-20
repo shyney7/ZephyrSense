@@ -7,7 +7,7 @@
 #include <QByteArray>
 #include <QQmlEngine>
 
-#include "../core/sensorreading.h"
+#include "sensorreading.h"
 
 class SerialHandler : public QObject
 {

@@ -39,6 +39,12 @@ set_target_properties(appZephyrSense PROPERTIES
     WIN32_EXECUTABLE TRUE
 )
 
+target_include_directories(appZephyrSense PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/serial
+)
+
 target_link_libraries(appZephyrSense
     PRIVATE Qt6::Quick Qt6::SerialPort
 )

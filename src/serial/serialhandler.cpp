@@ -118,7 +118,10 @@ void SerialHandler::handleReadyRead()
     m_buffer.append(m_serial->readAll());
 
     // Frame detection state machine
-    // Protocol: '<' + 46 bytes data + '>' = 48 bytes total
+    // Protocol: '<' + 42 bytes data + '>' = 44 bytes total
+    constexpr int DATA_SIZE = sizeof(SensorDataRaw);  // 42 bytes
+    constexpr int FRAME_SIZE = DATA_SIZE + 2;         // 44 bytes with delimiters
+
     while (true) {
         // Find start delimiter '<'
         int startIdx = m_buffer.indexOf('<');
@@ -134,8 +137,7 @@ void SerialHandler::handleReadyRead()
         }
 
         // Check if we have enough data for a complete frame
-        // '<' (1) + data (46) + '>' (1) = 48 bytes minimum
-        if (m_buffer.size() < 48) {
+        if (m_buffer.size() < FRAME_SIZE) {
             return;  // Wait for more data
         }
 
@@ -146,15 +148,15 @@ void SerialHandler::handleReadyRead()
             return;
         }
 
-        // Check if we found a valid frame (exactly 46 bytes between delimiters)
+        // Check if we found a valid frame (exactly DATA_SIZE bytes between delimiters)
         int frameSize = endIdx - 1;  // Bytes between '<' and '>'
-        if (frameSize == 46) {
+        if (frameSize == DATA_SIZE) {
             // Extract frame (excluding delimiters)
-            QByteArray frame = m_buffer.mid(1, 46);
+            QByteArray frame = m_buffer.mid(1, DATA_SIZE);
             parseFrame(frame);
         } else {
             // Invalid frame size - likely corruption
-            qWarning() << "Invalid frame size:" << frameSize << "bytes, expected 46";
+            qWarning() << "Invalid frame size:" << frameSize << "bytes, expected" << DATA_SIZE;
         }
 
         // Remove processed data from buffer (including delimiters)
