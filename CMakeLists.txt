@@ -21,6 +21,7 @@ qt_add_qml_module(appZephyrSense
     VERSION 1.0
     QML_FILES
         Main.qml
+        qml/components/ConnectionPanel.qml
     SOURCES
         src/core/sensorreading.cpp
         src/core/sensorreading.h
