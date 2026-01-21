@@ -4,7 +4,7 @@ project(ZephyrSense VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Quick SerialPort)
+find_package(Qt6 REQUIRED COMPONENTS Quick SerialPort Sql)
 
 qt_standard_project_setup(REQUIRES 6.8)
 
@@ -14,6 +14,8 @@ qt_add_executable(appZephyrSense
     src/core/sensorreading.h
     src/serial/serialhandler.cpp
     src/serial/serialhandler.h
+    src/data/databasemanager.cpp
+    src/data/databasemanager.h
 )
 
 qt_add_qml_module(appZephyrSense
@@ -27,6 +29,8 @@ qt_add_qml_module(appZephyrSense
         src/core/sensorreading.h
         src/serial/serialhandler.cpp
         src/serial/serialhandler.h
+        src/data/databasemanager.cpp
+        src/data/databasemanager.h
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
@@ -44,10 +48,11 @@ target_include_directories(appZephyrSense PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core
     ${CMAKE_CURRENT_SOURCE_DIR}/src/serial
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/data
 )
 
 target_link_libraries(appZephyrSense
-    PRIVATE Qt6::Quick Qt6::SerialPort
+    PRIVATE Qt6::Quick Qt6::SerialPort Qt6::Sql
 )
 
 include(GNUInstallDirs)
