@@ -75,4 +75,13 @@ Window {
                         "Lat:", reading.latitude, "Lon:", reading.longitude)
         }
     }
+
+    // Initialize data layer
+    Component.onCompleted: {
+        // Initialize database (creates tables if needed)
+        if (DatabaseManager.initialize()) {
+            console.log("Database initialized at:", DatabaseManager.databasePath)
+        }
+        console.log("CSV export enabled:", CsvExporter.enabled)
+    }
 }
