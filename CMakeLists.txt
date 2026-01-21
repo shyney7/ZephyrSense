@@ -4,7 +4,7 @@ project(ZephyrSense VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Quick SerialPort Sql)
+find_package(Qt6 REQUIRED COMPONENTS Quick QuickControls2 SerialPort Sql)
 
 qt_standard_project_setup(REQUIRES 6.8)
 
@@ -26,6 +26,11 @@ qt_add_qml_module(appZephyrSense
     QML_FILES
         Main.qml
         qml/components/ConnectionPanel.qml
+        qml/components/NavigationDrawer.qml
+        qml/views/MapView.qml
+        qml/views/DashboardView.qml
+        qml/views/GraphsView.qml
+        qml/views/SettingsView.qml
     SOURCES
         src/core/sensorreading.cpp
         src/core/sensorreading.h
@@ -56,7 +61,7 @@ target_include_directories(appZephyrSense PRIVATE
 )
 
 target_link_libraries(appZephyrSense
-    PRIVATE Qt6::Quick Qt6::SerialPort Qt6::Sql
+    PRIVATE Qt6::Quick Qt6::QuickControls2 Qt6::SerialPort Qt6::Sql
 )
 
 include(GNUInstallDirs)

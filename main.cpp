@@ -1,5 +1,6 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
+#include <QQuickStyle>
 #include <QDebug>
 
 #include "src/core/sensorreading.h"
@@ -15,6 +16,9 @@ int main(int argc, char *argv[])
     QCoreApplication::setApplicationName("ZephyrSense");
 
     QGuiApplication app(argc, argv);
+
+    // Apply Fusion style before loading QML
+    QQuickStyle::setStyle("Fusion");
 
     // Register SensorReading for use in signal/slot and QML
     qRegisterMetaType<SensorReading>("SensorReading");
