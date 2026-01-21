@@ -13,6 +13,7 @@ class SerialHandler : public QObject
 {
     Q_OBJECT
     QML_ELEMENT
+    QML_SINGLETON
 
     Q_PROPERTY(QStringList availablePorts READ availablePorts NOTIFY portsChanged)
     Q_PROPERTY(bool connected READ isConnected NOTIFY connectionStateChanged)

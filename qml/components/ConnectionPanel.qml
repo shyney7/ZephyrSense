@@ -56,6 +56,7 @@ Rectangle {
                 text: "Refresh"
                 enabled: !SerialHandler.connected
                 onClicked: SerialHandler.refreshPorts()
+                palette.buttonText: "#333333"
             }
         }
 
@@ -145,6 +146,8 @@ Rectangle {
                 Layout.fillWidth: true
                 enabled: !SerialHandler.connected && portComboBox.currentText !== ""
                 highlighted: true
+                palette.buttonText: highlighted ? "#ffffff" : "#333333"
+                palette.highlightedText: "#ffffff"
                 onClicked: {
                     SerialHandler.openPort(portComboBox.currentText)
                 }
@@ -155,6 +158,7 @@ Rectangle {
                 text: "Disconnect"
                 Layout.fillWidth: true
                 enabled: SerialHandler.connected
+                palette.buttonText: "#333333"
                 onClicked: {
                     SerialHandler.closePort()
                 }
