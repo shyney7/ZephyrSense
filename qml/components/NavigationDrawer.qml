@@ -10,6 +10,11 @@ Rectangle {
 
     signal navigationRequested(int index, string viewPath)
 
+    // Programmatic item selection (called from Main.qml when navigating via map marker click)
+    function selectItem(index) {
+        navList.currentIndex = index
+    }
+
     width: collapsed ? 60 : 220
     color: "#f5f5f5"
     border.color: "#e0e0e0"

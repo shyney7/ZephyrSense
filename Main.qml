@@ -10,6 +10,9 @@ ApplicationWindow {
     visible: true
     title: "ZephyrSense"
 
+    // Selected reading for dashboard view (set when clicking map marker)
+    property int selectedReadingId: -1
+
     // Header toolbar
     header: ToolBar {
         RowLayout {
@@ -35,6 +38,8 @@ ApplicationWindow {
         z: 1
 
         onNavigationRequested: function(index, viewPath) {
+            // Clear selected reading when manually navigating
+            mainWindow.selectedReadingId = -1
             stackView.replace(viewPath)
         }
     }
@@ -67,6 +72,17 @@ ApplicationWindow {
                 duration: 200
             }
         }
+    }
+
+    // Handle map marker click -> dashboard navigation
+    Connections {
+        target: stackView.currentItem
+        function onShowDashboardForReading(readingId) {
+            mainWindow.selectedReadingId = readingId
+            navDrawer.selectItem(1)  // Dashboard is index 1
+            stackView.replace("qml/views/DashboardView.qml")
+        }
+        ignoreUnknownSignals: true
     }
 
     // Debug output for received readings
