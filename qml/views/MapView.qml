@@ -29,8 +29,8 @@ Item {
             }
         }
 
-        // Default view: Oslo, Norway (reasonable starting point)
-        map.center: QtPositioning.coordinate(59.91, 10.75)
+        // Default view: Wuppertal, Germany
+        map.center: QtPositioning.coordinate(51.2562, 7.1508)
         map.zoomLevel: 10
 
         // Marker layer using MapItemView
