@@ -40,10 +40,8 @@ Item {
             parent: mapView.map
 
             delegate: SensorMarker {
-                latitude: model.latitude
-                longitude: model.longitude
-                tooltipText: model.tooltipText
-                readingId: model.readingId
+                // Required properties auto-injected from model roles:
+                // latitude, longitude, tooltipText, readingId
 
                 onMarkerClicked: function(id) {
                     mapViewRoot.showDashboardForReading(id)
