@@ -11,6 +11,7 @@ MapQuickItem {
     required property real longitude
     required property string tooltipText
     required property int readingId
+    required property int hazardLevel
 
     // Signal for click handling
     signal markerClicked(int id)
@@ -28,7 +29,9 @@ MapQuickItem {
             id: markerCircle
             anchors.fill: parent
             radius: width / 2
-            color: "#2196F3"  // Blue - will be threshold-colored in Phase 5
+            color: marker.hazardLevel === 2 ? "#F44336" :  // Red (danger)
+                   marker.hazardLevel === 1 ? "#FFC107" :  // Yellow/Amber (warning)
+                                              "#4CAF50"    // Green (normal)
             border.color: "white"
             border.width: 2
 
