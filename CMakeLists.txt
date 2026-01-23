@@ -12,6 +12,8 @@ qt_add_executable(appZephyrSense
     main.cpp
     src/core/sensorreading.cpp
     src/core/sensorreading.h
+    src/core/thresholdmanager.cpp
+    src/core/thresholdmanager.h
     src/serial/serialhandler.cpp
     src/serial/serialhandler.h
     src/data/databasemanager.cpp
@@ -37,6 +39,8 @@ qt_add_qml_module(appZephyrSense
     SOURCES
         src/core/sensorreading.cpp
         src/core/sensorreading.h
+        src/core/thresholdmanager.cpp
+        src/core/thresholdmanager.h
         src/serial/serialhandler.cpp
         src/serial/serialhandler.h
         src/data/databasemanager.cpp
