@@ -1,5 +1,6 @@
 #include "sensorreadingmodel.h"
 #include "databasemanager.h"
+#include "thresholdmanager.h"
 #include <QDateTime>
 
 SensorReadingModel::SensorReadingModel(QObject *parent)
@@ -51,6 +52,18 @@ QVariant SensorReadingModel::data(const QModelIndex &index, int role) const
         return reading.timestamp;
     case TooltipTextRole:
         return formatTooltip(reading);
+    case HazardLevelRole: {
+        ThresholdManager *tm = ThresholdManager::instance();
+        if (tm) {
+            return tm->computeHazardLevel(
+                reading.partectorNumber, reading.partectorDiam,
+                reading.partectorMass, reading.grimmValue,
+                reading.temperature, reading.humidity,
+                reading.pressure, reading.altitude, reading.co2
+            );
+        }
+        return 0;  // Green default if manager not yet available
+    }
     default:
         return QVariant();
     }
@@ -73,6 +86,7 @@ QHash<int, QByteArray> SensorReadingModel::roleNames() const
     roles[Co2Role] = "co2";
     roles[TimestampRole] = "timestamp";
     roles[TooltipTextRole] = "tooltipText";
+    roles[HazardLevelRole] = "hazardLevel";
     return roles;
 }
 
@@ -116,6 +130,9 @@ void SensorReadingModel::loadFromDatabase(const QDateTime &start, const QDateTim
             m_readings.append(entry);
         }
     }
+
+    // Connect to ThresholdManager for live updates (instance available after QML loads)
+    connectToThresholdManager();
 
     endResetModel();
     emit countChanged();
@@ -209,4 +226,24 @@ bool SensorReadingModel::isValidCoordinate(float lat, float lon) const
     if (lat == 0.0f && lon == 0.0f)
         return false;
     return true;
+}
+
+void SensorReadingModel::connectToThresholdManager()
+{
+    if (m_thresholdManagerConnected)
+        return;
+
+    ThresholdManager *tm = ThresholdManager::instance();
+    if (tm) {
+        connect(tm, &ThresholdManager::thresholdsChanged,
+                this, &SensorReadingModel::onThresholdsChanged);
+        m_thresholdManagerConnected = true;
+    }
+}
+
+void SensorReadingModel::onThresholdsChanged()
+{
+    if (!m_readings.isEmpty()) {
+        emit dataChanged(index(0), index(m_readings.count() - 1), {HazardLevelRole});
+    }
 }

@@ -5,6 +5,7 @@
 #include <QQmlEngine>
 #include <QDateTime>
 #include "sensorreading.h"
+#include "thresholdmanager.h"
 
 class SensorReadingModel : public QAbstractListModel
 {
@@ -28,7 +29,8 @@ public:
         AltitudeRole,
         Co2Role,
         TimestampRole,
-        TooltipTextRole
+        TooltipTextRole,
+        HazardLevelRole
     };
 
     explicit SensorReadingModel(QObject *parent = nullptr);
@@ -58,9 +60,14 @@ private:
 
     QString formatTooltip(const SensorReading &reading) const;
     bool isValidCoordinate(float lat, float lon) const;
+    void connectToThresholdManager();
 
     QList<ReadingEntry> m_readings;
     qint64 m_nextId = 1;
+    bool m_thresholdManagerConnected = false;
+
+private slots:
+    void onThresholdsChanged();
 };
 
 #endif // SENSORREADINGMODEL_H
