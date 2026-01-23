@@ -185,6 +185,38 @@ Item {
                             onValueModified: ThresholdManager.partectorDiamDanger = value
                         }
                     }
+
+                    // Pressure (hPa)
+                    RowLayout {
+                        Layout.fillWidth: true
+                        Label { text: "Pressure (hPa)"; Layout.preferredWidth: 150 }
+                        SpinBox {
+                            from: 900; to: 1100
+                            value: Math.round(ThresholdManager.pressureWarning)
+                            onValueModified: ThresholdManager.pressureWarning = value
+                        }
+                        SpinBox {
+                            from: 950; to: 1150
+                            value: Math.round(ThresholdManager.pressureDanger)
+                            onValueModified: ThresholdManager.pressureDanger = value
+                        }
+                    }
+
+                    // Altitude (m)
+                    RowLayout {
+                        Layout.fillWidth: true
+                        Label { text: "Altitude (m)"; Layout.preferredWidth: 150 }
+                        SpinBox {
+                            from: 1000; to: 5000; stepSize: 100
+                            value: Math.round(ThresholdManager.altitudeWarning)
+                            onValueModified: ThresholdManager.altitudeWarning = value
+                        }
+                        SpinBox {
+                            from: 2000; to: 8000; stepSize: 100
+                            value: Math.round(ThresholdManager.altitudeDanger)
+                            onValueModified: ThresholdManager.altitudeDanger = value
+                        }
+                    }
                 }
             }
 
