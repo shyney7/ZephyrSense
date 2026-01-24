@@ -84,8 +84,9 @@ Item {
 
     // Fetch latest reading from database (fallback when no serial data)
     function fetchLatestReading() {
+        // Load recent data from database
         var endTime = new Date()
-        var startTime = new Date(endTime.getTime() - 60000) // Last minute
+        var startTime = new Date(endTime.getTime() - 3600000) // Last hour for better chance of data
         readingModel.loadFromDatabase(startTime, endTime)
 
         if (readingModel.count > 0) {
@@ -102,6 +103,8 @@ Item {
                 co2: reading.co2 || 0
             }
             dashboardRoot.lastUpdateTime = reading.timestamp || new Date()
+        } else {
+            console.log("No data available in database")
         }
     }
 
@@ -198,9 +201,15 @@ Item {
 
                 // Mode text
                 Text {
-                    text: dashboardRoot.isFrozenMode
-                          ? "Showing data from " + formatTimestamp(dashboardRoot.frozenTimestamp)
-                          : "Live"
+                    text: {
+                        if (dashboardRoot.isFrozenMode) {
+                            return "Showing data from " + formatTimestamp(dashboardRoot.frozenTimestamp)
+                        } else if (dashboardRoot.lastUpdateTime) {
+                            return "Live - Last update: " + formatTimestamp(dashboardRoot.lastUpdateTime)
+                        } else {
+                            return "Live - No data yet"
+                        }
+                    }
                     font.pixelSize: 13
                     color: "#424242"
                     Layout.fillWidth: true
