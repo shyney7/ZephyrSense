@@ -149,7 +149,7 @@ QVariantList DatabaseManager::getReadingsInRange(const QDateTime &start, const Q
     query.setForwardOnly(true);  // Memory efficient for large result sets
 
     query.prepare(R"(
-        SELECT timestamp, partectorNumber, partectorDiam, partectorMass,
+        SELECT id, timestamp, partectorNumber, partectorDiam, partectorMass,
                grimmValue, temperature, humidity, pressure,
                altitude, latitude, longitude, co2
         FROM readings
@@ -169,18 +169,19 @@ QVariantList DatabaseManager::getReadingsInRange(const QDateTime &start, const Q
 
     while (query.next()) {
         QVariantMap reading;
-        reading["timestamp"] = QDateTime::fromMSecsSinceEpoch(query.value(0).toLongLong());
-        reading["partectorNumber"] = query.value(1).toInt();
-        reading["partectorDiam"] = query.value(2).toInt();
-        reading["partectorMass"] = query.value(3).toDouble();
-        reading["grimmValue"] = query.value(4).toDouble();
-        reading["temperature"] = query.value(5).toDouble();
-        reading["humidity"] = query.value(6).toDouble();
-        reading["pressure"] = query.value(7).toDouble();
-        reading["altitude"] = query.value(8).toDouble();
-        reading["latitude"] = query.value(9).toDouble();
-        reading["longitude"] = query.value(10).toDouble();
-        reading["co2"] = query.value(11).toInt();
+        reading["id"] = query.value(0).toInt();  // Database ID
+        reading["timestamp"] = QDateTime::fromMSecsSinceEpoch(query.value(1).toLongLong());
+        reading["partectorNumber"] = query.value(2).toInt();
+        reading["partectorDiam"] = query.value(3).toInt();
+        reading["partectorMass"] = query.value(4).toDouble();
+        reading["grimmValue"] = query.value(5).toDouble();
+        reading["temperature"] = query.value(6).toDouble();
+        reading["humidity"] = query.value(7).toDouble();
+        reading["pressure"] = query.value(8).toDouble();
+        reading["altitude"] = query.value(9).toDouble();
+        reading["latitude"] = query.value(10).toDouble();
+        reading["longitude"] = query.value(11).toDouble();
+        reading["co2"] = query.value(12).toInt();
         results.append(reading);
     }
 

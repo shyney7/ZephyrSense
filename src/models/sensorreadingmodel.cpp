@@ -125,7 +125,7 @@ void SensorReadingModel::loadFromDatabase(const QDateTime &start, const QDateTim
         // Only add readings with valid GPS coordinates
         if (isValidCoordinate(reading.latitude, reading.longitude)) {
             ReadingEntry entry;
-            entry.id = m_nextId++;
+            entry.id = map["id"].toInt();
             entry.reading = reading;
             m_readings.append(entry);
         }
