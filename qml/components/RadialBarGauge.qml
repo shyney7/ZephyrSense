@@ -6,6 +6,8 @@ Item {
     id: root
     width: height  // Maintain circular aspect ratio
 
+    SystemPalette { id: palette; colorGroup: SystemPalette.Active }
+
     // Public properties
     property real value: 0
     property real minValue: 0
@@ -111,7 +113,7 @@ Item {
         text: root.sensorName
         font.pixelSize: 11
         font.bold: true
-        color: "#424242"
+        color: palette.text
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
         anchors.topMargin: 20
@@ -188,7 +190,7 @@ Item {
             text: root.normalizedValue.toFixed(root.precision)
             font.pixelSize: 20
             font.bold: true
-            color: "#212121"
+            color: palette.text
             anchors.horizontalCenter: parent.horizontalCenter
         }
 
@@ -196,7 +198,7 @@ Item {
             id: unitText
             text: root.unit
             font.pixelSize: 11
-            color: "#757575"
+            color: palette.windowText
             anchors.horizontalCenter: parent.horizontalCenter
         }
     }

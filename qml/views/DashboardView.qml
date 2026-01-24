@@ -7,6 +7,8 @@ import "../components"
 Item {
     id: dashboardRoot
 
+    SystemPalette { id: palette; colorGroup: SystemPalette.Active }
+
     // Mode state management
     property int updateIntervalMs: 1000  // Default 1 second, -1 means frozen
     property int frozenReadingId: mainWindow.selectedReadingId
@@ -211,7 +213,7 @@ Item {
                         }
                     }
                     font.pixelSize: 13
-                    color: "#424242"
+                    color: palette.text
                     Layout.fillWidth: true
                 }
             }
@@ -253,7 +255,7 @@ Item {
             Text {
                 text: "Update:"
                 font.pixelSize: 13
-                color: "#424242"
+                color: palette.text
             }
 
             ComboBox {
