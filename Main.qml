@@ -12,6 +12,7 @@ ApplicationWindow {
 
     // Selected reading for dashboard view (set when clicking map marker)
     property int selectedReadingId: -1
+    property var lastMarkerClickTime: null  // Debounce for overlapping markers
 
     // Header toolbar
     header: ToolBar {
@@ -78,6 +79,16 @@ ApplicationWindow {
     Connections {
         target: stackView.currentItem
         function onShowDashboardForReading(readingId) {
+            // Debounce: ignore clicks within 300ms (handles overlapping markers)
+            var now = new Date()
+            if (mainWindow.lastMarkerClickTime) {
+                var elapsed = now - mainWindow.lastMarkerClickTime
+                if (elapsed < 300) {
+                    return  // Ignore rapid successive clicks from overlapping markers
+                }
+            }
+            mainWindow.lastMarkerClickTime = now
+
             mainWindow.selectedReadingId = readingId
             navDrawer.selectItem(1)  // Dashboard is index 1
             stackView.replace("qml/views/DashboardView.qml")
