@@ -14,6 +14,7 @@ Item {
     property int frozenReadingId: mainWindow.selectedReadingId
     property var frozenTimestamp: null
     property var lastUpdateTime: null
+    property var lastSerialUpdateTime: null
 
     readonly property bool isLiveMode: updateIntervalMs > 0
     readonly property bool isFrozenMode: frozenReadingId >= 0 && updateIntervalMs < 0
@@ -63,6 +64,15 @@ Item {
         target: SerialHandler
         enabled: dashboardRoot.isLiveMode
         function onNewReading(reading) {
+            // Throttle updates based on selected interval
+            var now = new Date()
+            if (dashboardRoot.lastSerialUpdateTime) {
+                var elapsed = now - dashboardRoot.lastSerialUpdateTime
+                if (elapsed < dashboardRoot.updateIntervalMs) {
+                    return  // Skip update, too soon
+                }
+            }
+
             dashboardRoot.currentReading = {
                 partectorNumber: reading.partectorNumber,
                 partectorDiam: reading.partectorDiam,
@@ -74,7 +84,8 @@ Item {
                 altitude: reading.altitude,
                 co2: reading.co2
             }
-            dashboardRoot.lastUpdateTime = new Date()
+            dashboardRoot.lastUpdateTime = now
+            dashboardRoot.lastSerialUpdateTime = now
         }
     }
 
