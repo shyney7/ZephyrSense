@@ -133,7 +133,7 @@ Item {
         // Find the reading with matching ID
         for (var i = 0; i < readingModel.count; i++) {
             var reading = readingModel.getReading(i)
-            if (reading.id === readingId) {
+            if (reading.readingId === readingId) {
                 dashboardRoot.currentReading = {
                     partectorNumber: reading.partectorNumber || 0,
                     partectorDiam: reading.partectorDiam || 0,
