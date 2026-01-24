@@ -4,6 +4,7 @@ import ZephyrSense
 
 Item {
     id: root
+    width: height  // Maintain circular aspect ratio
 
     // Public properties
     property real value: 0
