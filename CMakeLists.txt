@@ -33,6 +33,7 @@ qt_add_qml_module(appZephyrSense
         Main.qml
         qml/components/ConnectionPanel.qml
         qml/components/NavigationDrawer.qml
+        qml/components/RadialBarGauge.qml
         qml/components/SensorMarker.qml
         qml/components/TimeSeriesChart.qml
         qml/components/SensorLegend.qml
