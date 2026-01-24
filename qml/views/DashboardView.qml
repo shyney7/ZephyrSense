@@ -12,6 +12,7 @@ Item {
     // Mode state management
     property int updateIntervalMs: 1000  // Default 1 second, -1 means frozen
     property int frozenReadingId: mainWindow.selectedReadingId
+    property int lastProcessedFrozenId: -1  // Guard against duplicate processing
     property var frozenTimestamp: null
     property var lastUpdateTime: null
     property var lastSerialUpdateTime: null
@@ -151,6 +152,7 @@ Item {
     function switchToLive(intervalMs) {
         mainWindow.selectedReadingId = -1
         dashboardRoot.frozenReadingId = -1
+        dashboardRoot.lastProcessedFrozenId = -1  // Reset guard for future clicks
         dashboardRoot.updateIntervalMs = intervalMs || 1000
         updateTimer.stop()
         updateTimer.start()
@@ -159,7 +161,9 @@ Item {
 
     // Monitor frozen reading ID changes
     onFrozenReadingIdChanged: {
-        if (frozenReadingId >= 0) {
+        // Guard: only process if ID is valid and different from last processed
+        if (frozenReadingId >= 0 && frozenReadingId !== lastProcessedFrozenId) {
+            lastProcessedFrozenId = frozenReadingId
             // Switch to frozen mode
             dashboardRoot.updateIntervalMs = -1
             updateTimer.stop()
