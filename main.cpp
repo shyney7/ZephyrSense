@@ -1,4 +1,4 @@
-#include <QGuiApplication>
+#include <QApplication>
 #include <QQmlApplicationEngine>
 #include <QQuickStyle>
 #include <QDebug>
@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationDomain("zephyrsense.local");
     QCoreApplication::setApplicationName("ZephyrSense");
 
-    QGuiApplication app(argc, argv);
+    QApplication app(argc, argv);
 
     // Apply Fusion style before loading QML
     QQuickStyle::setStyle("Fusion");
