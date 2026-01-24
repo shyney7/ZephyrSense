@@ -272,7 +272,7 @@ Item {
             ComboBox {
                 id: intervalSelector
                 Layout.preferredWidth: 100
-                enabled: !dashboardRoot.isFrozenMode
+                enabled: true  // Always enabled (was: !dashboardRoot.isFrozenMode)
 
                 model: [
                     { text: "1s", value: 1000 },
@@ -285,8 +285,12 @@ Item {
                 currentIndex: 0
 
                 onActivated: function(index) {
-                    if (!dashboardRoot.isFrozenMode) {
-                        var newInterval = model[index].value
+                    var newInterval = model[index].value
+                    if (dashboardRoot.isFrozenMode) {
+                        // Switch back to live mode
+                        switchToLive(newInterval)
+                    } else {
+                        // Update interval in live mode
                         dashboardRoot.updateIntervalMs = newInterval
                         updateTimer.interval = newInterval
                         updateTimer.restart()
