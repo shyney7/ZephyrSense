@@ -22,6 +22,8 @@ qt_add_executable(appZephyrSense
     src/data/csvexporter.h
     src/models/sensorreadingmodel.cpp
     src/models/sensorreadingmodel.h
+    src/models/timeserieschartmodel.cpp
+    src/models/timeserieschartmodel.h
 )
 
 qt_add_qml_module(appZephyrSense
@@ -49,6 +51,8 @@ qt_add_qml_module(appZephyrSense
         src/data/csvexporter.h
         src/models/sensorreadingmodel.cpp
         src/models/sensorreadingmodel.h
+        src/models/timeserieschartmodel.cpp
+        src/models/timeserieschartmodel.h
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
