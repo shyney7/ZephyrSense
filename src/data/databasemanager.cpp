@@ -188,6 +188,51 @@ QVariantList DatabaseManager::getReadingsInRange(const QDateTime &start, const Q
     return results;
 }
 
+QVariantMap DatabaseManager::getReadingById(int id)
+{
+    QVariantMap result;
+
+    QSqlDatabase db = QSqlDatabase::database(CONNECTION_NAME);
+    if (!db.isOpen()) {
+        qWarning() << "Database not open";
+        return result;
+    }
+
+    QSqlQuery query(db);
+    query.prepare(R"(
+        SELECT id, timestamp, partectorNumber, partectorDiam, partectorMass,
+               grimmValue, temperature, humidity, pressure,
+               altitude, latitude, longitude, co2
+        FROM readings
+        WHERE id = ?
+    )");
+
+    query.addBindValue(id);
+
+    if (!query.exec()) {
+        qWarning() << "Failed to get reading by ID:" << query.lastError().text();
+        return result;
+    }
+
+    if (query.next()) {
+        result["id"] = query.value(0).toInt();
+        result["timestamp"] = QDateTime::fromMSecsSinceEpoch(query.value(1).toLongLong());
+        result["partectorNumber"] = query.value(2).toInt();
+        result["partectorDiam"] = query.value(3).toInt();
+        result["partectorMass"] = query.value(4).toDouble();
+        result["grimmValue"] = query.value(5).toDouble();
+        result["temperature"] = query.value(6).toDouble();
+        result["humidity"] = query.value(7).toDouble();
+        result["pressure"] = query.value(8).toDouble();
+        result["altitude"] = query.value(9).toDouble();
+        result["latitude"] = query.value(10).toDouble();
+        result["longitude"] = query.value(11).toDouble();
+        result["co2"] = query.value(12).toInt();
+    }
+
+    return result;
+}
+
 bool DatabaseManager::exportDatabase(const QUrl &destination)
 {
     QString destPath = destination.toLocalFile();

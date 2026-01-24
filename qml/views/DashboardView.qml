@@ -121,37 +121,30 @@ Item {
         }
     }
 
-    // Load frozen reading from database
+    // Load frozen reading from database by ID (direct query, no loop)
     function loadFrozenReading(readingId) {
         if (readingId < 0) return
 
-        // Load last 24 hours of data
-        var endTime = new Date()
-        var startTime = new Date(endTime.getTime() - 86400000) // 24 hours ago
-        readingModel.loadFromDatabase(startTime, endTime)
+        // Direct database lookup by ID - much faster than loading all data
+        var reading = DatabaseManager.getReadingById(readingId)
 
-        // Find the reading with matching ID
-        for (var i = 0; i < readingModel.count; i++) {
-            var reading = readingModel.getReading(i)
-            if (reading.readingId === readingId) {
-                dashboardRoot.currentReading = {
-                    partectorNumber: reading.partectorNumber || 0,
-                    partectorDiam: reading.partectorDiam || 0,
-                    partectorMass: reading.partectorMass || 0,
-                    grimmValue: reading.grimmValue || 0,
-                    temperature: reading.temperature || 0,
-                    humidity: reading.humidity || 0,
-                    pressure: reading.pressure || 0,
-                    altitude: reading.altitude || 0,
-                    co2: reading.co2 || 0
-                }
-                dashboardRoot.frozenTimestamp = reading.timestamp
-                console.log("Loaded frozen reading ID:", readingId)
-                return
+        if (reading && reading.id !== undefined) {
+            dashboardRoot.currentReading = {
+                partectorNumber: reading.partectorNumber || 0,
+                partectorDiam: reading.partectorDiam || 0,
+                partectorMass: reading.partectorMass || 0,
+                grimmValue: reading.grimmValue || 0,
+                temperature: reading.temperature || 0,
+                humidity: reading.humidity || 0,
+                pressure: reading.pressure || 0,
+                altitude: reading.altitude || 0,
+                co2: reading.co2 || 0
             }
+            dashboardRoot.frozenTimestamp = reading.timestamp
+            console.log("Loaded frozen reading ID:", readingId)
+        } else {
+            console.warn("Frozen reading ID not found:", readingId)
         }
-
-        console.warn("Frozen reading ID not found:", readingId)
     }
 
     // Switch back to live mode
@@ -176,12 +169,9 @@ Item {
 
     // Initialize on load
     Component.onCompleted: {
-        if (frozenReadingId >= 0) {
-            // Start in frozen mode
-            updateIntervalMs = -1
-            loadFrozenReading(frozenReadingId)
-        } else {
-            // Start in live mode
+        // Only fetch for live mode - frozen mode is handled by onFrozenReadingIdChanged
+        // which fires when the binding initializes
+        if (frozenReadingId < 0) {
             fetchLatestReading()
         }
     }

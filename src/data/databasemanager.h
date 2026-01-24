@@ -28,6 +28,7 @@ public:
     Q_INVOKABLE bool exportDatabase(const QUrl &destination);
     Q_INVOKABLE bool importDatabase(const QUrl &source);
     Q_INVOKABLE QVariantList getReadingsInRange(const QDateTime &start, const QDateTime &end);
+    Q_INVOKABLE QVariantMap getReadingById(int id);
 
 public slots:
     void insertReading(const SensorReading &reading);
