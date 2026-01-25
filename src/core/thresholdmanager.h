@@ -43,6 +43,17 @@ class ThresholdManager : public QObject
     Q_PROPERTY(float altitudeWarning READ altitudeWarning WRITE setAltitudeWarning NOTIFY altitudeWarningChanged)
     Q_PROPERTY(float altitudeDanger READ altitudeDanger WRITE setAltitudeDanger NOTIFY altitudeDangerChanged)
 
+    // Sensor enable/disable properties (for selective hazard calculation)
+    Q_PROPERTY(bool partectorMassEnabled READ partectorMassEnabled WRITE setPartectorMassEnabled NOTIFY partectorMassEnabledChanged)
+    Q_PROPERTY(bool partectorNumberEnabled READ partectorNumberEnabled WRITE setPartectorNumberEnabled NOTIFY partectorNumberEnabledChanged)
+    Q_PROPERTY(bool partectorDiamEnabled READ partectorDiamEnabled WRITE setPartectorDiamEnabled NOTIFY partectorDiamEnabledChanged)
+    Q_PROPERTY(bool grimmValueEnabled READ grimmValueEnabled WRITE setGrimmValueEnabled NOTIFY grimmValueEnabledChanged)
+    Q_PROPERTY(bool co2Enabled READ co2Enabled WRITE setCo2Enabled NOTIFY co2EnabledChanged)
+    Q_PROPERTY(bool temperatureEnabled READ temperatureEnabled WRITE setTemperatureEnabled NOTIFY temperatureEnabledChanged)
+    Q_PROPERTY(bool humidityEnabled READ humidityEnabled WRITE setHumidityEnabled NOTIFY humidityEnabledChanged)
+    Q_PROPERTY(bool pressureEnabled READ pressureEnabled WRITE setPressureEnabled NOTIFY pressureEnabledChanged)
+    Q_PROPERTY(bool altitudeEnabled READ altitudeEnabled WRITE setAltitudeEnabled NOTIFY altitudeEnabledChanged)
+
 public:
     enum HazardLevel {
         Green = 0,
@@ -118,11 +129,34 @@ public:
     float altitudeDanger() const { return m_altitudeDanger; }
     void setAltitudeDanger(float value);
 
+    // Sensor enabled getters/setters
+    bool partectorMassEnabled() const { return m_partectorMassEnabled; }
+    void setPartectorMassEnabled(bool value);
+    bool partectorNumberEnabled() const { return m_partectorNumberEnabled; }
+    void setPartectorNumberEnabled(bool value);
+    bool partectorDiamEnabled() const { return m_partectorDiamEnabled; }
+    void setPartectorDiamEnabled(bool value);
+    bool grimmValueEnabled() const { return m_grimmValueEnabled; }
+    void setGrimmValueEnabled(bool value);
+    bool co2Enabled() const { return m_co2Enabled; }
+    void setCo2Enabled(bool value);
+    bool temperatureEnabled() const { return m_temperatureEnabled; }
+    void setTemperatureEnabled(bool value);
+    bool humidityEnabled() const { return m_humidityEnabled; }
+    void setHumidityEnabled(bool value);
+    bool pressureEnabled() const { return m_pressureEnabled; }
+    void setPressureEnabled(bool value);
+    bool altitudeEnabled() const { return m_altitudeEnabled; }
+    void setAltitudeEnabled(bool value);
+
     // Compute hazard level for a complete sensor reading
     Q_INVOKABLE int computeHazardLevel(int partectorNumber, int partectorDiam,
                                        float partectorMass, float grimmValue,
                                        float temperature, float humidity,
                                        float pressure, float altitude, int co2);
+
+    // Reset all thresholds and enabled states to defaults
+    Q_INVOKABLE void resetToDefaults();
 
 signals:
     void co2WarningChanged();
@@ -147,6 +181,16 @@ signals:
     void pressureDangerChanged();
     void altitudeWarningChanged();
     void altitudeDangerChanged();
+
+    void partectorMassEnabledChanged();
+    void partectorNumberEnabledChanged();
+    void partectorDiamEnabledChanged();
+    void grimmValueEnabledChanged();
+    void co2EnabledChanged();
+    void temperatureEnabledChanged();
+    void humidityEnabledChanged();
+    void pressureEnabledChanged();
+    void altitudeEnabledChanged();
 
     void thresholdsChanged();
 
@@ -189,6 +233,17 @@ private:
 
     float m_altitudeWarning;
     float m_altitudeDanger;
+
+    // Sensor enabled flags (default: core sensors true, comfort sensors false)
+    bool m_partectorMassEnabled;
+    bool m_partectorNumberEnabled;
+    bool m_partectorDiamEnabled;
+    bool m_grimmValueEnabled;
+    bool m_co2Enabled;
+    bool m_temperatureEnabled;
+    bool m_humidityEnabled;
+    bool m_pressureEnabled;
+    bool m_altitudeEnabled;
 };
 
 #endif // THRESHOLDMANAGER_H
