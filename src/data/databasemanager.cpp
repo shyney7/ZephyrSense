@@ -339,3 +339,33 @@ bool DatabaseManager::importDatabase(const QUrl &source)
     emit importCompleted(success);
     return success;
 }
+
+QVariantList DatabaseManager::getAvailableDates()
+{
+    QVariantList dates;
+    QSqlDatabase db = QSqlDatabase::database(CONNECTION_NAME);
+    if (!db.isOpen()) {
+        qWarning() << "Database not open for getAvailableDates";
+        return dates;
+    }
+
+    QSqlQuery query(db);
+    query.setForwardOnly(true);
+
+    // Query distinct dates (day precision) from readings table
+    // timestamp is stored as milliseconds since epoch
+    if (!query.exec(R"(
+        SELECT DISTINCT date(timestamp / 1000, 'unixepoch', 'localtime') as date
+        FROM readings
+        ORDER BY date DESC
+    )")) {
+        qWarning() << "Failed to query available dates:" << query.lastError().text();
+        return dates;
+    }
+
+    while (query.next()) {
+        dates.append(query.value(0).toString());  // Format: "2026-01-25"
+    }
+
+    return dates;
+}
