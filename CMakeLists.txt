@@ -37,6 +37,10 @@ qt_add_qml_module(appZephyrSense
         qml/components/SensorMarker.qml
         qml/components/TimeSeriesChart.qml
         qml/components/SensorLegend.qml
+        qml/components/ConnectionTab.qml
+        qml/components/ExportTab.qml
+        qml/components/ThresholdsTab.qml
+        qml/components/DisplayTab.qml
         qml/views/MapView.qml
         qml/views/DashboardView.qml
         qml/views/GraphsView.qml
