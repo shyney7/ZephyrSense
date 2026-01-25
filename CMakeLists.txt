@@ -41,6 +41,8 @@ qt_add_qml_module(appZephyrSense
         qml/components/ExportTab.qml
         qml/components/ThresholdsTab.qml
         qml/components/DisplayTab.qml
+        qml/components/DateTimePicker.qml
+        qml/components/ModeBadge.qml
         qml/views/MapView.qml
         qml/views/DashboardView.qml
         qml/views/GraphsView.qml
