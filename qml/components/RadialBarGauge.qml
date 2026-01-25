@@ -8,6 +8,15 @@ Item {
 
     SystemPalette { id: palette; colorGroup: SystemPalette.Active }
 
+    // Listen for threshold changes to update colors
+    Connections {
+        target: ThresholdManager
+        function onThresholdsChanged() {
+            // Force re-evaluation of color bindings
+            root.value = root.value
+        }
+    }
+
     // Public properties
     property real value: 0
     property real minValue: 0
@@ -24,8 +33,28 @@ Item {
     readonly property real normalizedValue: Math.min(Math.max(value, minValue), maxValue)
     readonly property real sweepAngle: ((normalizedValue - minValue) / (maxValue - minValue)) * 360
 
+    // Check if sensor is enabled for hazard calculation
+    function isSensorEnabled() {
+        switch (sensorKey) {
+            case "partectorNumber": return ThresholdManager.partectorNumberEnabled
+            case "partectorDiam": return ThresholdManager.partectorDiamEnabled
+            case "partectorMass": return ThresholdManager.partectorMassEnabled
+            case "grimmValue": return ThresholdManager.grimmValueEnabled
+            case "temperature": return ThresholdManager.temperatureEnabled
+            case "humidity": return ThresholdManager.humidityEnabled
+            case "pressure": return ThresholdManager.pressureEnabled
+            case "altitude": return ThresholdManager.altitudeEnabled
+            case "co2": return ThresholdManager.co2Enabled
+            default: return true
+        }
+    }
+
     // Threshold-based color computation
     function getProgressColor(val) {
+        // If sensor is disabled, show neutral blue
+        if (!isSensorEnabled()) {
+            return "#2196F3"  // Neutral blue for disabled sensors
+        }
         if (sensorKey === "temperature") {
             // Bidirectional - check both high and low
             if (val >= ThresholdManager.temperatureDanger || val <= ThresholdManager.temperatureLowDanger) {
