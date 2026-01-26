@@ -105,15 +105,15 @@ Item {
 
                         Button {
                             text: "Connect"
-                            enabled: !SerialHandler.isConnected
+                            enabled: !SerialHandler.isConnected && portComboBox.currentText !== ""
                             highlighted: true
-                            onClicked: SerialHandler.connectToPort()
+                            onClicked: SerialHandler.openPort(portComboBox.currentText)
                         }
 
                         Button {
                             text: "Disconnect"
                             enabled: SerialHandler.isConnected
-                            onClicked: SerialHandler.disconnectFromPort()
+                            onClicked: SerialHandler.closePort()
                         }
 
                         Item { Layout.fillWidth: true }
