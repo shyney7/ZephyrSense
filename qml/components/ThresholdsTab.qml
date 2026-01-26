@@ -99,7 +99,7 @@ Item {
                         Label {
                             text: "⚠"
                             font.pixelSize: 16
-                            ToolTip.visible: diameterInfo.hovered
+                            ToolTip.visible: diameterInfo.containsMouse
                             ToolTip.text: "Inverted threshold: Lower values are more concerning (smaller particles penetrate deeper)"
                             MouseArea {
                                 id: diameterInfo
@@ -209,7 +209,7 @@ Item {
                         Label {
                             text: "⚠"
                             font.pixelSize: 16
-                            ToolTip.visible: tempInfo.hovered
+                            ToolTip.visible: tempInfo.containsMouse
                             ToolTip.text: "Inverted threshold: Lower values are more concerning (extreme cold)"
                             MouseArea {
                                 id: tempInfo
@@ -257,7 +257,7 @@ Item {
                         Label {
                             text: "⚠"
                             font.pixelSize: 16
-                            ToolTip.visible: humidityInfo.hovered
+                            ToolTip.visible: humidityInfo.containsMouse
                             ToolTip.text: "Inverted threshold: Lower values are more concerning (extreme dryness)"
                             MouseArea {
                                 id: humidityInfo
@@ -288,7 +288,7 @@ Item {
                         Label {
                             text: "⚠"
                             font.pixelSize: 16
-                            ToolTip.visible: pressureInfo.hovered
+                            ToolTip.visible: pressureInfo.containsMouse
                             ToolTip.text: "Inverted threshold: Lower values are more concerning (low pressure)"
                             MouseArea {
                                 id: pressureInfo

@@ -166,6 +166,7 @@ Item {
 
                     Button {
                         required property var modelData
+                        required property int index
                         property int minutes: modelData.minutes
 
                         text: modelData.text

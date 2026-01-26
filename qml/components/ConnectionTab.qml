@@ -98,24 +98,34 @@ Item {
                         }
                     }
 
-                    // Reset button
-                    Button {
-                        text: "Reset to Default (115200)"
-                        Layout.alignment: Qt.AlignRight
-                        onClicked: {
-                            SerialHandler.baudRate = 115200;
+                    // Connect/Disconnect buttons
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 8
+
+                        Button {
+                            text: "Connect"
+                            enabled: !SerialHandler.isConnected
+                            highlighted: true
+                            onClicked: SerialHandler.connectToPort()
+                        }
+
+                        Button {
+                            text: "Disconnect"
+                            enabled: SerialHandler.isConnected
+                            onClicked: SerialHandler.disconnectFromPort()
+                        }
+
+                        Item { Layout.fillWidth: true }
+
+                        Button {
+                            text: "Reset to Default (115200)"
+                            onClicked: {
+                                SerialHandler.baudRate = 115200;
+                            }
                         }
                     }
                 }
-            }
-
-            Label {
-                text: "Note: Connect/Disconnect from the main Connection panel"
-                font.italic: true
-                color: palette.mid
-                wrapMode: Text.WordWrap
-                Layout.fillWidth: true
-                Layout.maximumWidth: 400
             }
 
             Item { Layout.fillHeight: true }
