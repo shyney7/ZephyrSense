@@ -88,9 +88,9 @@ Item {
                             spacing: 4
 
                             Label {
-                                text: "Status: " + (SerialHandler.isConnected ? "Connected" : "Disconnected")
+                                text: "Status: " + (SerialHandler.connected ? "Connected" : "Disconnected")
                                 font.bold: true
-                                color: SerialHandler.isConnected ? "green" : "red"
+                                color: SerialHandler.connected ? "green" : "red"
                             }
                             Label {
                                 text: "Current Port: " + (SerialHandler.portName || "None")
@@ -105,14 +105,14 @@ Item {
 
                         Button {
                             text: "Connect"
-                            enabled: !SerialHandler.isConnected && portComboBox.currentText !== ""
+                            enabled: !SerialHandler.connected && portComboBox.currentText !== ""
                             highlighted: true
                             onClicked: SerialHandler.openPort(portComboBox.currentText)
                         }
 
                         Button {
                             text: "Disconnect"
-                            enabled: SerialHandler.isConnected
+                            enabled: SerialHandler.connected
                             onClicked: SerialHandler.closePort()
                         }
 
