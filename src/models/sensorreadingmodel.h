@@ -45,6 +45,9 @@ public:
     Q_INVOKABLE void loadFromDatabase(const QDateTime &start, const QDateTime &end);
     Q_INVOKABLE void clear();
     Q_INVOKABLE QVariantMap getReading(int index) const;
+    Q_INVOKABLE void startLiveUpdates();
+    Q_INVOKABLE void stopLiveUpdates();
+    Q_INVOKABLE void pruneOldReadings(int windowMinutes);
 
 public slots:
     void addReading(const SensorReading &reading);
@@ -65,6 +68,7 @@ private:
     QList<ReadingEntry> m_readings;
     qint64 m_nextId = 1;
     bool m_thresholdManagerConnected = false;
+    bool m_liveUpdatesConnected = false;
 
 private slots:
     void onThresholdsChanged();

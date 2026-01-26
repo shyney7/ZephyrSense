@@ -1,6 +1,7 @@
 #include "sensorreadingmodel.h"
 #include "databasemanager.h"
 #include "thresholdmanager.h"
+#include "serialhandler.h"
 #include <QDateTime>
 
 SensorReadingModel::SensorReadingModel(QObject *parent)
@@ -245,5 +246,68 @@ void SensorReadingModel::onThresholdsChanged()
 {
     if (!m_readings.isEmpty()) {
         emit dataChanged(index(0), index(m_readings.count() - 1), {HazardLevelRole});
+    }
+}
+
+void SensorReadingModel::startLiveUpdates()
+{
+    if (m_liveUpdatesConnected)
+        return;
+
+    SerialHandler *serial = qobject_cast<SerialHandler*>(
+        qmlEngine(this)->singletonInstance<SerialHandler*>("ZephyrSense", "SerialHandler")
+    );
+
+    if (serial) {
+        connect(serial, &SerialHandler::newReading,
+                this, &SensorReadingModel::addReading);
+        m_liveUpdatesConnected = true;
+    }
+
+    // Also connect to ThresholdManager if not already
+    connectToThresholdManager();
+}
+
+void SensorReadingModel::stopLiveUpdates()
+{
+    if (!m_liveUpdatesConnected)
+        return;
+
+    SerialHandler *serial = qobject_cast<SerialHandler*>(
+        qmlEngine(this)->singletonInstance<SerialHandler*>("ZephyrSense", "SerialHandler")
+    );
+
+    if (serial) {
+        disconnect(serial, &SerialHandler::newReading,
+                   this, &SensorReadingModel::addReading);
+        m_liveUpdatesConnected = false;
+    }
+}
+
+void SensorReadingModel::pruneOldReadings(int windowMinutes)
+{
+    if (m_readings.isEmpty())
+        return;
+
+    QDateTime cutoff = QDateTime::currentDateTime().addSecs(-windowMinutes * 60);
+
+    // Find index of first reading to keep
+    int firstToKeep = 0;
+    for (int i = 0; i < m_readings.count(); ++i) {
+        if (m_readings.at(i).reading.timestamp >= cutoff) {
+            firstToKeep = i;
+            break;
+        }
+        if (i == m_readings.count() - 1) {
+            // All readings are old
+            firstToKeep = m_readings.count();
+        }
+    }
+
+    if (firstToKeep > 0) {
+        beginRemoveRows(QModelIndex(), 0, firstToKeep - 1);
+        m_readings.remove(0, firstToKeep);
+        endRemoveRows();
+        emit countChanged();
     }
 }

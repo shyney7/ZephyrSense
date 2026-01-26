@@ -86,13 +86,17 @@ Item {
         }
     }
 
-    // Live mode update timer
+    // Live mode prune timer (removes old readings outside time window)
     Timer {
         id: liveUpdateTimer
         interval: mapViewRoot.updateIntervalMs
         running: mapViewRoot.currentMode === MapView.VisualizationMode.Live
         repeat: true
-        onTriggered: loadLiveData()
+        onTriggered: {
+            // Prune old readings outside the time window
+            var windowMinutes = getWindowMinutes()
+            sensorModel.pruneOldReadings(windowMinutes)
+        }
     }
 
     // Control panel at bottom
@@ -139,7 +143,13 @@ Item {
                     onCurrentValueChanged: {
                         if (currentValue !== undefined) {
                             mapViewRoot.updateIntervalMs = currentValue
-                            switchToLiveMode()
+                            // If already in live mode, don't reload - just update interval
+                            // If in historical mode, switch to live mode with full reload
+                            if (mapViewRoot.currentMode === MapView.VisualizationMode.Historical) {
+                                switchToLiveMode(true)  // force reload
+                            } else {
+                                liveUpdateTimer.restart()
+                            }
                         }
                     }
                 }
@@ -176,9 +186,9 @@ Item {
                         Layout.preferredWidth: 50
 
                         onClicked: {
-                            // Clicking time window stays in current mode
+                            // Clicking time window stays in current mode but reloads with new window
                             if (mapViewRoot.currentMode === MapView.VisualizationMode.Live) {
-                                loadLiveData()
+                                switchToLiveMode(true)  // force reload with new window
                             }
                         }
                     }
@@ -266,21 +276,7 @@ Item {
     }
 
     // Helper functions
-    function switchToLiveMode() {
-        currentMode = MapView.VisualizationMode.Live
-        liveUpdateTimer.restart()
-        loadLiveData()
-    }
-
-    function switchToHistoricalMode() {
-        currentMode = MapView.VisualizationMode.Historical
-        liveUpdateTimer.stop()
-        sensorModel.loadFromDatabase(historicalStart, historicalEnd)
-        centerOnData()
-    }
-
-    function loadLiveData() {
-        var now = new Date()
+    function getWindowMinutes() {
         var windowMinutes = 60  // Default
         for (var i = 0; i < windowGroup.buttons.length; i++) {
             if (windowGroup.buttons[i].checked) {
@@ -288,8 +284,46 @@ Item {
                 break
             }
         }
+        return windowMinutes
+    }
+
+    function switchToLiveMode(forceReload) {
+        var wasLive = (currentMode === MapView.VisualizationMode.Live)
+        currentMode = MapView.VisualizationMode.Live
+
+        // If already in live mode and not forcing reload, just restart timer
+        if (wasLive && !forceReload) {
+            liveUpdateTimer.restart()
+            return
+        }
+
+        // Load initial data from database for the time window
+        var windowMinutes = getWindowMinutes()
+        var now = new Date()
         var start = new Date(now.getTime() - windowMinutes * 60 * 1000)
         sensorModel.loadFromDatabase(start, now)
+
+        // Start receiving live updates
+        sensorModel.startLiveUpdates()
+        liveUpdateTimer.restart()
+    }
+
+    function switchToHistoricalMode() {
+        if (currentMode === MapView.VisualizationMode.Historical)
+            return
+
+        currentMode = MapView.VisualizationMode.Historical
+        liveUpdateTimer.stop()
+        sensorModel.stopLiveUpdates()
+    }
+
+    function loadLiveData() {
+        // Initial load when starting live mode
+        var windowMinutes = getWindowMinutes()
+        var now = new Date()
+        var start = new Date(now.getTime() - windowMinutes * 60 * 1000)
+        sensorModel.loadFromDatabase(start, now)
+        sensorModel.startLiveUpdates()
     }
 
     function loadPreset(preset) {
@@ -303,8 +337,7 @@ Item {
             case "30d": start = new Date(now.getTime() - 30 * 24 * 3600000); break
         }
         // Selecting a preset triggers historical mode
-        currentMode = MapView.VisualizationMode.Historical
-        liveUpdateTimer.stop()
+        switchToHistoricalMode()
         sensorModel.loadFromDatabase(start, now)
         centerOnData()
     }
@@ -322,6 +355,8 @@ Item {
 
     Component.onCompleted: {
         refreshAvailableDates()
+        // Start in live mode
+        currentMode = MapView.VisualizationMode.Live
         loadLiveData()
     }
 }
