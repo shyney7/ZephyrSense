@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.16)
 project(ZephyrSense VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_PREFIX_PATH "C:/Qt/6.10.1/msvc2022_64")
 
 find_package(Qt6 REQUIRED COMPONENTS Quick QuickControls2 SerialPort Sql Location Positioning Charts Widgets)
 
