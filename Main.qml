@@ -38,10 +38,10 @@ ApplicationWindow {
         anchors.bottom: parent.bottom
         z: 1
 
-        onNavigationRequested: function(index, viewPath) {
+        onNavigationRequested: function (index, viewPath) {
             // Clear selected reading when manually navigating
-            mainWindow.selectedReadingId = -1
-            stackView.replace(viewPath)
+            mainWindow.selectedReadingId = -1;
+            stackView.replace(viewPath);
         }
     }
 
@@ -80,18 +80,19 @@ ApplicationWindow {
         target: stackView.currentItem
         function onShowDashboardForReading(readingId) {
             // Debounce: ignore clicks within 300ms (handles overlapping markers)
-            var now = new Date()
+            var now = new Date();
             if (mainWindow.lastMarkerClickTime) {
-                var elapsed = now - mainWindow.lastMarkerClickTime
+                var elapsed = now - mainWindow.lastMarkerClickTime;
                 if (elapsed < 300) {
-                    return  // Ignore rapid successive clicks from overlapping markers
+                    // Ignore rapid successive clicks from overlapping markers
+                    return;
                 }
             }
-            mainWindow.lastMarkerClickTime = now
+            mainWindow.lastMarkerClickTime = now;
 
-            mainWindow.selectedReadingId = readingId
-            navDrawer.selectItem(1)  // Dashboard is index 1
-            stackView.replace("qml/views/DashboardView.qml")
+            mainWindow.selectedReadingId = readingId;
+            navDrawer.selectItem(1);  // Dashboard is index 1
+            stackView.replace("qml/views/DashboardView.qml");
         }
         ignoreUnknownSignals: true
     }
@@ -100,9 +101,7 @@ ApplicationWindow {
     Connections {
         target: SerialHandler
         function onNewReading(reading) {
-            console.log("Received reading - Temp:", reading.temperature,
-                        "Humidity:", reading.humidity,
-                        "Lat:", reading.latitude, "Lon:", reading.longitude)
+            console.log("Received reading - Temp:", reading.temperature, "Humidity:", reading.humidity, "Lat:", reading.latitude, "Lon:", reading.longitude);
         }
     }
 
@@ -110,8 +109,8 @@ ApplicationWindow {
     Component.onCompleted: {
         // Initialize database (creates tables if needed)
         if (DatabaseManager.initialize()) {
-            console.log("Database initialized at:", DatabaseManager.databasePath)
+            console.log("Database initialized at:", DatabaseManager.databasePath);
         }
-        console.log("CSV export enabled:", CsvExporter.enabled)
+        console.log("CSV export enabled:", CsvExporter.enabled);
     }
 }

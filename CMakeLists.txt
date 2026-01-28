@@ -5,6 +5,7 @@ project(ZephyrSense VERSION 0.1 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_PREFIX_PATH "C:/Qt/6.10.1/msvc2022_64")
+set(app_icon_resource_windows "${CMAKE_CURRENT_SOURCE_DIR}/installer/appicon.rc")
 
 find_package(Qt6 REQUIRED COMPONENTS Quick QuickControls2 SerialPort Sql Location Positioning Charts Widgets)
 
@@ -26,6 +27,7 @@ qt_add_executable(appZephyrSense
     src/models/sensorreadingmodel.h
     src/models/timeserieschartmodel.cpp
     src/models/timeserieschartmodel.h
+    ${app_icon_resource_windows}
 )
 
 qt_add_qml_module(appZephyrSense

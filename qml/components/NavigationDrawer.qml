@@ -12,7 +12,7 @@ Rectangle {
 
     // Programmatic item selection (called from Main.qml when navigating via map marker click)
     function selectItem(index) {
-        navList.currentIndex = index
+        navList.currentIndex = index;
     }
 
     width: collapsed ? 60 : 220
@@ -21,7 +21,10 @@ Rectangle {
     border.width: 1
 
     Behavior on width {
-        NumberAnimation { duration: 200; easing.type: Easing.InOutQuad }
+        NumberAnimation {
+            duration: 200
+            easing.type: Easing.InOutQuad
+        }
     }
 
     ColumnLayout {
@@ -101,8 +104,8 @@ Rectangle {
                 }
 
                 onClicked: {
-                    navList.currentIndex = index
-                    root.navigationRequested(index, model.viewPath)
+                    navList.currentIndex = index;
+                    root.navigationRequested(index, model.viewPath);
                 }
 
                 // Tooltip when collapsed
@@ -124,9 +127,12 @@ Rectangle {
             Layout.preferredHeight: 40
             text: root.collapsed ? ">>" : "<<"
             flat: true
+            background: Rectangle {
+                color: '#4a82fc'
+            }
 
             onClicked: {
-                root.collapsed = !root.collapsed
+                root.collapsed = !root.collapsed;
             }
 
             ToolTip.visible: hovered

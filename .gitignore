@@ -92,3 +92,7 @@ commands.html
 init_PRD/
 NUL
 compile_commands.json
+
+# Installer output
+/installer/Output/
+/installer/
