@@ -1,6 +1,7 @@
 #include <QApplication>
 #include <QQmlApplicationEngine>
 #include <QQuickStyle>
+#include <QIcon>
 #include <QDebug>
 
 #include "src/core/sensorreading.h"
@@ -16,6 +17,9 @@ int main(int argc, char *argv[])
     QCoreApplication::setApplicationName("ZephyrSense");
 
     QApplication app(argc, argv);
+
+    // Add icon to app
+    app.setWindowIcon(QIcon(":/installer/appico.ico"));
 
     // Apply Fusion style before loading QML
     QQuickStyle::setStyle("Fusion");
