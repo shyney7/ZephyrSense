@@ -90,7 +90,7 @@ Item {
                         wrapMode: Text.WordWrap
                         Layout.fillWidth: true
                         font.italic: true
-                        color: palette.mid
+                        color: '#d9e6f1'
                     }
 
                     // Reset button
@@ -105,7 +105,9 @@ Item {
                 }
             }
 
-            Item { Layout.fillHeight: true }
+            Item {
+                Layout.fillHeight: true
+            }
         }
     }
 

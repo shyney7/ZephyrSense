@@ -30,7 +30,7 @@ Item {
         Label {
             text: root.label
             font.pixelSize: 12
-            color: "#666666"
+            color: "white"
         }
 
         RowLayout {

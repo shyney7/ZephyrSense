@@ -7,7 +7,10 @@ import "../components"
 Item {
     id: dashboardRoot
 
-    SystemPalette { id: palette; colorGroup: SystemPalette.Active }
+    SystemPalette {
+        id: palette
+        colorGroup: SystemPalette.Active
+    }
 
     // Mode state management
     property int updateIntervalMs: 1000  // Default 1 second, -1 means frozen
@@ -22,28 +25,91 @@ Item {
 
     // Current sensor values
     property var currentReading: ({
-        partectorNumber: 0,
-        partectorDiam: 0,
-        partectorMass: 0,
-        grimmValue: 0,
-        temperature: 0,
-        humidity: 0,
-        pressure: 0,
-        altitude: 0,
-        co2: 0
-    })
+            partectorNumber: 0,
+            partectorDiam: 0,
+            partectorMass: 0,
+            grimmValue: 0,
+            temperature: 0,
+            humidity: 0,
+            pressure: 0,
+            altitude: 0,
+            co2: 0
+        })
 
     // Sensor configuration for the 9 gauges
     readonly property var sensorConfig: [
-        { key: "partectorNumber", name: "Particles", unit: "/cm3", min: 0, max: 50000, precision: 0 },
-        { key: "partectorDiam", name: "Diameter", unit: "nm", min: 0, max: 500, precision: 0 },
-        { key: "partectorMass", name: "Mass", unit: "ug/m3", min: 0, max: 100, precision: 2 },
-        { key: "grimmValue", name: "GRIMM", unit: "/cm3", min: 0, max: 100, precision: 2 },
-        { key: "temperature", name: "Temperature", unit: "C", min: -20, max: 60, precision: 1 },
-        { key: "humidity", name: "Humidity", unit: "%", min: 0, max: 100, precision: 1 },
-        { key: "pressure", name: "Pressure", unit: "hPa", min: 900, max: 1100, precision: 1 },
-        { key: "altitude", name: "Altitude", unit: "m", min: 0, max: 3000, precision: 1 },
-        { key: "co2", name: "CO2", unit: "ppm", min: 0, max: 5000, precision: 0 }
+        {
+            key: "partectorNumber",
+            name: "Particles",
+            unit: "/cm3",
+            min: 0,
+            max: 50000,
+            precision: 0
+        },
+        {
+            key: "partectorDiam",
+            name: "Diameter",
+            unit: "nm",
+            min: 0,
+            max: 500,
+            precision: 0
+        },
+        {
+            key: "partectorMass",
+            name: "Mass",
+            unit: "ug/m3",
+            min: 0,
+            max: 100,
+            precision: 2
+        },
+        {
+            key: "grimmValue",
+            name: "GRIMM",
+            unit: "/cm3",
+            min: 0,
+            max: 100,
+            precision: 2
+        },
+        {
+            key: "temperature",
+            name: "Temperature",
+            unit: "C",
+            min: -20,
+            max: 60,
+            precision: 1
+        },
+        {
+            key: "humidity",
+            name: "Humidity",
+            unit: "%",
+            min: 0,
+            max: 100,
+            precision: 1
+        },
+        {
+            key: "pressure",
+            name: "Pressure",
+            unit: "hPa",
+            min: 900,
+            max: 1100,
+            precision: 1
+        },
+        {
+            key: "altitude",
+            name: "Altitude",
+            unit: "m",
+            min: 0,
+            max: 3000,
+            precision: 1
+        },
+        {
+            key: "co2",
+            name: "CO2",
+            unit: "ppm",
+            min: 0,
+            max: 5000,
+            precision: 0
+        }
     ]
 
     // Helper model for frozen mode
@@ -66,11 +132,12 @@ Item {
         enabled: dashboardRoot.isLiveMode
         function onNewReading(reading) {
             // Throttle updates based on selected interval
-            var now = new Date()
+            var now = new Date();
             if (dashboardRoot.lastSerialUpdateTime) {
-                var elapsed = now - dashboardRoot.lastSerialUpdateTime
+                var elapsed = now - dashboardRoot.lastSerialUpdateTime;
                 if (elapsed < dashboardRoot.updateIntervalMs) {
-                    return  // Skip update, too soon
+                    // Skip update, too soon
+                    return;
                 }
             }
 
@@ -84,27 +151,28 @@ Item {
                 pressure: reading.pressure,
                 altitude: reading.altitude,
                 co2: reading.co2
-            }
-            dashboardRoot.lastUpdateTime = now
-            dashboardRoot.lastSerialUpdateTime = now
+            };
+            dashboardRoot.lastUpdateTime = now;
+            dashboardRoot.lastSerialUpdateTime = now;
         }
     }
 
     // Timestamp formatting helper
     function formatTimestamp(date) {
-        if (!date) return ""
-        return Qt.formatDateTime(date, "yyyy-MM-dd hh:mm:ss")
+        if (!date)
+            return "";
+        return Qt.formatDateTime(date, "yyyy-MM-dd hh:mm:ss");
     }
 
     // Fetch latest reading from database (fallback when no serial data)
     function fetchLatestReading() {
         // Load recent data from database
-        var endTime = new Date()
-        var startTime = new Date(endTime.getTime() - 3600000) // Last hour for better chance of data
-        readingModel.loadFromDatabase(startTime, endTime)
+        var endTime = new Date();
+        var startTime = new Date(endTime.getTime() - 3600000); // Last hour for better chance of data
+        readingModel.loadFromDatabase(startTime, endTime);
 
         if (readingModel.count > 0) {
-            var reading = readingModel.getReading(readingModel.count - 1)
+            var reading = readingModel.getReading(readingModel.count - 1);
             dashboardRoot.currentReading = {
                 partectorNumber: reading.partectorNumber || 0,
                 partectorDiam: reading.partectorDiam || 0,
@@ -115,19 +183,20 @@ Item {
                 pressure: reading.pressure || 0,
                 altitude: reading.altitude || 0,
                 co2: reading.co2 || 0
-            }
-            dashboardRoot.lastUpdateTime = reading.timestamp || new Date()
+            };
+            dashboardRoot.lastUpdateTime = reading.timestamp || new Date();
         } else {
-            console.log("No data available in database")
+            console.log("No data available in database");
         }
     }
 
     // Load frozen reading from database by ID (direct query, no loop)
     function loadFrozenReading(readingId) {
-        if (readingId < 0) return
+        if (readingId < 0)
+            return;
 
         // Direct database lookup by ID - much faster than loading all data
-        var reading = DatabaseManager.getReadingById(readingId)
+        var reading = DatabaseManager.getReadingById(readingId);
 
         if (reading && reading.id !== undefined) {
             dashboardRoot.currentReading = {
@@ -140,34 +209,34 @@ Item {
                 pressure: reading.pressure || 0,
                 altitude: reading.altitude || 0,
                 co2: reading.co2 || 0
-            }
-            dashboardRoot.frozenTimestamp = reading.timestamp
-            console.log("Loaded frozen reading ID:", readingId)
+            };
+            dashboardRoot.frozenTimestamp = reading.timestamp;
+            console.log("Loaded frozen reading ID:", readingId);
         } else {
-            console.warn("Frozen reading ID not found:", readingId)
+            console.warn("Frozen reading ID not found:", readingId);
         }
     }
 
     // Switch back to live mode
     function switchToLive(intervalMs) {
-        mainWindow.selectedReadingId = -1
-        dashboardRoot.frozenReadingId = -1
-        dashboardRoot.lastProcessedFrozenId = -1  // Reset guard for future clicks
-        dashboardRoot.updateIntervalMs = intervalMs || 1000
-        updateTimer.stop()
-        updateTimer.start()
-        fetchLatestReading()
+        mainWindow.selectedReadingId = -1;
+        dashboardRoot.frozenReadingId = -1;
+        dashboardRoot.lastProcessedFrozenId = -1;  // Reset guard for future clicks
+        dashboardRoot.updateIntervalMs = intervalMs || 1000;
+        updateTimer.stop();
+        updateTimer.start();
+        fetchLatestReading();
     }
 
     // Monitor frozen reading ID changes
     onFrozenReadingIdChanged: {
         // Guard: only process if ID is valid and different from last processed
         if (frozenReadingId >= 0 && frozenReadingId !== lastProcessedFrozenId) {
-            lastProcessedFrozenId = frozenReadingId
+            lastProcessedFrozenId = frozenReadingId;
             // Switch to frozen mode
-            dashboardRoot.updateIntervalMs = -1
-            updateTimer.stop()
-            loadFrozenReading(frozenReadingId)
+            dashboardRoot.updateIntervalMs = -1;
+            updateTimer.stop();
+            loadFrozenReading(frozenReadingId);
         }
     }
 
@@ -176,7 +245,7 @@ Item {
         // Only fetch for live mode - frozen mode is handled by onFrozenReadingIdChanged
         // which fires when the binding initializes
         if (frozenReadingId < 0) {
-            fetchLatestReading()
+            fetchLatestReading();
         }
     }
 
@@ -189,7 +258,7 @@ Item {
         Rectangle {
             Layout.fillWidth: true
             Layout.preferredHeight: 40
-            color: "#F5F5F5"
+            color: '#27f5f5f5'
             radius: 4
 
             RowLayout {
@@ -210,11 +279,11 @@ Item {
                 Text {
                     text: {
                         if (dashboardRoot.isFrozenMode) {
-                            return "Showing data from " + formatTimestamp(dashboardRoot.frozenTimestamp)
+                            return "Showing data from " + formatTimestamp(dashboardRoot.frozenTimestamp);
                         } else if (dashboardRoot.lastUpdateTime) {
-                            return "Live - Last update: " + formatTimestamp(dashboardRoot.lastUpdateTime)
+                            return "Live - Last update: " + formatTimestamp(dashboardRoot.lastUpdateTime);
                         } else {
-                            return "Live - No data yet"
+                            return "Live - No data yet";
                         }
                     }
                     font.pixelSize: 13
@@ -269,25 +338,37 @@ Item {
                 enabled: true  // Always enabled (was: !dashboardRoot.isFrozenMode)
 
                 model: [
-                    { text: "1s", value: 1000 },
-                    { text: "2s", value: 2000 },
-                    { text: "5s", value: 5000 },
-                    { text: "10s", value: 10000 }
+                    {
+                        text: "1s",
+                        value: 1000
+                    },
+                    {
+                        text: "2s",
+                        value: 2000
+                    },
+                    {
+                        text: "5s",
+                        value: 5000
+                    },
+                    {
+                        text: "10s",
+                        value: 10000
+                    }
                 ]
 
                 textRole: "text"
                 currentIndex: 0
 
-                onActivated: function(index) {
-                    var newInterval = model[index].value
+                onActivated: function (index) {
+                    var newInterval = model[index].value;
                     if (dashboardRoot.isFrozenMode) {
                         // Switch back to live mode
-                        switchToLive(newInterval)
+                        switchToLive(newInterval);
                     } else {
                         // Update interval in live mode
-                        dashboardRoot.updateIntervalMs = newInterval
-                        updateTimer.interval = newInterval
-                        updateTimer.restart()
+                        dashboardRoot.updateIntervalMs = newInterval;
+                        updateTimer.interval = newInterval;
+                        updateTimer.restart();
                     }
                 }
             }

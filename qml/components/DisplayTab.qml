@@ -7,7 +7,10 @@ ScrollView {
     id: root
     clip: true
 
-    SystemPalette { id: palette; colorGroup: SystemPalette.Active }
+    SystemPalette {
+        id: palette
+        colorGroup: SystemPalette.Active
+    }
 
     ColumnLayout {
         width: root.width - 32
@@ -36,6 +39,7 @@ ScrollView {
                 Label {
                     text: "Display customization options"
                     font.bold: true
+                    color: "#666666"
                 }
 
                 Label {
@@ -78,17 +82,29 @@ ScrollView {
                 spacing: 8
 
                 RowLayout {
-                    Label { text: "Qt Style:" }
-                    Label { text: "Fusion"; font.bold: true }
+                    Label {
+                        text: "Qt Style:"
+                    }
+                    Label {
+                        text: "Fusion"
+                        font.bold: true
+                    }
                 }
 
                 RowLayout {
-                    Label { text: "Map Provider:" }
-                    Label { text: "OpenStreetMap"; font.bold: true }
+                    Label {
+                        text: "Map Provider:"
+                    }
+                    Label {
+                        text: "OpenStreetMap"
+                        font.bold: true
+                    }
                 }
 
                 RowLayout {
-                    Label { text: "Database Location:" }
+                    Label {
+                        text: "Database Location:"
+                    }
                     Label {
                         text: DatabaseManager.databasePath
                         font.bold: true
@@ -99,6 +115,8 @@ ScrollView {
             }
         }
 
-        Item { Layout.fillHeight: true }
+        Item {
+            Layout.fillHeight: true
+        }
     }
 }
