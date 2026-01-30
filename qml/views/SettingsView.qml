@@ -29,16 +29,28 @@ Item {
             TabButton { text: "Display" }
         }
 
-        // Tab content
+        // Tab content - use Loaders for lazy instantiation
         StackLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true
             currentIndex: settingsTabBar.currentIndex
 
-            ConnectionTab { }
-            ExportTab { }
-            ThresholdsTab { }
-            DisplayTab { }
+            Loader {
+                active: settingsTabBar.currentIndex === 0
+                sourceComponent: ConnectionTab { }
+            }
+            Loader {
+                active: settingsTabBar.currentIndex === 1
+                sourceComponent: ExportTab { }
+            }
+            Loader {
+                active: settingsTabBar.currentIndex === 2
+                sourceComponent: ThresholdsTab { }
+            }
+            Loader {
+                active: settingsTabBar.currentIndex === 3
+                sourceComponent: DisplayTab { }
+            }
         }
     }
 }

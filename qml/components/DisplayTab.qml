@@ -5,7 +5,6 @@ import ZephyrSense
 
 ScrollView {
     id: root
-    clip: true
 
     SystemPalette {
         id: palette

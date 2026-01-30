@@ -8,7 +8,7 @@ Item {
 
     property alias selectedDate: internal.selectedDate
     property alias selectedHour: internal.selectedHour
-    property var availableDates: []  // List of "yyyy-MM-dd" strings
+    property list<string> availableDates: []  // List of "yyyy-MM-dd" strings
     property string label: "Date/Time"
 
     signal dateTimeChanged(date dateTime)
@@ -188,7 +188,7 @@ Item {
         }
     }
 
-    function emitDateTime() {
+    function emitDateTime(): void {
         var dt = new Date(
             internal.selectedDate.getFullYear(),
             internal.selectedDate.getMonth(),

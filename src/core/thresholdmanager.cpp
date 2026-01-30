@@ -478,6 +478,107 @@ void ThresholdManager::setAltitudeEnabled(bool value)
     }
 }
 
+// Get display color for a specific sensor based on its value and thresholds
+QString ThresholdManager::getColorForSensor(const QString &sensorKey, qreal value) const
+{
+    // If sensor is disabled, return neutral blue
+    if (!isSensorEnabledForKey(sensorKey)) {
+        return QStringLiteral("#2196F3");  // Neutral blue for disabled sensors
+    }
+
+    // Color constants
+    const QString colorGreen = QStringLiteral("#4CAF50");
+    const QString colorYellow = QStringLiteral("#FF9800");
+    const QString colorRed = QStringLiteral("#F44336");
+
+    // Check thresholds based on sensor type
+    if (sensorKey == QLatin1String("temperature")) {
+        // Bidirectional - check both high and low
+        if (value >= m_temperatureDanger || value <= m_temperatureLowDanger)
+            return colorRed;
+        if (value >= m_temperatureWarning || value <= m_temperatureLowWarning)
+            return colorYellow;
+        return colorGreen;
+    } else if (sensorKey == QLatin1String("humidity")) {
+        // Bidirectional - check both high and low
+        if (value >= m_humidityDanger || value <= m_humidityLowDanger)
+            return colorRed;
+        if (value >= m_humidityWarning || value <= m_humidityLowWarning)
+            return colorYellow;
+        return colorGreen;
+    } else if (sensorKey == QLatin1String("co2")) {
+        if (value >= m_co2Danger)
+            return colorRed;
+        if (value >= m_co2Warning)
+            return colorYellow;
+        return colorGreen;
+    } else if (sensorKey == QLatin1String("partectorNumber")) {
+        if (value >= m_partectorNumberDanger)
+            return colorRed;
+        if (value >= m_partectorNumberWarning)
+            return colorYellow;
+        return colorGreen;
+    } else if (sensorKey == QLatin1String("partectorDiam")) {
+        if (value >= m_partectorDiamDanger)
+            return colorRed;
+        if (value >= m_partectorDiamWarning)
+            return colorYellow;
+        return colorGreen;
+    } else if (sensorKey == QLatin1String("partectorMass")) {
+        if (value >= m_partectorMassDanger)
+            return colorRed;
+        if (value >= m_partectorMassWarning)
+            return colorYellow;
+        return colorGreen;
+    } else if (sensorKey == QLatin1String("grimmValue")) {
+        if (value >= m_grimmValueDanger)
+            return colorRed;
+        if (value >= m_grimmValueWarning)
+            return colorYellow;
+        return colorGreen;
+    } else if (sensorKey == QLatin1String("pressure")) {
+        if (value >= m_pressureDanger)
+            return colorRed;
+        if (value >= m_pressureWarning)
+            return colorYellow;
+        return colorGreen;
+    } else if (sensorKey == QLatin1String("altitude")) {
+        if (value >= m_altitudeDanger)
+            return colorRed;
+        if (value >= m_altitudeWarning)
+            return colorYellow;
+        return colorGreen;
+    }
+
+    // Default green if sensor not recognized
+    return colorGreen;
+}
+
+// Check if a sensor is enabled for hazard calculation
+bool ThresholdManager::isSensorEnabledForKey(const QString &sensorKey) const
+{
+    if (sensorKey == QLatin1String("partectorNumber"))
+        return m_partectorNumberEnabled;
+    if (sensorKey == QLatin1String("partectorDiam"))
+        return m_partectorDiamEnabled;
+    if (sensorKey == QLatin1String("partectorMass"))
+        return m_partectorMassEnabled;
+    if (sensorKey == QLatin1String("grimmValue"))
+        return m_grimmValueEnabled;
+    if (sensorKey == QLatin1String("temperature"))
+        return m_temperatureEnabled;
+    if (sensorKey == QLatin1String("humidity"))
+        return m_humidityEnabled;
+    if (sensorKey == QLatin1String("pressure"))
+        return m_pressureEnabled;
+    if (sensorKey == QLatin1String("altitude"))
+        return m_altitudeEnabled;
+    if (sensorKey == QLatin1String("co2"))
+        return m_co2Enabled;
+    // Unknown sensor keys default to enabled
+    return true;
+}
+
 // Compute hazard level based on all sensor values
 // Disabled sensors are skipped and do not contribute to hazard level
 int ThresholdManager::computeHazardLevel(int partectorNumber, int partectorDiam,

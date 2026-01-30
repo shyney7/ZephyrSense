@@ -13,7 +13,7 @@ Item {
     property int updateIntervalMs: 2000
     property date historicalStart: new Date()
     property date historicalEnd: new Date()
-    property var availableDates: []
+    property list<string> availableDates: []
 
     // Chart data model
     TimeSeriesChartModel {
@@ -235,19 +235,19 @@ Item {
     }
 
     // Helper functions
-    function switchToLiveMode() {
+    function switchToLiveMode(): void {
         currentMode = GraphsView.VisualizationMode.Live
         liveUpdateTimer.restart()
         loadLiveData()
     }
 
-    function switchToHistoricalMode() {
+    function switchToHistoricalMode(): void {
         currentMode = GraphsView.VisualizationMode.Historical
         liveUpdateTimer.stop()
         chartModel.loadData(historicalStart, historicalEnd)
     }
 
-    function loadLiveData() {
+    function loadLiveData(): void {
         // Use selected time range from preset buttons
         var minutes = 60  // Default
         for (var i = 0; i < rangeGroup.buttons.length; i++) {
@@ -259,13 +259,13 @@ Item {
         loadDataForRange(minutes)
     }
 
-    function loadDataForRange(minutes) {
-        let now = new Date()
-        let start = new Date(now.getTime() - minutes * 60 * 1000)
+    function loadDataForRange(minutes: int): void {
+        var now = new Date()
+        var start = new Date(now.getTime() - minutes * 60 * 1000)
         chartModel.loadData(start, now)
     }
 
-    function loadPresetFromNow(minutes) {
+    function loadPresetFromNow(minutes: int): void {
         var now = new Date()
         var start = new Date(now.getTime() - minutes * 60 * 1000)
         switchToHistoricalMode()
@@ -274,13 +274,13 @@ Item {
         chartModel.loadData(start, now)
     }
 
-    function refreshAvailableDates() {
+    function refreshAvailableDates(): void {
         availableDates = DatabaseManager.getAvailableDates()
     }
 
-    function formatTime(msecs) {
-        let date = new Date(msecs)
-        return date.toLocaleTimeString(Qt.locale(), "hh:mm")
+    function formatTime(msecs: real): string {
+        var dt = new Date(msecs)
+        return dt.toLocaleTimeString(Qt.locale(), "hh:mm")
     }
 
     // Load default data on component completion

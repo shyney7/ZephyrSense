@@ -12,7 +12,7 @@ ApplicationWindow {
 
     // Selected reading for dashboard view (set when clicking map marker)
     property int selectedReadingId: -1
-    property var lastMarkerClickTime: null  // Debounce for overlapping markers
+    property date lastMarkerClickTime  // Debounce for overlapping markers
 
     // Header toolbar
     header: ToolBar {
@@ -38,7 +38,7 @@ ApplicationWindow {
         anchors.bottom: parent.bottom
         z: 1
 
-        onNavigationRequested: function (index, viewPath) {
+        onNavigationRequested: function (index: int, viewPath: string): void {
             // Clear selected reading when manually navigating
             mainWindow.selectedReadingId = -1;
             stackView.replace(viewPath);
@@ -78,10 +78,10 @@ ApplicationWindow {
     // Handle map marker click -> dashboard navigation
     Connections {
         target: stackView.currentItem
-        function onShowDashboardForReading(readingId) {
+        function onShowDashboardForReading(readingId: int): void {
             // Debounce: ignore clicks within 300ms (handles overlapping markers)
             var now = new Date();
-            if (mainWindow.lastMarkerClickTime) {
+            if (mainWindow.lastMarkerClickTime.getTime() > 0) {
                 var elapsed = now - mainWindow.lastMarkerClickTime;
                 if (elapsed < 300) {
                     // Ignore rapid successive clicks from overlapping markers

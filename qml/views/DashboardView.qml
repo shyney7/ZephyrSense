@@ -16,9 +16,9 @@ Item {
     property int updateIntervalMs: 1000  // Default 1 second, -1 means frozen
     property int frozenReadingId: mainWindow.selectedReadingId
     property int lastProcessedFrozenId: -1  // Guard against duplicate processing
-    property var frozenTimestamp: null
-    property var lastUpdateTime: null
-    property var lastSerialUpdateTime: null
+    property date frozenTimestamp
+    property date lastUpdateTime
+    property date lastSerialUpdateTime
 
     readonly property bool isLiveMode: updateIntervalMs > 0
     readonly property bool isFrozenMode: frozenReadingId >= 0 && updateIntervalMs < 0
@@ -130,10 +130,10 @@ Item {
     Connections {
         target: SerialHandler
         enabled: dashboardRoot.isLiveMode
-        function onNewReading(reading) {
+        function onNewReading(reading: SensorReading): void {
             // Throttle updates based on selected interval
             var now = new Date();
-            if (dashboardRoot.lastSerialUpdateTime) {
+            if (dashboardRoot.lastSerialUpdateTime.getTime() > 0) {
                 var elapsed = now - dashboardRoot.lastSerialUpdateTime;
                 if (elapsed < dashboardRoot.updateIntervalMs) {
                     // Skip update, too soon
@@ -158,14 +158,14 @@ Item {
     }
 
     // Timestamp formatting helper
-    function formatTimestamp(date) {
-        if (!date)
+    function formatTimestamp(dt: date): string {
+        if (dt.getTime() === 0)
             return "";
-        return Qt.formatDateTime(date, "yyyy-MM-dd hh:mm:ss");
+        return Qt.formatDateTime(dt, "yyyy-MM-dd hh:mm:ss");
     }
 
     // Fetch latest reading from database (fallback when no serial data)
-    function fetchLatestReading() {
+    function fetchLatestReading(): void {
         // Load recent data from database
         var endTime = new Date();
         var startTime = new Date(endTime.getTime() - 3600000); // Last hour for better chance of data
@@ -191,7 +191,7 @@ Item {
     }
 
     // Load frozen reading from database by ID (direct query, no loop)
-    function loadFrozenReading(readingId) {
+    function loadFrozenReading(readingId: int): void {
         if (readingId < 0)
             return;
 
@@ -218,7 +218,7 @@ Item {
     }
 
     // Switch back to live mode
-    function switchToLive(intervalMs) {
+    function switchToLive(intervalMs: int): void {
         mainWindow.selectedReadingId = -1;
         dashboardRoot.frozenReadingId = -1;
         dashboardRoot.lastProcessedFrozenId = -1;  // Reset guard for future clicks
@@ -280,7 +280,7 @@ Item {
                     text: {
                         if (dashboardRoot.isFrozenMode) {
                             return "Showing data from " + formatTimestamp(dashboardRoot.frozenTimestamp);
-                        } else if (dashboardRoot.lastUpdateTime) {
+                        } else if (dashboardRoot.lastUpdateTime.getTime() > 0) {
                             return "Live - Last update: " + formatTimestamp(dashboardRoot.lastUpdateTime);
                         } else {
                             return "Live - No data yet";

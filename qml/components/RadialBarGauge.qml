@@ -8,15 +8,6 @@ Item {
 
     SystemPalette { id: palette; colorGroup: SystemPalette.Active }
 
-    // Listen for threshold changes to update colors
-    Connections {
-        target: ThresholdManager
-        function onThresholdsChanged() {
-            // Force re-evaluation of color bindings
-            root.value = root.value
-        }
-    }
-
     // Public properties
     property real value: 0
     property real minValue: 0
@@ -33,108 +24,8 @@ Item {
     readonly property real normalizedValue: Math.min(Math.max(value, minValue), maxValue)
     readonly property real sweepAngle: ((normalizedValue - minValue) / (maxValue - minValue)) * 360
 
-    // Check if sensor is enabled for hazard calculation
-    function isSensorEnabled() {
-        switch (sensorKey) {
-            case "partectorNumber": return ThresholdManager.partectorNumberEnabled
-            case "partectorDiam": return ThresholdManager.partectorDiamEnabled
-            case "partectorMass": return ThresholdManager.partectorMassEnabled
-            case "grimmValue": return ThresholdManager.grimmValueEnabled
-            case "temperature": return ThresholdManager.temperatureEnabled
-            case "humidity": return ThresholdManager.humidityEnabled
-            case "pressure": return ThresholdManager.pressureEnabled
-            case "altitude": return ThresholdManager.altitudeEnabled
-            case "co2": return ThresholdManager.co2Enabled
-            default: return true
-        }
-    }
-
-    // Threshold-based color computation
-    function getProgressColor(val) {
-        // If sensor is disabled, show neutral blue
-        if (!isSensorEnabled()) {
-            return "#2196F3"  // Neutral blue for disabled sensors
-        }
-        if (sensorKey === "temperature") {
-            // Bidirectional - check both high and low
-            if (val >= ThresholdManager.temperatureDanger || val <= ThresholdManager.temperatureLowDanger) {
-                return "#F44336" // red
-            }
-            if (val >= ThresholdManager.temperatureWarning || val <= ThresholdManager.temperatureLowWarning) {
-                return "#FF9800" // orange/yellow
-            }
-            return "#4CAF50" // green
-        } else if (sensorKey === "humidity") {
-            // Bidirectional - check both high and low
-            if (val >= ThresholdManager.humidityDanger || val <= ThresholdManager.humidityLowDanger) {
-                return "#F44336" // red
-            }
-            if (val >= ThresholdManager.humidityWarning || val <= ThresholdManager.humidityLowWarning) {
-                return "#FF9800" // orange/yellow
-            }
-            return "#4CAF50" // green
-        } else if (sensorKey === "co2") {
-            // Unidirectional - high is dangerous
-            if (val >= ThresholdManager.co2Danger) {
-                return "#F44336" // red
-            }
-            if (val >= ThresholdManager.co2Warning) {
-                return "#FF9800" // orange/yellow
-            }
-            return "#4CAF50" // green
-        } else if (sensorKey === "partectorNumber") {
-            if (val >= ThresholdManager.partectorNumberDanger) {
-                return "#F44336"
-            }
-            if (val >= ThresholdManager.partectorNumberWarning) {
-                return "#FF9800"
-            }
-            return "#4CAF50"
-        } else if (sensorKey === "partectorDiam") {
-            if (val >= ThresholdManager.partectorDiamDanger) {
-                return "#F44336"
-            }
-            if (val >= ThresholdManager.partectorDiamWarning) {
-                return "#FF9800"
-            }
-            return "#4CAF50"
-        } else if (sensorKey === "partectorMass") {
-            if (val >= ThresholdManager.partectorMassDanger) {
-                return "#F44336"
-            }
-            if (val >= ThresholdManager.partectorMassWarning) {
-                return "#FF9800"
-            }
-            return "#4CAF50"
-        } else if (sensorKey === "grimmValue") {
-            if (val >= ThresholdManager.grimmValueDanger) {
-                return "#F44336"
-            }
-            if (val >= ThresholdManager.grimmValueWarning) {
-                return "#FF9800"
-            }
-            return "#4CAF50"
-        } else if (sensorKey === "pressure") {
-            if (val >= ThresholdManager.pressureDanger) {
-                return "#F44336"
-            }
-            if (val >= ThresholdManager.pressureWarning) {
-                return "#FF9800"
-            }
-            return "#4CAF50"
-        } else if (sensorKey === "altitude") {
-            if (val >= ThresholdManager.altitudeDanger) {
-                return "#F44336"
-            }
-            if (val >= ThresholdManager.altitudeWarning) {
-                return "#FF9800"
-            }
-            return "#4CAF50"
-        }
-
-        // Default green if sensor not recognized
-        return "#4CAF50"
-    }
+    // Color computed in C++ for performance - responds to thresholdsChanged signal automatically
+    readonly property string progressColor: ThresholdManager.getColorForSensor(sensorKey, normalizedValue)
 
     // Sensor name label at top
     Text {
@@ -187,7 +78,7 @@ Item {
 
         ShapePath {
             strokeWidth: root.dialWidth
-            strokeColor: getProgressColor(root.normalizedValue)
+            strokeColor: root.progressColor
             fillColor: "transparent"
             capStyle: ShapePath.RoundCap
 

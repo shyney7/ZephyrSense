@@ -7,7 +7,7 @@ ChartView {
     id: chartView
 
     // Model reference (set from parent)
-    property var chartModel: null
+    property TimeSeriesChartModel chartModel: null
 
     // Currently displayed sensor column (1-9, matching TimeSeriesChartModel.Columns)
     property int activeColumn: 5  // Default: Temperature

@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -33,31 +35,36 @@ Rectangle {
         spacing: 4
 
         Repeater {
-            model: sensors
+            model: legendRoot.sensors
 
             Rectangle {
+                id: sensorRect
+
+                required property var modelData
+                required property int index
+
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                color: selectedSensor === modelData.column ? modelData.color : "transparent"
-                border.color: modelData.color
+                color: legendRoot.selectedSensor === sensorRect.modelData.column ? sensorRect.modelData.color : "transparent"
+                border.color: sensorRect.modelData.color
                 border.width: 2
                 radius: 4
-                opacity: selectedSensor === modelData.column ? 1.0 : 0.6
+                opacity: legendRoot.selectedSensor === sensorRect.modelData.column ? 1.0 : 0.6
 
                 Label {
                     anchors.centerIn: parent
-                    text: modelData.name
+                    text: sensorRect.modelData.name
                     font.pixelSize: 11
-                    font.bold: selectedSensor === modelData.column
-                    color: selectedSensor === modelData.column ? "white" : modelData.color
+                    font.bold: legendRoot.selectedSensor === sensorRect.modelData.column
+                    color: legendRoot.selectedSensor === sensorRect.modelData.column ? "white" : sensorRect.modelData.color
                 }
 
                 MouseArea {
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor
                     onClicked: {
-                        selectedSensor = modelData.column
-                        sensorSelected(modelData.column)
+                        legendRoot.selectedSensor = sensorRect.modelData.column
+                        legendRoot.sensorSelected(sensorRect.modelData.column)
                     }
                 }
             }

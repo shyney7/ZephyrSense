@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -11,7 +13,7 @@ Rectangle {
     signal navigationRequested(int index, string viewPath)
 
     // Programmatic item selection (called from Main.qml when navigating via map marker click)
-    function selectItem(index) {
+    function selectItem(index: int): void {
         navList.currentIndex = index;
     }
 
@@ -36,7 +38,6 @@ Rectangle {
             id: navList
             Layout.fillWidth: true
             Layout.fillHeight: true
-            clip: true
             interactive: false
             currentIndex: 0
 
@@ -65,6 +66,12 @@ Rectangle {
 
             delegate: ItemDelegate {
                 id: navItem
+
+                required property string iconText
+                required property string title
+                required property string viewPath
+                required property int index
+
                 width: ListView.view.width
                 height: 48
                 highlighted: ListView.isCurrentItem
@@ -82,7 +89,7 @@ Rectangle {
 
                         Label {
                             anchors.centerIn: parent
-                            text: model.iconText
+                            text: navItem.iconText
                             font.pixelSize: 16
                             font.bold: true
                             color: "white"
@@ -91,7 +98,7 @@ Rectangle {
 
                     // Title text (hidden when collapsed)
                     Label {
-                        text: model.title
+                        text: navItem.title
                         font.pixelSize: 14
                         color: navItem.highlighted ? "#000000" : "#424242"
                         visible: !root.collapsed
@@ -104,13 +111,13 @@ Rectangle {
                 }
 
                 onClicked: {
-                    navList.currentIndex = index;
-                    root.navigationRequested(index, model.viewPath);
+                    navList.currentIndex = navItem.index;
+                    root.navigationRequested(navItem.index, navItem.viewPath);
                 }
 
                 // Tooltip when collapsed
                 ToolTip.visible: root.collapsed && navItem.hovered
-                ToolTip.text: model.title
+                ToolTip.text: navItem.title
                 ToolTip.delay: 500
             }
         }

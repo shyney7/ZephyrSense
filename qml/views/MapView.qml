@@ -20,7 +20,7 @@ Item {
     property int updateIntervalMs: 2000  // Default 2 seconds for live mode
     property date historicalStart: new Date()
     property date historicalEnd: new Date()
-    property var availableDates: []
+    property list<string> availableDates: []
 
     // Model instance for map markers
     SensorReadingModel {
@@ -330,7 +330,7 @@ Item {
     }
 
     // Helper functions
-    function getWindowMinutes() {
+    function getWindowMinutes(): int {
         var windowMinutes = 60;  // Default
         for (var i = 0; i < windowGroup.buttons.length; i++) {
             if (windowGroup.buttons[i].checked) {
@@ -341,7 +341,7 @@ Item {
         return windowMinutes;
     }
 
-    function switchToLiveMode(forceReload) {
+    function switchToLiveMode(forceReload: bool): void {
         var wasLive = (currentMode === MapView.VisualizationMode.Live);
         currentMode = MapView.VisualizationMode.Live;
 
@@ -362,7 +362,7 @@ Item {
         liveUpdateTimer.restart();
     }
 
-    function switchToHistoricalMode() {
+    function switchToHistoricalMode(): void {
         if (currentMode === MapView.VisualizationMode.Historical)
             return;
         currentMode = MapView.VisualizationMode.Historical;
@@ -370,7 +370,7 @@ Item {
         sensorModel.stopLiveUpdates();
     }
 
-    function loadLiveData() {
+    function loadLiveData(): void {
         // Initial load when starting live mode
         var windowMinutes = getWindowMinutes();
         var now = new Date();
@@ -379,7 +379,7 @@ Item {
         sensorModel.startLiveUpdates();
     }
 
-    function loadPreset(preset) {
+    function loadPreset(preset: string): void {
         var now = new Date();
         var start;
         switch (preset) {
@@ -405,14 +405,14 @@ Item {
         centerOnData();
     }
 
-    function centerOnData() {
+    function centerOnData(): void {
         if (sensorModel.count > 0) {
             var first = sensorModel.getReading(0);
             mapView.map.center = QtPositioning.coordinate(first.latitude, first.longitude);
         }
     }
 
-    function refreshAvailableDates() {
+    function refreshAvailableDates(): void {
         availableDates = DatabaseManager.getAvailableDates();
     }
 

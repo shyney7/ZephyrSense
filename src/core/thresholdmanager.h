@@ -155,6 +155,12 @@ public:
                                        float temperature, float humidity,
                                        float pressure, float altitude, int co2);
 
+    // Get display color for a specific sensor based on its current value and thresholds
+    Q_INVOKABLE QString getColorForSensor(const QString &sensorKey, qreal value) const;
+
+    // Check if a sensor is enabled for hazard calculation
+    Q_INVOKABLE bool isSensorEnabledForKey(const QString &sensorKey) const;
+
     // Reset all thresholds and enabled states to defaults
     Q_INVOKABLE void resetToDefaults();
 
