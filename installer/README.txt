@@ -1,5 +1,5 @@
 ========================================
-ZephyrSense v0.1.0 - Installation Guide
+ZephyrSense v0.2.0 - Installation Guide
 ========================================
 
 Thank you for installing ZephyrSense!
@@ -113,6 +113,15 @@ For bug reports, feature requests, or questions:
 
 VERSION HISTORY
 ---------------
+v0.2.0 (2026-01-30)
+- Performance: Fixed Settings view freeze with lazy tab loading
+- Performance: Moved gauge color logic to C++ (ThresholdManager)
+- Performance: Removed ~85 lines of JavaScript from RadialBarGauge
+- Code Quality: Added strong typing to QML properties
+- Code Quality: Added function type annotations
+- Code Quality: Implemented ComponentBehavior: Bound for delegates
+- Cleanup: Removed unnecessary clip properties
+
 v0.1.0 (2026-01-28)
 - Initial release
 - Serial port data acquisition
