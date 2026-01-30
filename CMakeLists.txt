@@ -14,20 +14,6 @@ qt_standard_project_setup(REQUIRES 6.8)
 
 qt_add_executable(appZephyrSense
     main.cpp
-    src/core/sensorreading.cpp
-    src/core/sensorreading.h
-    src/core/thresholdmanager.cpp
-    src/core/thresholdmanager.h
-    src/serial/serialhandler.cpp
-    src/serial/serialhandler.h
-    src/data/databasemanager.cpp
-    src/data/databasemanager.h
-    src/data/csvexporter.cpp
-    src/data/csvexporter.h
-    src/models/sensorreadingmodel.cpp
-    src/models/sensorreadingmodel.h
-    src/models/timeserieschartmodel.cpp
-    src/models/timeserieschartmodel.h
     ${app_icon_resource_windows}
     installer/resources.qrc
 )
