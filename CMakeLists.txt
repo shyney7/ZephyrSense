@@ -54,6 +54,10 @@ qt_add_qml_module(appZephyrSense
         src/models/sensorreadingmodel.h
         src/models/timeserieschartmodel.cpp
         src/models/timeserieschartmodel.h
+        src/threading/ioworker.cpp
+        src/threading/ioworker.h
+        src/threading/iothread.cpp
+        src/threading/iothread.h
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
@@ -75,6 +79,7 @@ target_include_directories(appZephyrSense PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/serial
     ${CMAKE_CURRENT_SOURCE_DIR}/src/data
     ${CMAKE_CURRENT_SOURCE_DIR}/src/models
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/threading
 )
 
 target_link_libraries(appZephyrSense

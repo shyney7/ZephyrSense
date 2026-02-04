@@ -99,40 +99,11 @@ void DatabaseManager::createTables()
 
 void DatabaseManager::insertReading(const SensorReading &reading)
 {
-    QSqlDatabase db = QSqlDatabase::database(CONNECTION_NAME);
-    if (!db.isOpen()) {
-        emit databaseError("Database not open");
-        return;
-    }
-
-    QSqlQuery query(db);
-    query.prepare(R"(
-        INSERT INTO readings (
-            timestamp, partectorNumber, partectorDiam, partectorMass,
-            grimmValue, temperature, humidity, pressure,
-            altitude, latitude, longitude, co2
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    )");
-
-    // Store timestamp as milliseconds since epoch (INTEGER)
-    query.addBindValue(reading.timestamp.toMSecsSinceEpoch());
-    query.addBindValue(reading.partectorNumber);
-    query.addBindValue(reading.partectorDiam);
-    query.addBindValue(static_cast<double>(reading.partectorMass));
-    query.addBindValue(static_cast<double>(reading.grimmValue));
-    query.addBindValue(static_cast<double>(reading.temperature));
-    query.addBindValue(static_cast<double>(reading.humidity));
-    query.addBindValue(static_cast<double>(reading.pressure));
-    query.addBindValue(static_cast<double>(reading.altitude));
-    query.addBindValue(static_cast<double>(reading.latitude));
-    query.addBindValue(static_cast<double>(reading.longitude));
-    query.addBindValue(reading.co2);
-
-    if (!query.exec()) {
-        QString error = QString("Failed to insert reading: %1").arg(query.lastError().text());
-        qWarning() << error;
-        emit databaseError(error);
-    }
+    // NOTE: This slot is now deprecated. Database writes are handled by IOWorker
+    // on a dedicated I/O thread for non-blocking UI performance.
+    // This slot remains for API compatibility but does nothing.
+    Q_UNUSED(reading)
+    qWarning() << "DatabaseManager::insertReading called directly - writes should go through IOWorker";
 }
 
 QVariantList DatabaseManager::getReadingsInRange(const QDateTime &start, const QDateTime &end)

@@ -117,12 +117,15 @@ void SerialHandler::handleReadyRead()
     // Append incoming data to buffer
     m_buffer.append(m_serial->readAll());
 
-    // Frame detection state machine
+    // Frame detection for fixed-size binary protocol
     // Protocol: '<' + 42 bytes data + '>' = 44 bytes total
+    // IMPORTANT: Binary data may contain '<' or '>' bytes, so we check
+    // the end delimiter at the EXPECTED position, not by searching.
     constexpr int DATA_SIZE = sizeof(SensorDataRaw);  // 42 bytes
     constexpr int FRAME_SIZE = DATA_SIZE + 2;         // 44 bytes with delimiters
+    constexpr int END_DELIMITER_POS = FRAME_SIZE - 1; // Position 43 (0-indexed)
 
-    while (true) {
+    while (m_buffer.size() >= FRAME_SIZE) {
         // Find start delimiter '<'
         int startIdx = m_buffer.indexOf('<');
         if (startIdx == -1) {
@@ -141,26 +144,21 @@ void SerialHandler::handleReadyRead()
             return;  // Wait for more data
         }
 
-        // Find end delimiter '>' (search after position 1)
-        int endIdx = m_buffer.indexOf('>', 1);
-        if (endIdx == -1) {
-            // No end delimiter yet, wait for more data
-            return;
-        }
-
-        // Check if we found a valid frame (exactly DATA_SIZE bytes between delimiters)
-        int frameSize = endIdx - 1;  // Bytes between '<' and '>'
-        if (frameSize == DATA_SIZE) {
-            // Extract frame (excluding delimiters)
+        // Check end delimiter at EXPECTED position (not by searching)
+        // This handles binary data that may contain '<' or '>' bytes
+        if (m_buffer.at(END_DELIMITER_POS) == '>') {
+            // Valid frame found - extract and parse
             QByteArray frame = m_buffer.mid(1, DATA_SIZE);
             parseFrame(frame);
+            // Remove processed frame from buffer
+            m_buffer.remove(0, FRAME_SIZE);
         } else {
-            // Invalid frame size - likely corruption
-            qWarning() << "Invalid frame size:" << frameSize << "bytes, expected" << DATA_SIZE;
+            // End delimiter not at expected position - this '<' was a false start
+            // (likely a '<' byte inside previous corrupted/partial frame data)
+            // Skip this '<' and search for the next potential start
+            qDebug() << "Frame sync: skipping false start delimiter at position 0";
+            m_buffer.remove(0, 1);
         }
-
-        // Remove processed data from buffer (including delimiters)
-        m_buffer.remove(0, endIdx + 1);
     }
 }
 
