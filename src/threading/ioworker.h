@@ -53,7 +53,6 @@ private:
     std::unique_ptr<QTextStream> m_csvStream;
     bool m_csvEnabled = false;
     QString m_csvFilePath;
-    bool m_csvHeaderWritten = false;
 
     static constexpr const char* CONNECTION_NAME = "ZephyrSenseIOWorker";
 };

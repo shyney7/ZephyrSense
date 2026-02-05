@@ -103,7 +103,7 @@ void DatabaseManager::insertReading(const SensorReading &reading)
     // on a dedicated I/O thread for non-blocking UI performance.
     // This slot remains for API compatibility but does nothing.
     Q_UNUSED(reading)
-    qWarning() << "DatabaseManager::insertReading called directly - writes should go through IOWorker";
+    qCritical() << "DatabaseManager::insertReading called directly - writes should go through IOWorker";
 }
 
 QVariantList DatabaseManager::getReadingsInRange(const QDateTime &start, const QDateTime &end)

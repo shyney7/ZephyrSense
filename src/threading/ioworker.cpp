@@ -56,6 +56,14 @@ void IOWorker::openDatabase(const QString &path)
     }
 
     qDebug() << "IOWorker: Database opened at:" << path;
+
+    // Enable WAL mode for better concurrent read/write performance
+    // (DatabaseManager reads from main thread, IOWorker writes from worker thread)
+    QSqlQuery walQuery(m_db);
+    if (!walQuery.exec("PRAGMA journal_mode=WAL")) {
+        qWarning() << "IOWorker: Failed to enable WAL mode:" << walQuery.lastError().text();
+    }
+
     createTables();
     m_dbInitialized = true;
 }
@@ -107,6 +115,12 @@ void IOWorker::processReading(const SensorReading &reading)
     // Write to database
     if (m_dbInitialized) {
         insertReadingToDb(reading);
+    } else {
+        static bool warnedDbNotInit = false;
+        if (!warnedDbNotInit) {
+            qWarning() << "IOWorker: Database not initialized - readings will not be saved to database";
+            warnedDbNotInit = true;
+        }
     }
 
     // Write to CSV if enabled
@@ -207,7 +221,6 @@ void IOWorker::openCsvFile()
                      << "grimm_value,temperature,humidity,pressure,"
                      << "altitude,latitude,longitude,co2\n";
         m_csvStream->flush();
-        m_csvHeaderWritten = true;
     }
 
     qDebug() << "IOWorker: CSV file opened:" << m_csvFilePath;
@@ -223,7 +236,6 @@ void IOWorker::closeCsvFile()
         m_csvFile->close();
         m_csvFile.reset();
     }
-    m_csvHeaderWritten = false;
 }
 
 void IOWorker::flushAll()
