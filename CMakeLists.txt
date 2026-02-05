@@ -12,6 +12,20 @@ find_package(Qt6 REQUIRED COMPONENTS Quick QuickControls2 SerialPort Sql Locatio
 
 qt_standard_project_setup(REQUIRES 6.8)
 
+# KDDockWidgets — QtQuick frontend only
+set(KDDockWidgets_FRONTENDS "qtquick" CACHE STRING "" FORCE)
+set(KDDockWidgets_QT6 ON CACHE BOOL "" FORCE)
+set(KDDockWidgets_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(KDDockWidgets_TESTS OFF CACHE BOOL "" FORCE)
+set(KDDockWidgets_DOCS OFF CACHE BOOL "" FORCE)
+add_subdirectory(libs/KDDockWidgets-2.4.0)
+
+# Place KDDW DLL next to the app executable
+set_target_properties(kddockwidgets PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${CMAKE_BINARY_DIR}/Debug
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/Release
+)
+
 qt_add_executable(appZephyrSense
     main.cpp
     ${app_icon_resource_windows}
@@ -35,6 +49,7 @@ qt_add_qml_module(appZephyrSense
         qml/components/DisplayTab.qml
         qml/components/DateTimePicker.qml
         qml/components/ModeBadge.qml
+        qml/components/SensorDockChart.qml
         qml/views/MapView.qml
         qml/views/DashboardView.qml
         qml/views/GraphsView.qml
@@ -83,7 +98,7 @@ target_include_directories(appZephyrSense PRIVATE
 )
 
 target_link_libraries(appZephyrSense
-    PRIVATE Qt6::Quick Qt6::QuickControls2 Qt6::SerialPort Qt6::Sql Qt6::Location Qt6::Positioning Qt6::Charts Qt6::Widgets
+    PRIVATE Qt6::Quick Qt6::QuickControls2 Qt6::SerialPort Qt6::Sql Qt6::Location Qt6::Positioning Qt6::Charts Qt6::Widgets KDAB::kddockwidgets
 )
 
 include(GNUInstallDirs)

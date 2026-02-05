@@ -53,6 +53,7 @@ public:
     Q_INVOKABLE void loadData(const QDateTime &start, const QDateTime &end);
     Q_INVOKABLE void clear();
     Q_INVOKABLE void updateYBoundsForColumn(int column);
+    Q_INVOKABLE QVariantMap getYBoundsForColumn(int column) const;
 
 signals:
     void boundsChanged();

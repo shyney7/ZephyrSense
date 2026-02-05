@@ -13,6 +13,9 @@
 #include "src/threading/iothread.h"
 #include "src/threading/ioworker.h"
 
+#include <kddockwidgets/Config.h>
+#include <kddockwidgets/qtquick/Platform.h>
+
 int main(int argc, char *argv[])
 {
     // Set organization info before QGuiApplication (required for QML Settings)
@@ -28,6 +31,22 @@ int main(int argc, char *argv[])
     // Apply Fusion style before loading QML
     QQuickStyle::setStyle("Fusion");
 
+    // Initialize KDDockWidgets with QtQuick frontend
+    KDDockWidgets::initFrontend(KDDockWidgets::FrontendType::QtQuick);
+
+    auto flags = KDDockWidgets::Config::self().flags();
+    flags |= KDDockWidgets::Config::Flag_HideTitleBarWhenTabsVisible;
+    flags |= KDDockWidgets::Config::Flag_AlwaysShowTabs;
+    KDDockWidgets::Config::self().setFlags(flags);
+
+    // Make dragged windows semi-transparent so drop indicator arrows are visible
+    KDDockWidgets::Config::self().setDraggedWindowOpacity(0.6);
+
+    // Use transparent floating windows for better drop indicator interaction on QtQuick
+    auto internalFlags = KDDockWidgets::Config::self().internalFlags();
+    internalFlags |= KDDockWidgets::Config::InternalFlag_UseTransparentFloatingWindow;
+    KDDockWidgets::Config::self().setInternalFlags(internalFlags);
+
     // Register SensorReading for use in signal/slot and QML
     qRegisterMetaType<SensorReading>("SensorReading");
 
@@ -40,6 +59,10 @@ int main(int argc, char *argv[])
     ioThread.start();
 
     QQmlApplicationEngine engine;
+
+    // Set QML engine for KDDockWidgets
+    KDDockWidgets::QtQuick::Platform::instance()->setQmlEngine(&engine);
+
     QObject::connect(
         &engine,
         &QQmlApplicationEngine::objectCreationFailed,

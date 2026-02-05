@@ -41,50 +41,34 @@ ApplicationWindow {
         onNavigationRequested: function (index: int, viewPath: string): void {
             // Clear selected reading when manually navigating
             mainWindow.selectedReadingId = -1;
-            stackView.replace(viewPath);
+            viewStack.currentIndex = index;
         }
     }
 
-    // Main content area with StackView
-    StackView {
-        id: stackView
+    // Main content area with StackLayout (keeps all views alive for dock state persistence)
+    StackLayout {
+        id: viewStack
         anchors.left: navDrawer.right
         anchors.right: parent.right
         anchors.top: parent.top
         anchors.bottom: parent.bottom
+        currentIndex: 0  // Default: MapView
 
-        initialItem: "qml/views/MapView.qml"
-
-        // Smooth transitions between views
-        replaceEnter: Transition {
-            PropertyAnimation {
-                property: "opacity"
-                from: 0
-                to: 1
-                duration: 200
-            }
-        }
-
-        replaceExit: Transition {
-            PropertyAnimation {
-                property: "opacity"
-                from: 1
-                to: 0
-                duration: 200
-            }
-        }
+        MapView { id: mapViewItem }
+        DashboardView { id: dashboardViewItem }
+        GraphsView { id: graphsViewItem }
+        SettingsView { id: settingsViewItem }
     }
 
     // Handle map marker click -> dashboard navigation
     Connections {
-        target: stackView.currentItem
+        target: mapViewItem
         function onShowDashboardForReading(readingId: int): void {
             // Debounce: ignore clicks within 300ms (handles overlapping markers)
             var now = new Date();
             if (mainWindow.lastMarkerClickTime.getTime() > 0) {
                 var elapsed = now - mainWindow.lastMarkerClickTime;
                 if (elapsed < 300) {
-                    // Ignore rapid successive clicks from overlapping markers
                     return;
                 }
             }
@@ -92,7 +76,7 @@ ApplicationWindow {
 
             mainWindow.selectedReadingId = readingId;
             navDrawer.selectItem(1);  // Dashboard is index 1
-            stackView.replace("qml/views/DashboardView.qml");
+            viewStack.currentIndex = 1;
         }
         ignoreUnknownSignals: true
     }
@@ -100,7 +84,7 @@ ApplicationWindow {
     // Debug output for received readings
     Connections {
         target: SerialHandler
-        function onNewReading(reading) {
+        function onNewReading(reading: var): void {
             console.log("Received reading - Temp:", reading.temperature, "Humidity:", reading.humidity, "Lat:", reading.latitude, "Lon:", reading.longitude);
         }
     }

@@ -4,7 +4,6 @@ import ZephyrSense
 
 Item {
     id: root
-    width: height  // Maintain circular aspect ratio
 
     SystemPalette { id: palette; colorGroup: SystemPalette.Active }
 
@@ -20,6 +19,8 @@ Item {
     implicitWidth: 140
     implicitHeight: 140
 
+    // Square gauge size derived from the smaller layout dimension
+    readonly property real gaugeSize: Math.max(Math.min(width, height), 1)
     readonly property real dialWidth: 14
     readonly property real normalizedValue: Math.min(Math.max(value, minValue), maxValue)
     readonly property real sweepAngle: ((normalizedValue - minValue) / (maxValue - minValue)) * 360
@@ -31,7 +32,7 @@ Item {
     Text {
         id: sensorLabel
         text: root.sensorName
-        font.pixelSize: 11
+        font.pixelSize: 14
         font.bold: true
         color: palette.text
         anchors.horizontalCenter: parent.horizontalCenter
@@ -43,8 +44,8 @@ Item {
     Shape {
         id: backgroundShape
         anchors.centerIn: parent
-        width: root.width
-        height: root.height
+        width: root.gaugeSize
+        height: root.gaugeSize
 
         layer.enabled: true
         layer.samples: 4
@@ -70,8 +71,8 @@ Item {
     Shape {
         id: progressShape
         anchors.centerIn: parent
-        width: root.width
-        height: root.height
+        width: root.gaugeSize
+        height: root.gaugeSize
 
         layer.enabled: true
         layer.samples: 4
