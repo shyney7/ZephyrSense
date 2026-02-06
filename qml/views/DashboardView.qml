@@ -121,7 +121,7 @@ Item {
     Timer {
         id: updateTimer
         interval: dashboardRoot.updateIntervalMs
-        running: dashboardRoot.isLiveMode && dashboardRoot.updateIntervalMs > 0
+        running: dashboardRoot.isLiveMode && dashboardRoot.updateIntervalMs > 0 && dashboardRoot.visible
         repeat: true
         onTriggered: fetchLatestReading()
     }

@@ -16,16 +16,29 @@ Item {
     property date historicalEnd: new Date()
     property list<string> availableDates: []
 
+    // True when any dock widget is detached into a floating window
+    property bool hasFloatingDocks: dockPartectorNum.isFloating
+                                    || dockPartectorDiam.isFloating
+                                    || dockPartectorMass.isFloating
+                                    || dockGrimmValue.isFloating
+                                    || dockTemperature.isFloating
+                                    || dockHumidity.isFloating
+                                    || dockPressure.isFloating
+                                    || dockAltitude.isFloating
+                                    || dockCo2.isFloating
+
     // Chart data model (shared by all 9 dock charts)
     TimeSeriesChartModel {
         id: chartModel
     }
 
-    // Live update timer
+    // Live update timer — keeps running when hidden if any dock is floating,
+    // so detached charts stay updated while the user works in another view
     Timer {
         id: liveUpdateTimer
         interval: graphsViewRoot.updateIntervalMs
         running: graphsViewRoot.currentMode === GraphsView.VisualizationMode.Live
+                 && (graphsViewRoot.visible || graphsViewRoot.hasFloatingDocks)
         repeat: true
         onTriggered: loadLiveData()
     }
