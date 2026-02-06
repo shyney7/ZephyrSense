@@ -1,5 +1,5 @@
 ========================================
-ZephyrSense v0.2.0 - Installation Guide
+ZephyrSense v0.3.1 - Installation Guide
 ========================================
 
 Thank you for installing ZephyrSense!
@@ -45,7 +45,7 @@ After installation:
 3. View Live Data:
    - Map View: See sensor readings plotted on an interactive map
    - Dashboard: Monitor all sensor values in real-time with radial gauges
-   - Graphs: Visualize time-series data and trends
+   - Graphs: Dockable per-sensor charts that can be floated, tabbed, and rearranged
    - Settings: Configure thresholds, export data to CSV
 
 SERIAL PORT SETUP
@@ -113,6 +113,23 @@ For bug reports, feature requests, or questions:
 
 VERSION HISTORY
 ---------------
+v0.3.1 (2026-02-06)
+- Fix: Pause view timers when hidden to save resources (StackLayout optimization)
+- Fix: Detached sensor graphs keep updating when user switches to another view
+- Detail: GraphsView timer stays alive when any dock widget is floating
+- Detail: MapView and DashboardView timers pause when not the active view
+
+v0.3.0 (2026-02-06)
+- Feature: Dockable sensor graphs with KDDockWidgets (float, tab, rearrange)
+- Feature: 9 individual per-sensor charts with independent Y-axis scaling
+- Performance: Non-blocking I/O thread for database and CSV writes
+- Performance: Fixed serial frame parser for binary data with delimiter bytes
+- Improvement: Renamed sensors (PNC UFP, diameter UFP, PM0.3, PNC PM, CO2)
+- Improvement: Unit format changed from (unit) to [unit] with Unicode symbols
+- Improvement: Bigger/bolder graph titles, axis labels, and gauge names
+- Improvement: Editable threshold SpinBoxes for custom value entry
+- Stability: SQLite WAL mode for better concurrent read/write performance
+
 v0.2.0 (2026-01-30)
 - Performance: Fixed Settings view freeze with lazy tab loading
 - Performance: Moved gauge color logic to C++ (ThresholdManager)
