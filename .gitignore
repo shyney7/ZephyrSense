@@ -80,7 +80,6 @@ CMakeLists.txt.user*
 .rcc/
 .uic/
 /build*/
-.*/
 node_modules/
 package-lock.json
 .DS_Store
@@ -93,6 +92,9 @@ init_PRD/
 NUL
 compile_commands.json
 libs/
+.cache/
+.claude/
+.github/copilot*
 
 # Installer output
 /installer/Output/

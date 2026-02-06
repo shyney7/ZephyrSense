@@ -1,0 +1,15 @@
+Checks: >-
+  -*,
+  clang-analyzer-*,
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+  performance-*,
+  modernize-use-override,
+  modernize-use-nullptr,
+  modernize-use-auto,
+  readability-redundant-*,
+  readability-misleading-indentation
+
+HeaderFilterRegex: 'src/'
+WarningsAsErrors: ''
+FormatStyle: none

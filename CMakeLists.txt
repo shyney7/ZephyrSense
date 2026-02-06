@@ -5,7 +5,9 @@ project(ZephyrSense VERSION 0.1 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_AUTORCC ON)
-set(CMAKE_PREFIX_PATH "C:/Qt/6.10.1/msvc2022_64")
+if(NOT DEFINED CMAKE_PREFIX_PATH AND NOT DEFINED ENV{CMAKE_PREFIX_PATH})
+    set(CMAKE_PREFIX_PATH "C:/Qt/6.10.1/msvc2022_64")
+endif()
 set(app_icon_resource_windows "${CMAKE_CURRENT_SOURCE_DIR}/installer/appicon.rc")
 
 find_package(Qt6 REQUIRED COMPONENTS Quick QuickControls2 SerialPort Sql Location Positioning Charts Widgets)
@@ -18,7 +20,18 @@ set(KDDockWidgets_QT6 ON CACHE BOOL "" FORCE)
 set(KDDockWidgets_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(KDDockWidgets_TESTS OFF CACHE BOOL "" FORCE)
 set(KDDockWidgets_DOCS OFF CACHE BOOL "" FORCE)
-add_subdirectory(libs/KDDockWidgets-2.4.0)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/libs/KDDockWidgets-2.4.0/CMakeLists.txt")
+    add_subdirectory(libs/KDDockWidgets-2.4.0)
+else()
+    message(STATUS "KDDockWidgets not found locally, fetching from GitHub...")
+    include(FetchContent)
+    FetchContent_Declare(KDDockWidgets
+        GIT_REPOSITORY https://github.com/KDAB/KDDockWidgets.git
+        GIT_TAG        v2.4.0
+        GIT_SHALLOW    TRUE
+    )
+    FetchContent_MakeAvailable(KDDockWidgets)
+endif()
 
 # Place KDDW DLL next to the app executable
 set_target_properties(kddockwidgets PROPERTIES
@@ -107,3 +120,9 @@ install(TARGETS appZephyrSense
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
+
+option(BUILD_TESTS "Build unit tests" OFF)
+if(BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
+endif()

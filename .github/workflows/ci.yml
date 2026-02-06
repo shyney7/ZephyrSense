@@ -1,0 +1,158 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.10.1'
+          arch: win64_msvc2022_64
+          modules: qtserialport qtlocation qtpositioning qtcharts
+          cache: true
+
+      - name: Configure
+        run: cmake -B build -GNinja -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build
+
+  test:
+    name: Test
+    runs-on: windows-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.10.1'
+          arch: win64_msvc2022_64
+          modules: qtserialport qtlocation qtpositioning qtcharts
+          cache: true
+
+      - name: Configure
+        run: cmake -B build -GNinja -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=ON
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Run tests
+        run: ctest --test-dir build --output-on-failure
+
+  lint-qml:
+    name: QML Lint
+    runs-on: windows-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.10.1'
+          arch: win64_msvc2022_64
+          modules: qtserialport qtlocation qtpositioning qtcharts
+          cache: true
+
+      - name: Configure
+        run: cmake -B build -GNinja -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Run qmllint
+        run: cmake --build build --target all_qmllint
+
+  lint-cpp:
+    name: C++ Lint
+    runs-on: windows-latest
+    needs: build
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.10.1'
+          arch: win64_msvc2022_64
+          modules: qtserialport qtlocation qtpositioning qtcharts
+          cache: true
+
+      - name: Install LLVM
+        uses: aminya/setup-cpp@v1
+        with:
+          clangtidy: true
+
+      - name: Configure
+        run: cmake -B build -GNinja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Run clang-tidy
+        shell: bash
+        run: |
+          find src -name '*.cpp' | xargs clang-tidy -p build --header-filter='src/' 2>&1 || true
+
+  codeql:
+    name: CodeQL
+    runs-on: windows-latest
+    permissions:
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.10.1'
+          arch: win64_msvc2022_64
+          modules: qtserialport qtlocation qtpositioning qtcharts
+          cache: true
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: cpp
+          queries: security-and-quality
+
+      - name: Configure
+        run: cmake -B build -GNinja -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
