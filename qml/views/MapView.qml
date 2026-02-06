@@ -93,7 +93,7 @@ Item {
     Timer {
         id: liveUpdateTimer
         interval: mapViewRoot.updateIntervalMs
-        running: mapViewRoot.currentMode === MapView.VisualizationMode.Live
+        running: mapViewRoot.currentMode === MapView.VisualizationMode.Live && mapViewRoot.visible
         repeat: true
         onTriggered: {
             // Prune old readings outside the time window

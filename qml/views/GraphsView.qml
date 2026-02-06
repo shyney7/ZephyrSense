@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import ZephyrSense
+import com.kdab.dockwidgets 2.0 as KDDW
 import "../components"
 
 Item {
@@ -15,16 +16,29 @@ Item {
     property date historicalEnd: new Date()
     property list<string> availableDates: []
 
-    // Chart data model
+    // True when any dock widget is detached into a floating window
+    property bool hasFloatingDocks: dockPartectorNum.isFloating
+                                    || dockPartectorDiam.isFloating
+                                    || dockPartectorMass.isFloating
+                                    || dockGrimmValue.isFloating
+                                    || dockTemperature.isFloating
+                                    || dockHumidity.isFloating
+                                    || dockPressure.isFloating
+                                    || dockAltitude.isFloating
+                                    || dockCo2.isFloating
+
+    // Chart data model (shared by all 9 dock charts)
     TimeSeriesChartModel {
         id: chartModel
     }
 
-    // Live update timer
+    // Live update timer — keeps running when hidden if any dock is floating,
+    // so detached charts stay updated while the user works in another view
     Timer {
         id: liveUpdateTimer
         interval: graphsViewRoot.updateIntervalMs
         running: graphsViewRoot.currentMode === GraphsView.VisualizationMode.Live
+                 && (graphsViewRoot.visible || graphsViewRoot.hasFloatingDocks)
         repeat: true
         onTriggered: loadLiveData()
     }
@@ -40,7 +54,7 @@ Item {
             spacing: 16
 
             Label {
-                text: "Time-Series Graph"
+                text: "Sensor Graphs"
                 font.pixelSize: 20
                 font.bold: true
             }
@@ -112,27 +126,6 @@ Item {
             }
         }
 
-        // Sensor legend
-        SensorLegend {
-            id: legend
-            Layout.fillWidth: true
-            Layout.preferredHeight: 40
-
-            onSensorSelected: function(column) {
-                chart.activeColumn = column
-            }
-        }
-
-        // Main chart area
-        TimeSeriesChart {
-            id: chart
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-
-            chartModel: chartModel
-            activeColumn: legend.selectedSensor
-        }
-
         // Status bar
         Rectangle {
             Layout.fillWidth: true
@@ -159,6 +152,127 @@ Item {
                     font.pixelSize: 12
                     color: "#757575"
                 }
+            }
+        }
+
+        // Dockable charts area
+        KDDW.DockingArea {
+            id: dockingArea
+            uniqueName: "SensorGraphsDockArea"
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+
+            // Dock widgets for each sensor
+            KDDW.DockWidget {
+                id: dockPartectorNum
+                uniqueName: "dock-partector-number"
+                title: "PNC UFP"
+
+                SensorDockChart {
+                    chartModel: chartModel
+                    sensorColumn: 1
+                }
+            }
+
+            KDDW.DockWidget {
+                id: dockPartectorDiam
+                uniqueName: "dock-partector-diameter"
+                title: "\u00D8 UFP"
+
+                SensorDockChart {
+                    chartModel: chartModel
+                    sensorColumn: 2
+                }
+            }
+
+            KDDW.DockWidget {
+                id: dockPartectorMass
+                uniqueName: "dock-partector-mass"
+                title: "PM0.3"
+
+                SensorDockChart {
+                    chartModel: chartModel
+                    sensorColumn: 3
+                }
+            }
+
+            KDDW.DockWidget {
+                id: dockGrimmValue
+                uniqueName: "dock-grimm-value"
+                title: "PNC PM"
+
+                SensorDockChart {
+                    chartModel: chartModel
+                    sensorColumn: 4
+                }
+            }
+
+            KDDW.DockWidget {
+                id: dockTemperature
+                uniqueName: "dock-temperature"
+                title: "Temperature"
+
+                SensorDockChart {
+                    chartModel: chartModel
+                    sensorColumn: 5
+                }
+            }
+
+            KDDW.DockWidget {
+                id: dockHumidity
+                uniqueName: "dock-humidity"
+                title: "Humidity"
+
+                SensorDockChart {
+                    chartModel: chartModel
+                    sensorColumn: 6
+                }
+            }
+
+            KDDW.DockWidget {
+                id: dockPressure
+                uniqueName: "dock-pressure"
+                title: "Pressure"
+
+                SensorDockChart {
+                    chartModel: chartModel
+                    sensorColumn: 7
+                }
+            }
+
+            KDDW.DockWidget {
+                id: dockAltitude
+                uniqueName: "dock-altitude"
+                title: "Altitude"
+
+                SensorDockChart {
+                    chartModel: chartModel
+                    sensorColumn: 8
+                }
+            }
+
+            KDDW.DockWidget {
+                id: dockCo2
+                uniqueName: "dock-co2"
+                title: "CO\u2082"
+
+                SensorDockChart {
+                    chartModel: chartModel
+                    sensorColumn: 9
+                }
+            }
+
+            // Initial layout: all 9 as tabs in a single group
+            Component.onCompleted: {
+                addDockWidget(dockPartectorNum, KDDW.KDDockWidgets.Location_OnBottom)
+                dockPartectorNum.addDockWidgetAsTab(dockPartectorDiam)
+                dockPartectorNum.addDockWidgetAsTab(dockPartectorMass)
+                dockPartectorNum.addDockWidgetAsTab(dockGrimmValue)
+                dockPartectorNum.addDockWidgetAsTab(dockTemperature)
+                dockPartectorNum.addDockWidgetAsTab(dockHumidity)
+                dockPartectorNum.addDockWidgetAsTab(dockPressure)
+                dockPartectorNum.addDockWidgetAsTab(dockAltitude)
+                dockPartectorNum.addDockWidgetAsTab(dockCo2)
             }
         }
     }

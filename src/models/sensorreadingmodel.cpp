@@ -193,15 +193,15 @@ QString SensorReadingModel::formatTooltip(const SensorReading &reading) const
         "Position: %2, %3\n"
         "Altitude: %4 m\n"
         "\n"
-        "Particles: %5 /cm3\n"
-        "Diameter: %6 nm\n"
-        "Mass: %7 ug/m3\n"
-        "GRIMM: %8 /cm3\n"
+        "PNC UFP: %5 #/cm\u00B3\n"
+        "\u00D8 UFP: %6 nm\n"
+        "PM0.3: %7 \u00B5g/m\u00B3\n"
+        "PNC PM: %8 #/cm\u00B3\n"
         "\n"
-        "Temperature: %9 C\n"
+        "Temperature: %9 \u00B0C\n"
         "Humidity: %10 %\n"
         "Pressure: %11 hPa\n"
-        "CO2: %12 ppm"
+        "CO\u2082: %12 ppm"
     ).arg(reading.timestamp.toString("yyyy-MM-dd hh:mm:ss"))
      .arg(reading.latitude, 0, 'f', 6)
      .arg(reading.longitude, 0, 'f', 6)

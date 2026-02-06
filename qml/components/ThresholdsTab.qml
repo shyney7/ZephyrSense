@@ -38,66 +38,46 @@ Item {
                         Label { text: "Info"; Layout.preferredWidth: 30; font.bold: true }
                     }
 
-                    // PM Mass
-                    RowLayout {
-                        Layout.fillWidth: true
-                        CheckBox {
-                            checked: ThresholdManager.partectorMassEnabled
-                            onToggled: ThresholdManager.partectorMassEnabled = checked
-                        }
-                        Label { text: "PM Mass (ug/m3)"; Layout.preferredWidth: 150 }
-                        SpinBox {
-                            from: 10; to: 100
-                            value: Math.round(ThresholdManager.partectorMassWarning)
-                            onValueModified: ThresholdManager.partectorMassWarning = value
-                        }
-                        SpinBox {
-                            from: 20; to: 200
-                            value: Math.round(ThresholdManager.partectorMassDanger)
-                            onValueModified: ThresholdManager.partectorMassDanger = value
-                        }
-                    }
-
-                    // Particle Count
+                    // PNC UFP (Particle Count)
                     RowLayout {
                         Layout.fillWidth: true
                         CheckBox {
                             checked: ThresholdManager.partectorNumberEnabled
                             onToggled: ThresholdManager.partectorNumberEnabled = checked
                         }
-                        Label { text: "Particles (k/cm3)"; Layout.preferredWidth: 150 }
+                        Label { text: "PNC UFP [#/cm\u00B3]"; Layout.preferredWidth: 150 }
                         SpinBox {
-                            from: 1; to: 100
+                            from: 1; to: 500; editable: true
                             value: ThresholdManager.partectorNumberWarning / 1000
                             onValueModified: ThresholdManager.partectorNumberWarning = value * 1000
                         }
                         SpinBox {
-                            from: 10; to: 500
+                            from: 10; to: 500; editable: true
                             value: ThresholdManager.partectorNumberDanger / 1000
                             onValueModified: ThresholdManager.partectorNumberDanger = value * 1000
                         }
                     }
 
-                    // Particle Diameter (inverted)
+                    // Ø UFP (Particle Diameter - inverted)
                     RowLayout {
                         Layout.fillWidth: true
                         CheckBox {
                             checked: ThresholdManager.partectorDiamEnabled
                             onToggled: ThresholdManager.partectorDiamEnabled = checked
                         }
-                        Label { text: "Diameter (nm)"; Layout.preferredWidth: 150 }
+                        Label { text: "\u00D8 UFP [nm]"; Layout.preferredWidth: 150 }
                         SpinBox {
-                            from: 50; to: 300
+                            from: 10; to: 500; editable: true
                             value: ThresholdManager.partectorDiamWarning
                             onValueModified: ThresholdManager.partectorDiamWarning = value
                         }
                         SpinBox {
-                            from: 10; to: 500
+                            from: 10; to: 500; editable: true
                             value: ThresholdManager.partectorDiamDanger
                             onValueModified: ThresholdManager.partectorDiamDanger = value
                         }
                         Label {
-                            text: "⚠"
+                            text: "\u26A0"
                             font.pixelSize: 16
                             ToolTip.visible: diameterInfo.containsMouse
                             ToolTip.text: "Inverted threshold: Lower values are more concerning (smaller particles penetrate deeper)"
@@ -109,41 +89,61 @@ Item {
                         }
                     }
 
-                    // GRIMM Value
+                    // PM0.3 (PM Mass)
+                    RowLayout {
+                        Layout.fillWidth: true
+                        CheckBox {
+                            checked: ThresholdManager.partectorMassEnabled
+                            onToggled: ThresholdManager.partectorMassEnabled = checked
+                        }
+                        Label { text: "PM0.3 [\u00B5g/m\u00B3]"; Layout.preferredWidth: 150 }
+                        SpinBox {
+                            from: 10; to: 100; editable: true
+                            value: Math.round(ThresholdManager.partectorMassWarning)
+                            onValueModified: ThresholdManager.partectorMassWarning = value
+                        }
+                        SpinBox {
+                            from: 20; to: 200; editable: true
+                            value: Math.round(ThresholdManager.partectorMassDanger)
+                            onValueModified: ThresholdManager.partectorMassDanger = value
+                        }
+                    }
+
+                    // PNC PM (GRIMM Value)
                     RowLayout {
                         Layout.fillWidth: true
                         CheckBox {
                             checked: ThresholdManager.grimmValueEnabled
                             onToggled: ThresholdManager.grimmValueEnabled = checked
                         }
-                        Label { text: "GRIMM (p/cm3)"; Layout.preferredWidth: 150 }
+                        Label { text: "PNC PM [#/cm\u00B3]"; Layout.preferredWidth: 150 }
                         SpinBox {
-                            from: 10; to: 100000; stepSize: 1000
+                            from: 10; to: 100000; stepSize: 1000; editable: true
                             value: Math.round(ThresholdManager.grimmValueWarning)
                             onValueModified: ThresholdManager.grimmValueWarning = value
                         }
                         SpinBox {
-                            from: 20; to: 200000; stepSize: 1000
+                            from: 20; to: 200000; stepSize: 1000; editable: true
                             value: Math.round(ThresholdManager.grimmValueDanger)
                             onValueModified: ThresholdManager.grimmValueDanger = value
                         }
                     }
 
-                    // CO2
+                    // CO₂
                     RowLayout {
                         Layout.fillWidth: true
                         CheckBox {
                             checked: ThresholdManager.co2Enabled
                             onToggled: ThresholdManager.co2Enabled = checked
                         }
-                        Label { text: "CO2 (ppm)"; Layout.preferredWidth: 150 }
+                        Label { text: "CO\u2082 [ppm]"; Layout.preferredWidth: 150 }
                         SpinBox {
-                            from: 400; to: 5000; stepSize: 100
+                            from: 400; to: 5000; stepSize: 100; editable: true
                             value: ThresholdManager.co2Warning
                             onValueModified: ThresholdManager.co2Warning = value
                         }
                         SpinBox {
-                            from: 400; to: 10000; stepSize: 100
+                            from: 400; to: 10000; stepSize: 100; editable: true
                             value: ThresholdManager.co2Danger
                             onValueModified: ThresholdManager.co2Danger = value
                         }
@@ -178,14 +178,14 @@ Item {
                             checked: ThresholdManager.temperatureEnabled
                             onToggled: ThresholdManager.temperatureEnabled = checked
                         }
-                        Label { text: "Temperature High (C)"; Layout.preferredWidth: 150 }
+                        Label { text: "Temperature High [\u00B0C]"; Layout.preferredWidth: 150 }
                         SpinBox {
-                            from: 20; to: 50
+                            from: 20; to: 50; editable: true
                             value: Math.round(ThresholdManager.temperatureWarning)
                             onValueModified: ThresholdManager.temperatureWarning = value
                         }
                         SpinBox {
-                            from: 25; to: 60
+                            from: 25; to: 60; editable: true
                             value: Math.round(ThresholdManager.temperatureDanger)
                             onValueModified: ThresholdManager.temperatureDanger = value
                         }
@@ -195,19 +195,19 @@ Item {
                     RowLayout {
                         Layout.fillWidth: true
                         Item { Layout.preferredWidth: 60 } // Spacer (shares checkbox with high)
-                        Label { text: "Temperature Low (C)"; Layout.preferredWidth: 150 }
+                        Label { text: "Temperature Low [\u00B0C]"; Layout.preferredWidth: 150 }
                         SpinBox {
-                            from: -10; to: 20
+                            from: -10; to: 20; editable: true
                             value: Math.round(ThresholdManager.temperatureLowWarning)
                             onValueModified: ThresholdManager.temperatureLowWarning = value
                         }
                         SpinBox {
-                            from: -20; to: 15
+                            from: -20; to: 15; editable: true
                             value: Math.round(ThresholdManager.temperatureLowDanger)
                             onValueModified: ThresholdManager.temperatureLowDanger = value
                         }
                         Label {
-                            text: "⚠"
+                            text: "\u26A0"
                             font.pixelSize: 16
                             ToolTip.visible: tempInfo.containsMouse
                             ToolTip.text: "Inverted threshold: Lower values are more concerning (extreme cold)"
@@ -226,14 +226,14 @@ Item {
                             checked: ThresholdManager.humidityEnabled
                             onToggled: ThresholdManager.humidityEnabled = checked
                         }
-                        Label { text: "Humidity High (%)"; Layout.preferredWidth: 150 }
+                        Label { text: "Humidity High [%]"; Layout.preferredWidth: 150 }
                         SpinBox {
-                            from: 40; to: 90
+                            from: 40; to: 90; editable: true
                             value: Math.round(ThresholdManager.humidityWarning)
                             onValueModified: ThresholdManager.humidityWarning = value
                         }
                         SpinBox {
-                            from: 50; to: 100
+                            from: 50; to: 100; editable: true
                             value: Math.round(ThresholdManager.humidityDanger)
                             onValueModified: ThresholdManager.humidityDanger = value
                         }
@@ -243,19 +243,19 @@ Item {
                     RowLayout {
                         Layout.fillWidth: true
                         Item { Layout.preferredWidth: 60 } // Spacer (shares checkbox with high)
-                        Label { text: "Humidity Low (%)"; Layout.preferredWidth: 150 }
+                        Label { text: "Humidity Low [%]"; Layout.preferredWidth: 150 }
                         SpinBox {
-                            from: 10; to: 40
+                            from: 10; to: 40; editable: true
                             value: Math.round(ThresholdManager.humidityLowWarning)
                             onValueModified: ThresholdManager.humidityLowWarning = value
                         }
                         SpinBox {
-                            from: 5; to: 30
+                            from: 5; to: 30; editable: true
                             value: Math.round(ThresholdManager.humidityLowDanger)
                             onValueModified: ThresholdManager.humidityLowDanger = value
                         }
                         Label {
-                            text: "⚠"
+                            text: "\u26A0"
                             font.pixelSize: 16
                             ToolTip.visible: humidityInfo.containsMouse
                             ToolTip.text: "Inverted threshold: Lower values are more concerning (extreme dryness)"
@@ -274,19 +274,19 @@ Item {
                             checked: ThresholdManager.pressureEnabled
                             onToggled: ThresholdManager.pressureEnabled = checked
                         }
-                        Label { text: "Pressure (hPa)"; Layout.preferredWidth: 150 }
+                        Label { text: "Pressure [hPa]"; Layout.preferredWidth: 150 }
                         SpinBox {
-                            from: 900; to: 1100
+                            from: 900; to: 1100; editable: true
                             value: Math.round(ThresholdManager.pressureWarning)
                             onValueModified: ThresholdManager.pressureWarning = value
                         }
                         SpinBox {
-                            from: 850; to: 1150
+                            from: 850; to: 1150; editable: true
                             value: Math.round(ThresholdManager.pressureDanger)
                             onValueModified: ThresholdManager.pressureDanger = value
                         }
                         Label {
-                            text: "⚠"
+                            text: "\u26A0"
                             font.pixelSize: 16
                             ToolTip.visible: pressureInfo.containsMouse
                             ToolTip.text: "Inverted threshold: Lower values are more concerning (low pressure)"
@@ -305,14 +305,14 @@ Item {
                             checked: ThresholdManager.altitudeEnabled
                             onToggled: ThresholdManager.altitudeEnabled = checked
                         }
-                        Label { text: "Altitude (m)"; Layout.preferredWidth: 150 }
+                        Label { text: "Altitude [m]"; Layout.preferredWidth: 150 }
                         SpinBox {
-                            from: 1000; to: 5000; stepSize: 100
+                            from: 1000; to: 5000; stepSize: 100; editable: true
                             value: Math.round(ThresholdManager.altitudeWarning)
                             onValueModified: ThresholdManager.altitudeWarning = value
                         }
                         SpinBox {
-                            from: 2000; to: 8000; stepSize: 100
+                            from: 2000; to: 8000; stepSize: 100; editable: true
                             value: Math.round(ThresholdManager.altitudeDanger)
                             onValueModified: ThresholdManager.altitudeDanger = value
                         }

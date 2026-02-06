@@ -40,15 +40,15 @@ Item {
     readonly property var sensorConfig: [
         {
             key: "partectorNumber",
-            name: "Particles",
-            unit: "/cm3",
+            name: "PNC UFP",
+            unit: "#/cm\u00B3",
             min: 0,
             max: 50000,
             precision: 0
         },
         {
             key: "partectorDiam",
-            name: "Diameter",
+            name: "\u00D8 UFP",
             unit: "nm",
             min: 0,
             max: 500,
@@ -56,16 +56,16 @@ Item {
         },
         {
             key: "partectorMass",
-            name: "Mass",
-            unit: "ug/m3",
+            name: "PM0.3",
+            unit: "\u00B5g/m\u00B3",
             min: 0,
             max: 100,
             precision: 2
         },
         {
             key: "grimmValue",
-            name: "GRIMM",
-            unit: "/cm3",
+            name: "PNC PM",
+            unit: "#/cm\u00B3",
             min: 0,
             max: 100,
             precision: 2
@@ -73,7 +73,7 @@ Item {
         {
             key: "temperature",
             name: "Temperature",
-            unit: "C",
+            unit: "\u00B0C",
             min: -20,
             max: 60,
             precision: 1
@@ -104,7 +104,7 @@ Item {
         },
         {
             key: "co2",
-            name: "CO2",
+            name: "CO\u2082",
             unit: "ppm",
             min: 0,
             max: 5000,
@@ -121,7 +121,7 @@ Item {
     Timer {
         id: updateTimer
         interval: dashboardRoot.updateIntervalMs
-        running: dashboardRoot.isLiveMode && dashboardRoot.updateIntervalMs > 0
+        running: dashboardRoot.isLiveMode && dashboardRoot.updateIntervalMs > 0 && dashboardRoot.visible
         repeat: true
         onTriggered: fetchLatestReading()
     }
