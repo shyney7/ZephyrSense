@@ -126,8 +126,10 @@ private slots:
 
         QString dataLine = stream.readLine();
         QVERIFY(!dataLine.isEmpty());
-        QVERIFY(dataLine.contains("100"));  // partectorNumber
-        QVERIFY(dataLine.contains("500"));  // co2
+        QStringList fields = dataLine.split(',');
+        QVERIFY(fields.size() >= 12);
+        QCOMPARE(fields[1].trimmed().toInt(), 100);   // partector_number
+        QCOMPARE(fields[11].trimmed().toInt(), 500);   // co2
     }
 
     void csvDisabled_noFileCreated()

@@ -74,10 +74,11 @@ private slots:
 
     void timestampIsRecent()
     {
+        QDateTime before = QDateTime::currentDateTime();
         SensorReading r;
-        QDateTime now = QDateTime::currentDateTime();
-        // Timestamp should be within 1 second of now
-        QVERIFY(qAbs(r.timestamp.msecsTo(now)) < 1000);
+        QDateTime after = QDateTime::currentDateTime();
+        // Timestamp should be set during construction, between before and after
+        QVERIFY(r.timestamp >= before && r.timestamp <= after);
     }
 };
 

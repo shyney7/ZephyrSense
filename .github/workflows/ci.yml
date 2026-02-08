@@ -121,7 +121,7 @@ jobs:
       - name: Run clang-tidy
         shell: bash
         run: |
-          find src -name '*.cpp' | xargs clang-tidy -p build --header-filter='src/' 2>&1 || true
+          find src -name '*.cpp' | xargs clang-tidy -p build --header-filter='src/' 2>&1
 
   codeql:
     name: CodeQL

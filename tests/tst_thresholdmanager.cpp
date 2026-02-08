@@ -10,7 +10,10 @@ class TestThresholdManager : public QObject
 private slots:
     void init()
     {
-        // Clear any persisted settings so the constructor gets clean defaults
+        // QSettings("thresholds") always uses NativeFormat (Windows registry),
+        // ignoring setDefaultFormat(). Clear persisted settings so the
+        // constructor sees clean defaults. These are trivial threshold values
+        // that the app recreates on next launch.
         QSettings settings("thresholds");
         settings.clear();
         settings.sync();
