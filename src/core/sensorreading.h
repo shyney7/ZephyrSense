@@ -29,7 +29,7 @@ static_assert(sizeof(SensorDataRaw) == 42, "Struct packing mismatch!");
 class SensorReading
 {
     Q_GADGET
-    QML_ANONYMOUS
+    QML_VALUE_TYPE(sensorReading)
     Q_PROPERTY(int partectorNumber MEMBER partectorNumber)
     Q_PROPERTY(int partectorDiam MEMBER partectorDiam)
     Q_PROPERTY(float partectorMass MEMBER partectorMass)
