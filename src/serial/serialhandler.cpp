@@ -6,7 +6,6 @@
 SerialHandler::SerialHandler(QObject *parent)
     : QObject(parent)
     , m_serial(new QSerialPort(this))
-    , m_baudRate(115200)
 {
     connect(m_serial, &QSerialPort::readyRead, this, &SerialHandler::handleReadyRead);
     connect(m_serial, &QSerialPort::errorOccurred, this, &SerialHandler::handleError);

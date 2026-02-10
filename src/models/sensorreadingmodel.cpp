@@ -289,7 +289,7 @@ void SensorReadingModel::pruneOldReadings(int windowMinutes)
     if (m_readings.isEmpty())
         return;
 
-    QDateTime cutoff = QDateTime::currentDateTime().addSecs(-windowMinutes * 60);
+    QDateTime cutoff = QDateTime::currentDateTime().addSecs(-static_cast<qint64>(windowMinutes) * 60);
 
     // Find index of first reading to keep
     int firstToKeep = 0;

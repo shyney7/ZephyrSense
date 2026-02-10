@@ -1,15 +1,62 @@
+# Strategy: whitelist (-* then enable specific families).
+# New clang-tidy versions cannot add surprise noise.
+# Qt-specific false positives are explicitly excluded within each family.
+#
+# Run manually (from project root, after building):
+#   clang-tidy -p build/compile_commands.json src/**/*.cpp main.cpp
+#
+# WarningsAsErrors progression:
+#   Phase 1 (now):    empty — fix existing issues first
+#   Phase 2 (stable): modernize-use-nullptr,modernize-use-override
+#   Phase 3 (CI):     bugprone-*,clang-analyzer-*
+
 Checks: >-
   -*,
+
   clang-analyzer-*,
+  -clang-analyzer-cplusplus.NewDelete,
+  -clang-analyzer-cplusplus.NewDeleteLeaks,
+  -clang-analyzer-optin.cplusplus.VirtualCall,
+
   bugprone-*,
   -bugprone-easily-swappable-parameters,
+  -bugprone-narrowing-conversions,
+  -bugprone-suspicious-include,
+
   performance-*,
+  -performance-unnecessary-value-param,
+  -performance-enum-size,
+  -performance-no-automatic-move,
+
   modernize-use-override,
   modernize-use-nullptr,
-  modernize-use-auto,
-  readability-redundant-*,
-  readability-misleading-indentation
+  modernize-loop-convert,
+  modernize-use-default-member-init,
+  modernize-redundant-void-arg,
 
-HeaderFilterRegex: 'src/'
+  cppcoreguidelines-virtual-class-destructor,
+  cppcoreguidelines-slicing,
+
+  readability-redundant-*,
+  -readability-redundant-access-specifiers,
+  readability-misleading-indentation,
+  readability-container-size-empty,
+  readability-duplicate-include,
+  readability-simplify-boolean-expr,
+
+  misc-unused-using-decls,
+  misc-redundant-expression
+
+# Only report diagnostics from project headers, not from Qt or KDDockWidgets.
+# Uses forward slashes (clang-tidy normalizes paths even on Windows).
+# 'ZephyrSense/src/' excludes libs/KDDockWidgets-2.4.0/src/ which matched the old 'src/'.
+HeaderFilterRegex: 'ZephyrSense/src/'
+
 WarningsAsErrors: ''
 FormatStyle: none
+
+CheckOptions:
+  # Suggest = value syntax (not braces) for default member init,
+  # consistent with existing code style: int m_baudRate = 115200;
+  - key: modernize-use-default-member-init.UseAssignment
+    value: '1'
