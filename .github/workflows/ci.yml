@@ -86,7 +86,7 @@ jobs:
         run: cmake --build build
 
       - name: Run qmllint
-        run: cmake --build build --target all_qmllint
+        run: cmake --build build --target appZephyrSense_qmllint
 
   lint-cpp:
     name: C++ Lint
@@ -121,7 +121,7 @@ jobs:
       - name: Run clang-tidy
         shell: bash
         run: |
-          find src -name '*.cpp' | xargs clang-tidy -p build --header-filter='src/' 2>&1
+          find src -name '*.cpp' | xargs clang-tidy -p build --header-filter='^\.\./src/' 2>&1
 
   codeql:
     name: CodeQL

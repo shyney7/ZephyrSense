@@ -34,7 +34,7 @@ add_zephyr_test(tst_sensorreading
         tst_sensorreading.cpp
         ${CMAKE_SOURCE_DIR}/src/core/sensorreading.cpp
     LIBRARIES
-        Qt6::Core
+        Qt6::Core Qt6::QmlIntegration
 )
 
 # Coordinate validation tests (standalone, no source dependency)
@@ -52,5 +52,5 @@ add_zephyr_test(tst_ioworker
         ${CMAKE_SOURCE_DIR}/src/threading/ioworker.cpp
         ${CMAKE_SOURCE_DIR}/src/core/sensorreading.cpp
     LIBRARIES
-        Qt6::Core Qt6::Sql
+        Qt6::Core Qt6::Sql Qt6::QmlIntegration
 )
