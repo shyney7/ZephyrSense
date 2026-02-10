@@ -1,18 +1,5 @@
 #include <QTest>
-
-// Mirror SensorReadingModel::isValidCoordinate() logic for standalone tests.
-// The original is a private method, so we keep this in sync with its behavior.
-static bool isValidCoordinate(float latitude, float longitude)
-{
-    if (latitude < -90.0f || latitude > 90.0f)
-        return false;
-    if (longitude < -180.0f || longitude > 180.0f)
-        return false;
-    // Reject null island (0, 0) as likely invalid default (exact float comparison)
-    if (latitude == 0.0f && longitude == 0.0f)
-        return false;
-    return true;
-}
+#include "coordinatevalidator.h"
 
 class TestCoordinateValidation : public QObject
 {

@@ -216,19 +216,6 @@ QString SensorReadingModel::formatTooltip(const SensorReading &reading) const
      .arg(reading.co2);
 }
 
-bool SensorReadingModel::isValidCoordinate(float lat, float lon) const
-{
-    // Valid latitude: [-90, 90], longitude: [-180, 180]
-    // Also reject 0,0 as likely invalid default
-    if (lat < -90.0f || lat > 90.0f)
-        return false;
-    if (lon < -180.0f || lon > 180.0f)
-        return false;
-    if (lat == 0.0f && lon == 0.0f)
-        return false;
-    return true;
-}
-
 void SensorReadingModel::connectToThresholdManager()
 {
     if (m_thresholdManagerConnected)
