@@ -269,8 +269,8 @@ Item {
 
                 // Mode indicator circle
                 Rectangle {
-                    width: 12
-                    height: 12
+                    Layout.preferredWidth: 12
+                    Layout.preferredHeight: 12
                     radius: 6
                     color: dashboardRoot.isLiveMode ? "#4CAF50" : "#2196F3"
                 }

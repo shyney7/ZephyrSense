@@ -30,7 +30,7 @@ Rectangle {
         // Separator
         Rectangle {
             Layout.fillWidth: true
-            height: 1
+            Layout.preferredHeight: 1
             color: "#e0e0e0"
         }
 
@@ -97,8 +97,8 @@ Rectangle {
             }
 
             Rectangle {
-                width: 12
-                height: 12
+                Layout.preferredWidth: 12
+                Layout.preferredHeight: 12
                 radius: 6
                 color: SerialHandler.connected ? "#4CAF50" : "#9E9E9E"
             }
@@ -117,7 +117,7 @@ Rectangle {
         // Error display
         Rectangle {
             Layout.fillWidth: true
-            height: errorLabel.implicitHeight + 16
+            Layout.preferredHeight: errorLabel.implicitHeight + 16
             color: "#FFEBEE"
             radius: 4
             visible: SerialHandler.errorString !== ""

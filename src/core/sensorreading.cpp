@@ -1,21 +1,5 @@
 #include "sensorreading.h"
 
-SensorReading::SensorReading()
-    : partectorNumber(0)
-    , partectorDiam(0)
-    , partectorMass(0.0f)
-    , grimmValue(0.0f)
-    , temperature(0.0f)
-    , humidity(0.0f)
-    , pressure(0.0f)
-    , altitude(0.0f)
-    , latitude(0.0f)
-    , longitude(0.0f)
-    , co2(0)
-    , timestamp(QDateTime::currentDateTime())
-{
-}
-
 SensorReading::SensorReading(const SensorDataRaw &raw)
     : partectorNumber(raw.partectorNumber)
     , partectorDiam(raw.partectorDiam)

@@ -44,7 +44,7 @@ class SensorReading
     Q_PROPERTY(QDateTime timestamp MEMBER timestamp)
 
 public:
-    SensorReading();
+    SensorReading() = default;
     explicit SensorReading(const SensorDataRaw &raw);
 
     // Sensor fields
@@ -59,7 +59,7 @@ public:
     float latitude = 0.0f;
     float longitude = 0.0f;
     int co2 = 0;
-    QDateTime timestamp;
+    QDateTime timestamp = QDateTime::currentDateTime();
 };
 
 Q_DECLARE_METATYPE(SensorReading)
