@@ -282,50 +282,84 @@ Item {
                 }
 
                 Button {
+                    text: "Custom Range..."
+                    onClicked: customRangePopup.open()
+                }
+
+                Button {
                     text: "Clear"
                     onClicked: sensorModel.clear()
                 }
             }
 
-            // Custom date range selector
-            GroupBox {
-                title: "Select Range"
+        }
+    }
+
+    // Custom date range popup
+    Popup {
+        id: customRangePopup
+        modal: true
+        width: 500
+        height: 280
+        anchors.centerIn: Overlay.overlay
+        padding: 16
+
+        ColumnLayout {
+            anchors.fill: parent
+            spacing: 12
+
+            Label {
+                text: "Select Custom Date Range"
+                font.pixelSize: 16
+                font.bold: true
+            }
+
+            RowLayout {
                 Layout.fillWidth: true
+                spacing: 16
 
-                RowLayout {
-                    anchors.fill: parent
-                    spacing: 12
+                DateTimePicker {
+                    id: startPicker
+                    label: "Start Date/Time"
+                    Layout.fillWidth: true
+                    availableDates: mapViewRoot.availableDates
 
-                    DateTimePicker {
-                        id: startPicker
-                        label: "Start"
-                        Layout.preferredWidth: 220
-                        availableDates: mapViewRoot.availableDates
-
-                        onDateTimeChanged: function (dt) {
-                            mapViewRoot.historicalStart = dt;
-                        }
+                    onDateTimeChanged: function(dt) {
+                        mapViewRoot.historicalStart = dt;
                     }
+                }
 
-                    DateTimePicker {
-                        id: endPicker
-                        label: "End"
-                        Layout.preferredWidth: 220
-                        availableDates: mapViewRoot.availableDates
+                DateTimePicker {
+                    id: endPicker
+                    label: "End Date/Time"
+                    Layout.fillWidth: true
+                    availableDates: mapViewRoot.availableDates
 
-                        onDateTimeChanged: function (dt) {
-                            mapViewRoot.historicalEnd = dt;
-                        }
+                    onDateTimeChanged: function(dt) {
+                        mapViewRoot.historicalEnd = dt;
                     }
+                }
+            }
 
-                    Button {
-                        text: "Load"
-                        Layout.preferredWidth: 100
-                        onClicked: mapViewRoot.switchToHistoricalMode()
-                    }
+            Item { Layout.fillHeight: true }
 
-                    Item {
-                        Layout.fillWidth: true
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 8
+
+                Item { Layout.fillWidth: true }
+
+                Button {
+                    text: "Cancel"
+                    onClicked: customRangePopup.close()
+                }
+
+                Button {
+                    text: "Load Data"
+                    highlighted: true
+                    onClicked: {
+                        mapViewRoot.switchToHistoricalMode();
+                        customRangePopup.close();
                     }
                 }
             }
@@ -366,11 +400,11 @@ Item {
     }
 
     function switchToHistoricalMode(): void {
-        if (currentMode === MapView.VisualizationMode.Historical)
-            return;
         currentMode = MapView.VisualizationMode.Historical;
         liveUpdateTimer.stop();
         sensorModel.stopLiveUpdates();
+        sensorModel.loadFromDatabase(mapViewRoot.historicalStart, mapViewRoot.historicalEnd);
+        centerOnData();
     }
 
     function loadLiveData(): void {
@@ -402,10 +436,9 @@ Item {
             start = new Date(now.getTime() - 30 * 24 * 3600000);
             break;
         }
-        // Selecting a preset triggers historical mode
+        mapViewRoot.historicalStart = start;
+        mapViewRoot.historicalEnd = now;
         switchToHistoricalMode();
-        sensorModel.loadFromDatabase(start, now);
-        centerOnData();
     }
 
     function centerOnData(): void {
