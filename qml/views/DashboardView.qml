@@ -123,7 +123,7 @@ Item {
         interval: dashboardRoot.updateIntervalMs
         running: dashboardRoot.isLiveMode && dashboardRoot.updateIntervalMs > 0 && dashboardRoot.visible
         repeat: true
-        onTriggered: fetchLatestReading()
+        onTriggered: dashboardRoot.fetchLatestReading()
     }
 
     // Live data connection
@@ -279,9 +279,9 @@ Item {
                 Text {
                     text: {
                         if (dashboardRoot.isFrozenMode) {
-                            return "Showing data from " + formatTimestamp(dashboardRoot.frozenTimestamp);
+                            return "Showing data from " + dashboardRoot.formatTimestamp(dashboardRoot.frozenTimestamp);
                         } else if (dashboardRoot.lastUpdateTime.getTime() > 0) {
-                            return "Live - Last update: " + formatTimestamp(dashboardRoot.lastUpdateTime);
+                            return "Live - Last update: " + dashboardRoot.formatTimestamp(dashboardRoot.lastUpdateTime);
                         } else {
                             return "Live - No data yet";
                         }
@@ -305,6 +305,8 @@ Item {
                 model: dashboardRoot.sensorConfig
 
                 RadialBarGauge {
+                    required property var modelData
+
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     Layout.minimumWidth: 140
@@ -363,7 +365,7 @@ Item {
                     var newInterval = model[index].value;
                     if (dashboardRoot.isFrozenMode) {
                         // Switch back to live mode
-                        switchToLive(newInterval);
+                        dashboardRoot.switchToLive(newInterval);
                     } else {
                         // Update interval in live mode
                         dashboardRoot.updateIntervalMs = newInterval;
@@ -380,7 +382,7 @@ Item {
             Button {
                 text: "Return to Live"
                 visible: dashboardRoot.isFrozenMode
-                onClicked: switchToLive(1000)
+                onClicked: dashboardRoot.switchToLive(1000)
             }
         }
     }

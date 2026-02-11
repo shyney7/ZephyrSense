@@ -97,7 +97,7 @@ Item {
         repeat: true
         onTriggered: {
             // Prune old readings outside the time window
-            var windowMinutes = getWindowMinutes();
+            var windowMinutes = mapViewRoot.getWindowMinutes();
             sensorModel.pruneOldReadings(windowMinutes);
         }
     }
@@ -164,7 +164,7 @@ Item {
                             // If already in live mode, don't reload - just update interval
                             // If in historical mode, switch to live mode with full reload
                             if (mapViewRoot.currentMode === MapView.VisualizationMode.Historical) {
-                                switchToLiveMode(true);  // force reload
+                                mapViewRoot.switchToLiveMode(true);  // force reload
                             } else {
                                 liveUpdateTimer.restart();
                             }
@@ -318,7 +318,7 @@ Item {
                     Button {
                         text: "Load"
                         Layout.preferredWidth: 100
-                        onClicked: switchToHistoricalMode()
+                        onClicked: mapViewRoot.switchToHistoricalMode()
                     }
 
                     Item {

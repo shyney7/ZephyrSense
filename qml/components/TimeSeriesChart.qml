@@ -48,29 +48,29 @@ ChartView {
         id: timeAxis
         format: "hh:mm"
         tickCount: 6
-        min: chartModel ? new Date(chartModel.xMin) : new Date()
-        max: chartModel ? new Date(chartModel.xMax) : new Date()
+        min: chartView.chartModel ? new Date(chartView.chartModel.xMin) : new Date()
+        max: chartView.chartModel ? new Date(chartView.chartModel.xMax) : new Date()
     }
 
     ValueAxis {
         id: valueAxis
         labelFormat: "%.1f"
-        min: chartModel ? chartModel.yMin : 0
-        max: chartModel ? chartModel.yMax : 100
+        min: chartView.chartModel ? chartView.chartModel.yMin : 0
+        max: chartView.chartModel ? chartView.chartModel.yMax : 100
     }
 
     LineSeries {
         id: dataSeries
-        name: sensorNames[activeColumn]
-        color: sensorColors[activeColumn]
+        name: chartView.sensorNames[chartView.activeColumn]
+        color: chartView.sensorColors[chartView.activeColumn]
         width: 2
         axisX: timeAxis
         axisY: valueAxis
 
         VXYModelMapper {
-            model: chartModel
+            model: chartView.chartModel
             xColumn: 0  // Timestamp column
-            yColumn: activeColumn
+            yColumn: chartView.activeColumn
         }
     }
 
