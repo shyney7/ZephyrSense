@@ -1,6 +1,9 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+
+pragma ComponentBehavior: Bound
+
 Item {
     id: root
 
@@ -177,7 +180,7 @@ Item {
                         onClicked: {
                             if (parent.isCurrentMonth) {
                                 internal.selectedDate = dayCell.date
-                                emitDateTime()
+                                root.emitDateTime()
                                 calendarPopup.close()
                             }
                         }

@@ -56,7 +56,12 @@ ApplicationWindow {
         currentIndex: 0  // Default: MapView
 
         MapView { id: mapViewItem }
-        DashboardView { id: dashboardViewItem }
+        DashboardView {
+            id: dashboardViewItem
+            selectedReadingId: mainWindow.selectedReadingId
+            selectedReadingData: mainWindow.selectedReadingData
+            onLiveModeSwitched: mainWindow.selectedReadingId = -1
+        }
         GraphsView { id: graphsViewItem }
         SettingsView { id: settingsViewItem }
     }

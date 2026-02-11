@@ -4,8 +4,15 @@ import QtQuick.Layouts
 import ZephyrSense
 import "../components"
 
+pragma ComponentBehavior: Bound
+
 Item {
     id: dashboardRoot
+
+    // Properties bound from Main.qml (decoupled from mainWindow id)
+    property int selectedReadingId: -1
+    property sensorReading selectedReadingData
+    signal liveModeSwitched()
 
     SystemPalette {
         id: palette
@@ -14,7 +21,7 @@ Item {
 
     // Mode state management
     property int updateIntervalMs: 1000  // Default 1 second, -1 means frozen
-    property int frozenReadingId: mainWindow.selectedReadingId
+    property int frozenReadingId: dashboardRoot.selectedReadingId
     property int lastProcessedFrozenId: -1  // Guard against duplicate processing
     property date frozenTimestamp
     property date lastUpdateTime
@@ -197,7 +204,7 @@ Item {
 
         // selectedReadingData is set before selectedReadingId in Main.qml,
         // so the typed reading data is always available when this fires
-        let reading = mainWindow.selectedReadingData;
+        let reading = dashboardRoot.selectedReadingData;
         dashboardRoot.currentReading = {
             partectorNumber: reading.partectorNumber,
             partectorDiam: reading.partectorDiam,
@@ -215,8 +222,7 @@ Item {
 
     // Switch back to live mode
     function switchToLive(intervalMs: int): void {
-        mainWindow.selectedReadingId = -1;
-        dashboardRoot.frozenReadingId = -1;
+        dashboardRoot.liveModeSwitched()
         dashboardRoot.lastProcessedFrozenId = -1;  // Reset guard for future clicks
         dashboardRoot.updateIntervalMs = intervalMs || 1000;
         updateTimer.stop();

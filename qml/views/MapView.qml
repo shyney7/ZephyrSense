@@ -5,6 +5,8 @@ import QtLocation
 import QtPositioning
 import ZephyrSense
 
+pragma ComponentBehavior: Bound
+
 Item {
     id: mapViewRoot
 
@@ -224,7 +226,7 @@ Item {
                         onClicked: {
                             // Clicking time window stays in current mode but reloads with new window
                             if (mapViewRoot.currentMode === MapView.VisualizationMode.Live) {
-                                switchToLiveMode(true);  // force reload with new window
+                                mapViewRoot.switchToLiveMode(true);  // force reload with new window
                             }
                         }
                     }
@@ -271,7 +273,7 @@ Item {
                         text: modelData.text
                         Layout.preferredWidth: 80
 
-                        onClicked: loadPreset(modelData.preset)
+                        onClicked: mapViewRoot.loadPreset(modelData.preset)
                     }
                 }
 
