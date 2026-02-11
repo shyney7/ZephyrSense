@@ -7,7 +7,7 @@ ThresholdManager* ThresholdManager::s_instance = nullptr;
 
 ThresholdManager::ThresholdManager(QObject *parent)
     : QObject(parent)
-    , m_settings("thresholds")
+    , m_settings(QStringLiteral("thresholds"))
 {
     // Set singleton instance
     s_instance = this;

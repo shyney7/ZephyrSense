@@ -19,9 +19,9 @@
 int main(int argc, char *argv[])
 {
     // Set organization info before QGuiApplication (required for QML Settings)
-    QCoreApplication::setOrganizationName("ZephyrSense");
-    QCoreApplication::setOrganizationDomain("zephyrsense.local");
-    QCoreApplication::setApplicationName("ZephyrSense");
+    QCoreApplication::setOrganizationName(QStringLiteral("ZephyrSense"));
+    QCoreApplication::setOrganizationDomain(QStringLiteral("zephyrsense.local"));
+    QCoreApplication::setApplicationName(QStringLiteral("ZephyrSense"));
 
     QApplication app(argc, argv);
 
@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
     app.setWindowIcon(QIcon(":/installer/appico.ico"));
 
     // Apply Fusion style before loading QML
-    QQuickStyle::setStyle("Fusion");
+    QQuickStyle::setStyle(QStringLiteral("Fusion"));
 
     // Initialize KDDockWidgets with QtQuick frontend
     KDDockWidgets::initFrontend(KDDockWidgets::FrontendType::QtQuick);
