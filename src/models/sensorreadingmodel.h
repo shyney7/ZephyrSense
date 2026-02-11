@@ -4,6 +4,7 @@
 #include <QAbstractListModel>
 #include <QQmlEngine>
 #include <QDateTime>
+#include "coordinatevalidator.h"
 #include "sensorreading.h"
 #include "thresholdmanager.h"
 
@@ -62,7 +63,6 @@ private:
     };
 
     QString formatTooltip(const SensorReading &reading) const;
-    bool isValidCoordinate(float lat, float lon) const;
     void connectToThresholdManager();
 
     QList<ReadingEntry> m_readings;

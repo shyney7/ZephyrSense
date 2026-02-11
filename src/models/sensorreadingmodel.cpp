@@ -216,19 +216,6 @@ QString SensorReadingModel::formatTooltip(const SensorReading &reading) const
      .arg(reading.co2);
 }
 
-bool SensorReadingModel::isValidCoordinate(float lat, float lon) const
-{
-    // Valid latitude: [-90, 90], longitude: [-180, 180]
-    // Also reject 0,0 as likely invalid default
-    if (lat < -90.0f || lat > 90.0f)
-        return false;
-    if (lon < -180.0f || lon > 180.0f)
-        return false;
-    if (lat == 0.0f && lon == 0.0f)
-        return false;
-    return true;
-}
-
 void SensorReadingModel::connectToThresholdManager()
 {
     if (m_thresholdManagerConnected)
@@ -289,7 +276,7 @@ void SensorReadingModel::pruneOldReadings(int windowMinutes)
     if (m_readings.isEmpty())
         return;
 
-    QDateTime cutoff = QDateTime::currentDateTime().addSecs(-windowMinutes * 60);
+    QDateTime cutoff = QDateTime::currentDateTime().addSecs(-static_cast<qint64>(windowMinutes) * 60);
 
     // Find index of first reading to keep
     int firstToKeep = 0;

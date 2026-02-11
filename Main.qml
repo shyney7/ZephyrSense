@@ -84,7 +84,7 @@ ApplicationWindow {
     // Debug output for received readings
     Connections {
         target: SerialHandler
-        function onNewReading(reading: var): void {
+        function onNewReading(reading: sensorReading): void {
             console.log("Received reading - Temp:", reading.temperature, "Humidity:", reading.humidity, "Lat:", reading.latitude, "Lon:", reading.longitude);
         }
     }

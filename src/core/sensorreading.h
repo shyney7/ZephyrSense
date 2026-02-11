@@ -3,6 +3,7 @@
 
 #include <QDateTime>
 #include <QObject>
+#include <QtQmlIntegration>
 #include <cstdint>
 
 // Raw binary struct matching embedded device protocol (46 bytes packed)
@@ -28,6 +29,7 @@ static_assert(sizeof(SensorDataRaw) == 42, "Struct packing mismatch!");
 class SensorReading
 {
     Q_GADGET
+    QML_VALUE_TYPE(sensorReading)
     Q_PROPERTY(int partectorNumber MEMBER partectorNumber)
     Q_PROPERTY(int partectorDiam MEMBER partectorDiam)
     Q_PROPERTY(float partectorMass MEMBER partectorMass)

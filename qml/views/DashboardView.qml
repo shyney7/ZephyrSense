@@ -130,7 +130,7 @@ Item {
     Connections {
         target: SerialHandler
         enabled: dashboardRoot.isLiveMode
-        function onNewReading(reading: SensorReading): void {
+        function onNewReading(reading: sensorReading): void {
             // Throttle updates based on selected interval
             var now = new Date();
             if (dashboardRoot.lastSerialUpdateTime.getTime() > 0) {
