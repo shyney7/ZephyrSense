@@ -218,7 +218,7 @@ QString SensorReadingModel::formatTooltip(const SensorReading &reading) const
         "Humidity: %10 %\n"
         "Pressure: %11 hPa\n"
         "CO\u2082: %12 ppm"
-    ).arg(reading.timestamp.toString("yyyy-MM-dd hh:mm:ss"))
+    ).arg(reading.timestamp.toString(QStringLiteral("yyyy-MM-dd hh:mm:ss")))
      .arg(reading.latitude, 0, 'f', 6)
      .arg(reading.longitude, 0, 'f', 6)
      .arg(reading.altitude, 0, 'f', 1)
