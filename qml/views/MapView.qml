@@ -9,7 +9,7 @@ Item {
     id: mapViewRoot
 
     // Signal to request navigation to dashboard with specific reading
-    signal showDashboardForReading(int readingId)
+    signal showDashboardForReading(int readingId, sensorReading reading)
 
     // Mode state
     enum VisualizationMode {
@@ -53,9 +53,10 @@ Item {
             delegate: SensorMarker {
                 // Required properties auto-injected from model roles:
                 // latitude, longitude, tooltipText, readingId
+                required property int index
 
                 onMarkerClicked: function (id) {
-                    mapViewRoot.showDashboardForReading(id);
+                    mapViewRoot.showDashboardForReading(id, sensorModel.readingAt(index));
                 }
             }
         }

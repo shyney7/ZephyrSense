@@ -190,31 +190,27 @@ Item {
         }
     }
 
-    // Load frozen reading from database by ID (direct query, no loop)
+    // Load frozen reading using data passed from map view, with database fallback
     function loadFrozenReading(readingId: int): void {
         if (readingId < 0)
             return;
 
-        // Direct database lookup by ID - much faster than loading all data
-        var reading = DatabaseManager.getReadingById(readingId);
-
-        if (reading && reading.id !== undefined) {
-            dashboardRoot.currentReading = {
-                partectorNumber: reading.partectorNumber || 0,
-                partectorDiam: reading.partectorDiam || 0,
-                partectorMass: reading.partectorMass || 0,
-                grimmValue: reading.grimmValue || 0,
-                temperature: reading.temperature || 0,
-                humidity: reading.humidity || 0,
-                pressure: reading.pressure || 0,
-                altitude: reading.altitude || 0,
-                co2: reading.co2 || 0
-            };
-            dashboardRoot.frozenTimestamp = reading.timestamp;
-            console.log("Loaded frozen reading ID:", readingId);
-        } else {
-            console.warn("Frozen reading ID not found:", readingId);
-        }
+        // selectedReadingData is set before selectedReadingId in Main.qml,
+        // so the typed reading data is always available when this fires
+        let reading = mainWindow.selectedReadingData;
+        dashboardRoot.currentReading = {
+            partectorNumber: reading.partectorNumber,
+            partectorDiam: reading.partectorDiam,
+            partectorMass: reading.partectorMass,
+            grimmValue: reading.grimmValue,
+            temperature: reading.temperature,
+            humidity: reading.humidity,
+            pressure: reading.pressure,
+            altitude: reading.altitude,
+            co2: reading.co2
+        };
+        dashboardRoot.frozenTimestamp = reading.timestamp;
+        console.log("Loaded frozen reading ID:", readingId);
     }
 
     // Switch back to live mode

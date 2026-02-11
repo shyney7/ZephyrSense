@@ -132,6 +132,15 @@ void SensorReadingModel::loadFromDatabase(const QDateTime &start, const QDateTim
         }
     }
 
+    // Sync m_nextId to avoid collisions between live reading IDs and database IDs
+    qint64 maxId = 0;
+    for (const auto &entry : m_readings) {
+        maxId = qMax(maxId, entry.id);
+    }
+    if (maxId >= m_nextId) {
+        m_nextId = maxId + 1;
+    }
+
     // Connect to ThresholdManager for live updates (instance available after QML loads)
     connectToThresholdManager();
 
@@ -161,6 +170,13 @@ void SensorReadingModel::addReading(const SensorReading &reading)
     m_readings.append(entry);
     endInsertRows();
     emit countChanged();
+}
+
+SensorReading SensorReadingModel::readingAt(int index) const
+{
+    if (index >= 0 && index < m_readings.count())
+        return m_readings.at(index).reading;
+    return SensorReading();
 }
 
 QVariantMap SensorReadingModel::getReading(int index) const
