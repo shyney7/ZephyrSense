@@ -15,7 +15,7 @@ macro(add_zephyr_test name)
         ${CMAKE_SOURCE_DIR}/src/models
         ${CMAKE_SOURCE_DIR}/src/threading
     )
-    target_link_libraries(${name} PRIVATE Qt6::Test ${ARG_LIBRARIES})
+    target_link_libraries(${name} PRIVATE Qt6::Test project_warnings ${ARG_LIBRARIES})
     add_test(NAME ${name} COMMAND ${name})
 endmacro()
 
