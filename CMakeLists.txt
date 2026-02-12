@@ -18,7 +18,7 @@ qt_standard_project_setup(REQUIRES 6.8)
 add_library(project_warnings INTERFACE)
 target_compile_options(project_warnings INTERFACE
     $<$<CXX_COMPILER_ID:MSVC>:/W4>
-    $<$<CXX_COMPILER_ID:Clang,AppleClang>:-Wweak-vtables;-Wextra-semi>
+    $<$<CXX_COMPILER_ID:Clang,AppleClang>:-Wall;-Wextra;-Woverloaded-virtual;-Wweak-vtables>
     $<$<CXX_COMPILER_ID:GNU>:-Wall;-Wextra;-Woverloaded-virtual>
 )
 
