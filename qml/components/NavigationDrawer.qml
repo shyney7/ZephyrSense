@@ -125,7 +125,7 @@ Rectangle {
         // Collapse/expand toggle button
         Rectangle {
             Layout.fillWidth: true
-            height: 1
+            Layout.preferredHeight: 1
             color: "#e0e0e0"
         }
 

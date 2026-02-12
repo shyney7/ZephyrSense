@@ -12,6 +12,7 @@ ApplicationWindow {
 
     // Selected reading for dashboard view (set when clicking map marker)
     property int selectedReadingId: -1
+    property sensorReading selectedReadingData
     property date lastMarkerClickTime  // Debounce for overlapping markers
 
     // Header toolbar
@@ -55,7 +56,12 @@ ApplicationWindow {
         currentIndex: 0  // Default: MapView
 
         MapView { id: mapViewItem }
-        DashboardView { id: dashboardViewItem }
+        DashboardView {
+            id: dashboardViewItem
+            selectedReadingId: mainWindow.selectedReadingId
+            selectedReadingData: mainWindow.selectedReadingData
+            onLiveModeSwitched: mainWindow.selectedReadingId = -1
+        }
         GraphsView { id: graphsViewItem }
         SettingsView { id: settingsViewItem }
     }
@@ -63,7 +69,7 @@ ApplicationWindow {
     // Handle map marker click -> dashboard navigation
     Connections {
         target: mapViewItem
-        function onShowDashboardForReading(readingId: int): void {
+        function onShowDashboardForReading(readingId: int, reading: sensorReading): void {
             // Debounce: ignore clicks within 300ms (handles overlapping markers)
             var now = new Date();
             if (mainWindow.lastMarkerClickTime.getTime() > 0) {
@@ -74,6 +80,8 @@ ApplicationWindow {
             }
             mainWindow.lastMarkerClickTime = now;
 
+            // Set data before ID - setting selectedReadingId triggers DashboardView binding
+            mainWindow.selectedReadingData = reading;
             mainWindow.selectedReadingId = readingId;
             navDrawer.selectItem(1);  // Dashboard is index 1
             viewStack.currentIndex = 1;

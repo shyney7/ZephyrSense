@@ -46,6 +46,7 @@ public:
     Q_INVOKABLE void loadFromDatabase(const QDateTime &start, const QDateTime &end);
     Q_INVOKABLE void clear();
     Q_INVOKABLE QVariantMap getReading(int index) const;
+    Q_INVOKABLE SensorReading readingAt(int index) const;
     Q_INVOKABLE void startLiveUpdates();
     Q_INVOKABLE void stopLiveUpdates();
     Q_INVOKABLE void pruneOldReadings(int windowMinutes);

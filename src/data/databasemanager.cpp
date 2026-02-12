@@ -37,11 +37,11 @@ bool DatabaseManager::initialize()
     }
 
     // Create new connection
-    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", CONNECTION_NAME);
+    QSqlDatabase db = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), CONNECTION_NAME);
     db.setDatabaseName(m_databasePath);
 
     if (!db.open()) {
-        QString error = QString("Failed to open database: %1").arg(db.lastError().text());
+        QString error = QStringLiteral("Failed to open database: %1").arg(db.lastError().text());
         qWarning() << error;
         emit databaseError(error);
         return false;
@@ -58,7 +58,7 @@ void DatabaseManager::createTables()
     QSqlQuery query(db);
 
     // Create readings table with all sensor fields
-    const QString createTableSql = R"(
+    const QString createTableSql = QStringLiteral(R"(
         CREATE TABLE IF NOT EXISTS readings (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             timestamp INTEGER NOT NULL,
@@ -74,22 +74,22 @@ void DatabaseManager::createTables()
             longitude REAL,
             co2 INTEGER
         )
-    )";
+    )");
 
     if (!query.exec(createTableSql)) {
-        QString error = QString("Failed to create readings table: %1").arg(query.lastError().text());
+        QString error = QStringLiteral("Failed to create readings table: %1").arg(query.lastError().text());
         qWarning() << error;
         emit databaseError(error);
         return;
     }
 
     // Create index on timestamp for efficient range queries
-    const QString createIndexSql = R"(
+    const QString createIndexSql = QStringLiteral(R"(
         CREATE INDEX IF NOT EXISTS idx_timestamp ON readings(timestamp)
-    )";
+    )");
 
     if (!query.exec(createIndexSql)) {
-        QString error = QString("Failed to create timestamp index: %1").arg(query.lastError().text());
+        QString error = QStringLiteral("Failed to create timestamp index: %1").arg(query.lastError().text());
         qWarning() << error;
         emit databaseError(error);
     }
@@ -112,27 +112,27 @@ QVariantList DatabaseManager::getReadingsInRange(const QDateTime &start, const Q
 
     QSqlDatabase db = QSqlDatabase::database(CONNECTION_NAME);
     if (!db.isOpen()) {
-        emit databaseError("Database not open");
+        emit databaseError(QStringLiteral("Database not open"));
         return results;
     }
 
     QSqlQuery query(db);
     query.setForwardOnly(true);  // Memory efficient for large result sets
 
-    query.prepare(R"(
+    query.prepare(QStringLiteral(R"(
         SELECT id, timestamp, partectorNumber, partectorDiam, partectorMass,
                grimmValue, temperature, humidity, pressure,
                altitude, latitude, longitude, co2
         FROM readings
         WHERE timestamp BETWEEN ? AND ?
         ORDER BY timestamp ASC
-    )");
+    )"));
 
     query.addBindValue(start.toMSecsSinceEpoch());
     query.addBindValue(end.toMSecsSinceEpoch());
 
     if (!query.exec()) {
-        QString error = QString("Failed to query readings: %1").arg(query.lastError().text());
+        QString error = QStringLiteral("Failed to query readings: %1").arg(query.lastError().text());
         qWarning() << error;
         emit databaseError(error);
         return results;
@@ -140,19 +140,19 @@ QVariantList DatabaseManager::getReadingsInRange(const QDateTime &start, const Q
 
     while (query.next()) {
         QVariantMap reading;
-        reading["id"] = query.value(0).toInt();  // Database ID
-        reading["timestamp"] = QDateTime::fromMSecsSinceEpoch(query.value(1).toLongLong());
-        reading["partectorNumber"] = query.value(2).toInt();
-        reading["partectorDiam"] = query.value(3).toInt();
-        reading["partectorMass"] = query.value(4).toDouble();
-        reading["grimmValue"] = query.value(5).toDouble();
-        reading["temperature"] = query.value(6).toDouble();
-        reading["humidity"] = query.value(7).toDouble();
-        reading["pressure"] = query.value(8).toDouble();
-        reading["altitude"] = query.value(9).toDouble();
-        reading["latitude"] = query.value(10).toDouble();
-        reading["longitude"] = query.value(11).toDouble();
-        reading["co2"] = query.value(12).toInt();
+        reading[QStringLiteral("id")] = query.value(0).toInt();  // Database ID
+        reading[QStringLiteral("timestamp")] = QDateTime::fromMSecsSinceEpoch(query.value(1).toLongLong());
+        reading[QStringLiteral("partectorNumber")] = query.value(2).toInt();
+        reading[QStringLiteral("partectorDiam")] = query.value(3).toInt();
+        reading[QStringLiteral("partectorMass")] = query.value(4).toDouble();
+        reading[QStringLiteral("grimmValue")] = query.value(5).toDouble();
+        reading[QStringLiteral("temperature")] = query.value(6).toDouble();
+        reading[QStringLiteral("humidity")] = query.value(7).toDouble();
+        reading[QStringLiteral("pressure")] = query.value(8).toDouble();
+        reading[QStringLiteral("altitude")] = query.value(9).toDouble();
+        reading[QStringLiteral("latitude")] = query.value(10).toDouble();
+        reading[QStringLiteral("longitude")] = query.value(11).toDouble();
+        reading[QStringLiteral("co2")] = query.value(12).toInt();
         results.append(reading);
     }
 
@@ -170,13 +170,13 @@ QVariantMap DatabaseManager::getReadingById(int id)
     }
 
     QSqlQuery query(db);
-    query.prepare(R"(
+    query.prepare(QStringLiteral(R"(
         SELECT id, timestamp, partectorNumber, partectorDiam, partectorMass,
                grimmValue, temperature, humidity, pressure,
                altitude, latitude, longitude, co2
         FROM readings
         WHERE id = ?
-    )");
+    )"));
 
     query.addBindValue(id);
 
@@ -186,19 +186,19 @@ QVariantMap DatabaseManager::getReadingById(int id)
     }
 
     if (query.next()) {
-        result["id"] = query.value(0).toInt();
-        result["timestamp"] = QDateTime::fromMSecsSinceEpoch(query.value(1).toLongLong());
-        result["partectorNumber"] = query.value(2).toInt();
-        result["partectorDiam"] = query.value(3).toInt();
-        result["partectorMass"] = query.value(4).toDouble();
-        result["grimmValue"] = query.value(5).toDouble();
-        result["temperature"] = query.value(6).toDouble();
-        result["humidity"] = query.value(7).toDouble();
-        result["pressure"] = query.value(8).toDouble();
-        result["altitude"] = query.value(9).toDouble();
-        result["latitude"] = query.value(10).toDouble();
-        result["longitude"] = query.value(11).toDouble();
-        result["co2"] = query.value(12).toInt();
+        result[QStringLiteral("id")] = query.value(0).toInt();
+        result[QStringLiteral("timestamp")] = QDateTime::fromMSecsSinceEpoch(query.value(1).toLongLong());
+        result[QStringLiteral("partectorNumber")] = query.value(2).toInt();
+        result[QStringLiteral("partectorDiam")] = query.value(3).toInt();
+        result[QStringLiteral("partectorMass")] = query.value(4).toDouble();
+        result[QStringLiteral("grimmValue")] = query.value(5).toDouble();
+        result[QStringLiteral("temperature")] = query.value(6).toDouble();
+        result[QStringLiteral("humidity")] = query.value(7).toDouble();
+        result[QStringLiteral("pressure")] = query.value(8).toDouble();
+        result[QStringLiteral("altitude")] = query.value(9).toDouble();
+        result[QStringLiteral("latitude")] = query.value(10).toDouble();
+        result[QStringLiteral("longitude")] = query.value(11).toDouble();
+        result[QStringLiteral("co2")] = query.value(12).toInt();
     }
 
     return result;
@@ -208,7 +208,7 @@ bool DatabaseManager::exportDatabase(const QUrl &destination)
 {
     QString destPath = destination.toLocalFile();
     if (destPath.isEmpty()) {
-        emit databaseError("Invalid export destination");
+        emit databaseError(QStringLiteral("Invalid export destination"));
         emit exportCompleted(false);
         return false;
     }
@@ -226,14 +226,14 @@ bool DatabaseManager::exportDatabase(const QUrl &destination)
     bool success = QFile::copy(m_databasePath, destPath);
 
     // Reopen the connection
-    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", CONNECTION_NAME);
+    QSqlDatabase db = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), CONNECTION_NAME);
     db.setDatabaseName(m_databasePath);
     if (!db.open()) {
         qWarning() << "Failed to reopen database after export";
     }
 
     if (!success) {
-        QString error = QString("Failed to export database to: %1").arg(destPath);
+        QString error = QStringLiteral("Failed to export database to: %1").arg(destPath);
         qWarning() << error;
         emit databaseError(error);
     }
@@ -246,13 +246,13 @@ bool DatabaseManager::importDatabase(const QUrl &source)
 {
     QString sourcePath = source.toLocalFile();
     if (sourcePath.isEmpty()) {
-        emit databaseError("Invalid import source");
+        emit databaseError(QStringLiteral("Invalid import source"));
         emit importCompleted(false);
         return false;
     }
 
     if (!QFile::exists(sourcePath)) {
-        emit databaseError("Import file does not exist");
+        emit databaseError(QStringLiteral("Import file does not exist"));
         emit importCompleted(false);
         return false;
     }
@@ -272,9 +272,9 @@ bool DatabaseManager::importDatabase(const QUrl &source)
     if (hadExisting) {
         QFile::remove(backupPath);  // Remove old backup if exists
         if (!QFile::rename(m_databasePath, backupPath)) {
-            emit databaseError("Failed to backup current database");
+            emit databaseError(QStringLiteral("Failed to backup current database"));
             // Try to reopen original
-            QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", CONNECTION_NAME);
+            QSqlDatabase db = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), CONNECTION_NAME);
             db.setDatabaseName(m_databasePath);
             db.open();
             emit importCompleted(false);
@@ -295,15 +295,15 @@ bool DatabaseManager::importDatabase(const QUrl &source)
         if (hadExisting) {
             QFile::rename(backupPath, m_databasePath);
         }
-        emit databaseError("Failed to import database");
+        emit databaseError(QStringLiteral("Failed to import database"));
     }
 
     // Reopen the connection
-    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", CONNECTION_NAME);
+    QSqlDatabase db = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), CONNECTION_NAME);
     db.setDatabaseName(m_databasePath);
     if (!db.open()) {
         qWarning() << "Failed to reopen database after import";
-        emit databaseError("Failed to reopen database after import");
+        emit databaseError(QStringLiteral("Failed to reopen database after import"));
         success = false;
     }
 
@@ -325,11 +325,11 @@ QVariantList DatabaseManager::getAvailableDates()
 
     // Query distinct dates (day precision) from readings table
     // timestamp is stored as milliseconds since epoch
-    if (!query.exec(R"(
+    if (!query.exec(QStringLiteral(R"(
         SELECT DISTINCT date(timestamp / 1000, 'unixepoch', 'localtime') as date
         FROM readings
         ORDER BY date DESC
-    )")) {
+    )"))) {
         qWarning() << "Failed to query available dates:" << query.lastError().text();
         return dates;
     }

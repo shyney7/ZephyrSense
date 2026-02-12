@@ -73,18 +73,18 @@ void TimeSeriesChartModel::loadData(const QDateTime &start, const QDateTime &end
         QVariantMap map = v.toMap();
 
         DataPoint point;
-        point.timestamp = map["timestamp"].toDateTime().toMSecsSinceEpoch();
+        point.timestamp = map[QStringLiteral("timestamp")].toDateTime().toMSecsSinceEpoch();
 
         // Map sensor fields to values array (9 sensors, excluding lat/lon)
-        point.values[0] = map["partectorNumber"].toReal();
-        point.values[1] = map["partectorDiam"].toReal();
-        point.values[2] = map["partectorMass"].toReal();
-        point.values[3] = map["grimmValue"].toReal();
-        point.values[4] = map["temperature"].toReal();
-        point.values[5] = map["humidity"].toReal();
-        point.values[6] = map["pressure"].toReal();
-        point.values[7] = map["altitude"].toReal();
-        point.values[8] = map["co2"].toReal();
+        point.values[0] = map[QStringLiteral("partectorNumber")].toReal();
+        point.values[1] = map[QStringLiteral("partectorDiam")].toReal();
+        point.values[2] = map[QStringLiteral("partectorMass")].toReal();
+        point.values[3] = map[QStringLiteral("grimmValue")].toReal();
+        point.values[4] = map[QStringLiteral("temperature")].toReal();
+        point.values[5] = map[QStringLiteral("humidity")].toReal();
+        point.values[6] = map[QStringLiteral("pressure")].toReal();
+        point.values[7] = map[QStringLiteral("altitude")].toReal();
+        point.values[8] = map[QStringLiteral("co2")].toReal();
 
         m_data.append(point);
     }
@@ -129,8 +129,8 @@ void TimeSeriesChartModel::updateYBoundsForColumn(int column)
 QVariantMap TimeSeriesChartModel::getYBoundsForColumn(int column) const
 {
     QVariantMap result;
-    result["yMin"] = 0.0;
-    result["yMax"] = 100.0;
+    result[QStringLiteral("yMin")] = 0.0;
+    result[QStringLiteral("yMax")] = 100.0;
 
     if (column < PartectorNumberColumn || column >= ColumnCount || m_data.isEmpty()) {
         return result;
@@ -148,13 +148,13 @@ QVariantMap TimeSeriesChartModel::getYBoundsForColumn(int column) const
 
     // Add 10% padding to Y axis for better visualization
     qreal padding = (maxVal - minVal) * 0.1;
-    result["yMin"] = minVal - padding;
-    result["yMax"] = maxVal + padding;
+    result[QStringLiteral("yMin")] = minVal - padding;
+    result[QStringLiteral("yMax")] = maxVal + padding;
 
     // Ensure we have some range even if all values are the same
     if (qFuzzyCompare(minVal - padding, maxVal + padding)) {
-        result["yMin"] = minVal - 1.0;
-        result["yMax"] = maxVal + 1.0;
+        result[QStringLiteral("yMin")] = minVal - 1.0;
+        result[QStringLiteral("yMax")] = maxVal + 1.0;
     }
 
     return result;
@@ -171,8 +171,8 @@ void TimeSeriesChartModel::calculateBounds()
     }
 
     // X bounds from first and last timestamp
-    m_xMin = m_data.first().timestamp;
-    m_xMax = m_data.last().timestamp;
+    m_xMin = m_data.constFirst().timestamp;
+    m_xMax = m_data.constLast().timestamp;
 
     // Y bounds for active column (default: temperature)
     calculateYBoundsForColumn(m_activeColumn);

@@ -4,8 +4,15 @@ import QtQuick.Layouts
 import ZephyrSense
 import "../components"
 
+pragma ComponentBehavior: Bound
+
 Item {
     id: dashboardRoot
+
+    // Properties bound from Main.qml (decoupled from mainWindow id)
+    property int selectedReadingId: -1
+    property sensorReading selectedReadingData
+    signal liveModeSwitched()
 
     SystemPalette {
         id: palette
@@ -14,7 +21,7 @@ Item {
 
     // Mode state management
     property int updateIntervalMs: 1000  // Default 1 second, -1 means frozen
-    property int frozenReadingId: mainWindow.selectedReadingId
+    property int frozenReadingId: dashboardRoot.selectedReadingId
     property int lastProcessedFrozenId: -1  // Guard against duplicate processing
     property date frozenTimestamp
     property date lastUpdateTime
@@ -123,7 +130,7 @@ Item {
         interval: dashboardRoot.updateIntervalMs
         running: dashboardRoot.isLiveMode && dashboardRoot.updateIntervalMs > 0 && dashboardRoot.visible
         repeat: true
-        onTriggered: fetchLatestReading()
+        onTriggered: dashboardRoot.fetchLatestReading()
     }
 
     // Live data connection
@@ -190,37 +197,32 @@ Item {
         }
     }
 
-    // Load frozen reading from database by ID (direct query, no loop)
+    // Load frozen reading using data passed from map view, with database fallback
     function loadFrozenReading(readingId: int): void {
         if (readingId < 0)
             return;
 
-        // Direct database lookup by ID - much faster than loading all data
-        var reading = DatabaseManager.getReadingById(readingId);
-
-        if (reading && reading.id !== undefined) {
-            dashboardRoot.currentReading = {
-                partectorNumber: reading.partectorNumber || 0,
-                partectorDiam: reading.partectorDiam || 0,
-                partectorMass: reading.partectorMass || 0,
-                grimmValue: reading.grimmValue || 0,
-                temperature: reading.temperature || 0,
-                humidity: reading.humidity || 0,
-                pressure: reading.pressure || 0,
-                altitude: reading.altitude || 0,
-                co2: reading.co2 || 0
-            };
-            dashboardRoot.frozenTimestamp = reading.timestamp;
-            console.log("Loaded frozen reading ID:", readingId);
-        } else {
-            console.warn("Frozen reading ID not found:", readingId);
-        }
+        // selectedReadingData is set before selectedReadingId in Main.qml,
+        // so the typed reading data is always available when this fires
+        let reading = dashboardRoot.selectedReadingData;
+        dashboardRoot.currentReading = {
+            partectorNumber: reading.partectorNumber,
+            partectorDiam: reading.partectorDiam,
+            partectorMass: reading.partectorMass,
+            grimmValue: reading.grimmValue,
+            temperature: reading.temperature,
+            humidity: reading.humidity,
+            pressure: reading.pressure,
+            altitude: reading.altitude,
+            co2: reading.co2
+        };
+        dashboardRoot.frozenTimestamp = reading.timestamp;
+        console.log("Loaded frozen reading ID:", readingId);
     }
 
     // Switch back to live mode
     function switchToLive(intervalMs: int): void {
-        mainWindow.selectedReadingId = -1;
-        dashboardRoot.frozenReadingId = -1;
+        dashboardRoot.liveModeSwitched()
         dashboardRoot.lastProcessedFrozenId = -1;  // Reset guard for future clicks
         dashboardRoot.updateIntervalMs = intervalMs || 1000;
         updateTimer.stop();
@@ -269,8 +271,8 @@ Item {
 
                 // Mode indicator circle
                 Rectangle {
-                    width: 12
-                    height: 12
+                    Layout.preferredWidth: 12
+                    Layout.preferredHeight: 12
                     radius: 6
                     color: dashboardRoot.isLiveMode ? "#4CAF50" : "#2196F3"
                 }
@@ -279,9 +281,9 @@ Item {
                 Text {
                     text: {
                         if (dashboardRoot.isFrozenMode) {
-                            return "Showing data from " + formatTimestamp(dashboardRoot.frozenTimestamp);
+                            return "Showing data from " + dashboardRoot.formatTimestamp(dashboardRoot.frozenTimestamp);
                         } else if (dashboardRoot.lastUpdateTime.getTime() > 0) {
-                            return "Live - Last update: " + formatTimestamp(dashboardRoot.lastUpdateTime);
+                            return "Live - Last update: " + dashboardRoot.formatTimestamp(dashboardRoot.lastUpdateTime);
                         } else {
                             return "Live - No data yet";
                         }
@@ -305,6 +307,8 @@ Item {
                 model: dashboardRoot.sensorConfig
 
                 RadialBarGauge {
+                    required property var modelData
+
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     Layout.minimumWidth: 140
@@ -363,7 +367,7 @@ Item {
                     var newInterval = model[index].value;
                     if (dashboardRoot.isFrozenMode) {
                         // Switch back to live mode
-                        switchToLive(newInterval);
+                        dashboardRoot.switchToLive(newInterval);
                     } else {
                         // Update interval in live mode
                         dashboardRoot.updateIntervalMs = newInterval;
@@ -380,7 +384,7 @@ Item {
             Button {
                 text: "Return to Live"
                 visible: dashboardRoot.isFrozenMode
-                onClicked: switchToLive(1000)
+                onClicked: dashboardRoot.switchToLive(1000)
             }
         }
     }

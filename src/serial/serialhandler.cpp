@@ -80,7 +80,7 @@ void SerialHandler::openPort(const QString &portName)
     }
 
     // Parse port name (take first word before " - ")
-    QString actualPortName = portName.split(" - ").first().trimmed();
+    QString actualPortName = portName.split(QStringLiteral(" - ")).first().trimmed();
 
     m_serial->setPortName(actualPortName);
     m_serial->setBaudRate(m_baudRate);

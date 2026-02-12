@@ -1,7 +1,5 @@
 import QtQuick
-import QtQuick.Controls
 import QtCharts
-import ZephyrSense
 
 ChartView {
     id: chartView
@@ -68,8 +66,8 @@ ChartView {
         tickCount: 6
         labelsFont.bold: true
         labelsFont.pixelSize: 12
-        min: chartModel ? new Date(chartModel.xMin) : new Date()
-        max: chartModel ? new Date(chartModel.xMax) : new Date()
+        min: chartView.chartModel ? new Date(chartView.chartModel.xMin) : new Date()
+        max: chartView.chartModel ? new Date(chartView.chartModel.xMax) : new Date()
     }
 
     ValueAxis {
@@ -83,16 +81,16 @@ ChartView {
 
     LineSeries {
         id: dataSeries
-        name: sensorNames[sensorColumn]
-        color: sensorColors[sensorColumn]
+        name: chartView.sensorNames[chartView.sensorColumn]
+        color: chartView.sensorColors[chartView.sensorColumn]
         width: 3
         axisX: timeAxis
         axisY: valueAxis
 
         VXYModelMapper {
-            model: chartModel
+            model: chartView.chartModel
             xColumn: 0
-            yColumn: sensorColumn
+            yColumn: chartView.sensorColumn
         }
     }
 
@@ -105,7 +103,7 @@ ChartView {
     }
 
     Connections {
-        target: chartModel
+        target: chartView.chartModel
         function onBoundsChanged() { chartView.updateLocalBounds() }
     }
 

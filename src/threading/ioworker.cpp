@@ -44,11 +44,11 @@ void IOWorker::openDatabase(const QString &path)
         }
     }
 
-    m_db = QSqlDatabase::addDatabase("QSQLITE", CONNECTION_NAME);
+    m_db = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), CONNECTION_NAME);
     m_db.setDatabaseName(path);
 
     if (!m_db.open()) {
-        QString error = QString("IOWorker: Failed to open database: %1").arg(m_db.lastError().text());
+        QString error = QStringLiteral("IOWorker: Failed to open database: %1").arg(m_db.lastError().text());
         qWarning() << error;
         emit databaseError(error);
         m_dbInitialized = false;
@@ -60,7 +60,7 @@ void IOWorker::openDatabase(const QString &path)
     // Enable WAL mode for better concurrent read/write performance
     // (DatabaseManager reads from main thread, IOWorker writes from worker thread)
     QSqlQuery walQuery(m_db);
-    if (!walQuery.exec("PRAGMA journal_mode=WAL")) {
+    if (!walQuery.exec(QStringLiteral("PRAGMA journal_mode=WAL"))) {
         qWarning() << "IOWorker: Failed to enable WAL mode:" << walQuery.lastError().text();
     }
 
@@ -72,7 +72,7 @@ void IOWorker::createTables()
 {
     QSqlQuery query(m_db);
 
-    const QString createTableSql = R"(
+    const QString createTableSql = QStringLiteral(R"(
         CREATE TABLE IF NOT EXISTS readings (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             timestamp INTEGER NOT NULL,
@@ -88,21 +88,21 @@ void IOWorker::createTables()
             longitude REAL,
             co2 INTEGER
         )
-    )";
+    )");
 
     if (!query.exec(createTableSql)) {
-        QString error = QString("IOWorker: Failed to create readings table: %1").arg(query.lastError().text());
+        QString error = QStringLiteral("IOWorker: Failed to create readings table: %1").arg(query.lastError().text());
         qWarning() << error;
         emit databaseError(error);
         return;
     }
 
-    const QString createIndexSql = R"(
+    const QString createIndexSql = QStringLiteral(R"(
         CREATE INDEX IF NOT EXISTS idx_timestamp ON readings(timestamp)
-    )";
+    )");
 
     if (!query.exec(createIndexSql)) {
-        QString error = QString("IOWorker: Failed to create timestamp index: %1").arg(query.lastError().text());
+        QString error = QStringLiteral("IOWorker: Failed to create timestamp index: %1").arg(query.lastError().text());
         qWarning() << error;
         emit databaseError(error);
     }
@@ -132,18 +132,18 @@ void IOWorker::processReading(const SensorReading &reading)
 void IOWorker::insertReadingToDb(const SensorReading &reading)
 {
     if (!m_db.isOpen()) {
-        emit databaseError("IOWorker: Database not open");
+        emit databaseError(QStringLiteral("IOWorker: Database not open"));
         return;
     }
 
     QSqlQuery query(m_db);
-    query.prepare(R"(
+    query.prepare(QStringLiteral(R"(
         INSERT INTO readings (
             timestamp, partectorNumber, partectorDiam, partectorMass,
             grimmValue, temperature, humidity, pressure,
             altitude, latitude, longitude, co2
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    )");
+    )"));
 
     query.addBindValue(reading.timestamp.toMSecsSinceEpoch());
     query.addBindValue(reading.partectorNumber);
@@ -159,7 +159,7 @@ void IOWorker::insertReadingToDb(const SensorReading &reading)
     query.addBindValue(reading.co2);
 
     if (!query.exec()) {
-        QString error = QString("IOWorker: Failed to insert reading: %1").arg(query.lastError().text());
+        QString error = QStringLiteral("IOWorker: Failed to insert reading: %1").arg(query.lastError().text());
         qWarning() << error;
         emit databaseError(error);
     }
@@ -206,7 +206,7 @@ void IOWorker::openCsvFile()
 
     m_csvFile = std::make_unique<QFile>(m_csvFilePath);
     if (!m_csvFile->open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text)) {
-        QString error = QString("IOWorker: Failed to open CSV file: %1").arg(m_csvFile->errorString());
+        QString error = QStringLiteral("IOWorker: Failed to open CSV file: %1").arg(m_csvFile->errorString());
         qWarning() << error;
         emit csvError(error);
         m_csvFile.reset();

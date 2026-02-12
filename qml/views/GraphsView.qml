@@ -109,6 +109,8 @@ Item {
                 ]
 
                 Button {
+                    required property int index
+                    required property var modelData
                     text: modelData.label
                     checkable: true
                     checked: index === 2  // Default: 1h

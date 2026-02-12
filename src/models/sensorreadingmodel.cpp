@@ -110,26 +110,35 @@ void SensorReadingModel::loadFromDatabase(const QDateTime &start, const QDateTim
     for (const QVariant &var : results) {
         QVariantMap map = var.toMap();
         SensorReading reading;
-        reading.partectorNumber = map["partectorNumber"].toInt();
-        reading.partectorDiam = map["partectorDiam"].toInt();
-        reading.partectorMass = map["partectorMass"].toFloat();
-        reading.grimmValue = map["grimmValue"].toFloat();
-        reading.temperature = map["temperature"].toFloat();
-        reading.humidity = map["humidity"].toFloat();
-        reading.pressure = map["pressure"].toFloat();
-        reading.altitude = map["altitude"].toFloat();
-        reading.latitude = map["latitude"].toFloat();
-        reading.longitude = map["longitude"].toFloat();
-        reading.co2 = map["co2"].toInt();
-        reading.timestamp = map["timestamp"].toDateTime();
+        reading.partectorNumber = map[QStringLiteral("partectorNumber")].toInt();
+        reading.partectorDiam = map[QStringLiteral("partectorDiam")].toInt();
+        reading.partectorMass = map[QStringLiteral("partectorMass")].toFloat();
+        reading.grimmValue = map[QStringLiteral("grimmValue")].toFloat();
+        reading.temperature = map[QStringLiteral("temperature")].toFloat();
+        reading.humidity = map[QStringLiteral("humidity")].toFloat();
+        reading.pressure = map[QStringLiteral("pressure")].toFloat();
+        reading.altitude = map[QStringLiteral("altitude")].toFloat();
+        reading.latitude = map[QStringLiteral("latitude")].toFloat();
+        reading.longitude = map[QStringLiteral("longitude")].toFloat();
+        reading.co2 = map[QStringLiteral("co2")].toInt();
+        reading.timestamp = map[QStringLiteral("timestamp")].toDateTime();
 
         // Only add readings with valid GPS coordinates
         if (isValidCoordinate(reading.latitude, reading.longitude)) {
             ReadingEntry entry;
-            entry.id = map["id"].toInt();
+            entry.id = map[QStringLiteral("id")].toInt();
             entry.reading = reading;
             m_readings.append(entry);
         }
+    }
+
+    // Sync m_nextId to avoid collisions between live reading IDs and database IDs
+    qint64 maxId = 0;
+    for (const auto &entry : m_readings) {
+        maxId = qMax(maxId, entry.id);
+    }
+    if (maxId >= m_nextId) {
+        m_nextId = maxId + 1;
     }
 
     // Connect to ThresholdManager for live updates (instance available after QML loads)
@@ -163,6 +172,13 @@ void SensorReadingModel::addReading(const SensorReading &reading)
     emit countChanged();
 }
 
+SensorReading SensorReadingModel::readingAt(int index) const
+{
+    if (index >= 0 && index < m_readings.count())
+        return m_readings.at(index).reading;
+    return SensorReading();
+}
+
 QVariantMap SensorReadingModel::getReading(int index) const
 {
     QVariantMap result;
@@ -170,25 +186,25 @@ QVariantMap SensorReadingModel::getReading(int index) const
         return result;
 
     const SensorReading &reading = m_readings.at(index).reading;
-    result["readingId"] = m_readings.at(index).id;
-    result["latitude"] = reading.latitude;
-    result["longitude"] = reading.longitude;
-    result["partectorNumber"] = reading.partectorNumber;
-    result["partectorDiam"] = reading.partectorDiam;
-    result["partectorMass"] = reading.partectorMass;
-    result["grimmValue"] = reading.grimmValue;
-    result["temperature"] = reading.temperature;
-    result["humidity"] = reading.humidity;
-    result["pressure"] = reading.pressure;
-    result["altitude"] = reading.altitude;
-    result["co2"] = reading.co2;
-    result["timestamp"] = reading.timestamp;
+    result[QStringLiteral("readingId")] = m_readings.at(index).id;
+    result[QStringLiteral("latitude")] = reading.latitude;
+    result[QStringLiteral("longitude")] = reading.longitude;
+    result[QStringLiteral("partectorNumber")] = reading.partectorNumber;
+    result[QStringLiteral("partectorDiam")] = reading.partectorDiam;
+    result[QStringLiteral("partectorMass")] = reading.partectorMass;
+    result[QStringLiteral("grimmValue")] = reading.grimmValue;
+    result[QStringLiteral("temperature")] = reading.temperature;
+    result[QStringLiteral("humidity")] = reading.humidity;
+    result[QStringLiteral("pressure")] = reading.pressure;
+    result[QStringLiteral("altitude")] = reading.altitude;
+    result[QStringLiteral("co2")] = reading.co2;
+    result[QStringLiteral("timestamp")] = reading.timestamp;
     return result;
 }
 
 QString SensorReadingModel::formatTooltip(const SensorReading &reading) const
 {
-    return QString(
+    return QStringLiteral(
         "Time: %1\n"
         "Position: %2, %3\n"
         "Altitude: %4 m\n"
@@ -202,7 +218,7 @@ QString SensorReadingModel::formatTooltip(const SensorReading &reading) const
         "Humidity: %10 %\n"
         "Pressure: %11 hPa\n"
         "CO\u2082: %12 ppm"
-    ).arg(reading.timestamp.toString("yyyy-MM-dd hh:mm:ss"))
+    ).arg(reading.timestamp.toString(QStringLiteral("yyyy-MM-dd hh:mm:ss")))
      .arg(reading.latitude, 0, 'f', 6)
      .arg(reading.longitude, 0, 'f', 6)
      .arg(reading.altitude, 0, 'f', 1)

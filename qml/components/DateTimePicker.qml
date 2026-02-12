@@ -1,7 +1,8 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import ZephyrSense
+
+pragma ComponentBehavior: Bound
 
 Item {
     id: root
@@ -65,7 +66,7 @@ Item {
                 onCurrentValueChanged: {
                     if (currentValue !== undefined) {
                         internal.selectedHour = currentValue
-                        emitDateTime()
+                        root.emitDateTime()
                     }
                 }
             }
@@ -133,6 +134,7 @@ Item {
                 year: internal.selectedDate.getFullYear()
 
                 delegate: Rectangle {
+                    id: dayCell
                     required property var model
                     required property date date
 
@@ -151,12 +153,12 @@ Item {
 
                     Text {
                         anchors.centerIn: parent
-                        text: model.day
+                        text: dayCell.model.day
                         font.bold: parent.hasData
                         color: {
                             if (parent.isSelected) return "white"
                             if (!parent.isCurrentMonth) return "#BDBDBD"
-                            if (model.today) return "#2196F3"
+                            if (dayCell.model.today) return "#2196F3"
                             return "#333333"
                         }
                     }
@@ -177,8 +179,8 @@ Item {
                         anchors.fill: parent
                         onClicked: {
                             if (parent.isCurrentMonth) {
-                                internal.selectedDate = date
-                                emitDateTime()
+                                internal.selectedDate = dayCell.date
+                                root.emitDateTime()
                                 calendarPopup.close()
                             }
                         }

@@ -39,11 +39,8 @@ Item {
                             Layout.fillWidth: true
                             model: SerialHandler.availablePorts
                             currentIndex: {
-                                var idx = SerialHandler.availablePorts.indexOf(SerialHandler.portName);
+                                var idx = SerialHandler.availablePorts.indexOf(SerialHandler.currentPort);
                                 return idx >= 0 ? idx : 0;
-                            }
-                            onActivated: {
-                                SerialHandler.portName = currentText;
                             }
                         }
                         Button {
@@ -93,7 +90,7 @@ Item {
                                 color: SerialHandler.connected ? "green" : "red"
                             }
                             Label {
-                                text: "Current Port: " + (SerialHandler.portName || "None")
+                                text: "Current Port: " + (SerialHandler.currentPort || "None")
                             }
                         }
                     }
