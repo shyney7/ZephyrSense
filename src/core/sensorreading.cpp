@@ -15,6 +15,3 @@ SensorReading::SensorReading(const SensorDataRaw &raw)
     , timestamp(QDateTime::currentDateTime())
 {
 }
-
-// Register metatype for signal/slot usage
-static const int sensorReadingMetaTypeId = qRegisterMetaType<SensorReading>("SensorReading");
