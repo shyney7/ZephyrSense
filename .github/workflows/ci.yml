@@ -147,6 +147,10 @@ jobs:
         with:
           languages: cpp
           queries: security-and-quality
+          config: |
+            paths-ignore:
+              - 'build'
+              - 'libs'
 
       - name: Configure
         run: cmake -B build -GNinja -DCMAKE_BUILD_TYPE=Release

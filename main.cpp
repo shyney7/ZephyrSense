@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
 
     // Connect signals after QML objects are created (singletons are now instantiated)
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated, &app,
-        [&engine, &ioThread](QObject *obj, const QUrl &url) {
+        [&engine, &ioThread](QObject *obj, const QUrl &/*url*/) {
             if (!obj) return;  // Object creation failed
 
             // Get singleton instances - now they should be instantiated

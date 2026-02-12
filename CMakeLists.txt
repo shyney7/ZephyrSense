@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.25)
 
 project(ZephyrSense VERSION 0.1 LANGUAGES CXX)
 
@@ -14,6 +14,14 @@ find_package(Qt6 REQUIRED COMPONENTS Quick QuickControls2 SerialPort Sql Locatio
 
 qt_standard_project_setup(REQUIRES 6.8)
 
+# Project-wide compiler warnings (applied only to our own targets)
+add_library(project_warnings INTERFACE)
+target_compile_options(project_warnings INTERFACE
+    $<$<CXX_COMPILER_ID:MSVC>:/W4>
+    $<$<CXX_COMPILER_ID:Clang,AppleClang>:-Wall;-Wextra;-Woverloaded-virtual;-Wweak-vtables>
+    $<$<CXX_COMPILER_ID:GNU>:-Wall;-Wextra;-Woverloaded-virtual>
+)
+
 # KDDockWidgets — QtQuick frontend only
 set(KDDockWidgets_FRONTENDS "qtquick" CACHE STRING "" FORCE)
 set(KDDockWidgets_QT6 ON CACHE BOOL "" FORCE)
@@ -21,7 +29,7 @@ set(KDDockWidgets_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(KDDockWidgets_TESTS OFF CACHE BOOL "" FORCE)
 set(KDDockWidgets_DOCS OFF CACHE BOOL "" FORCE)
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/libs/KDDockWidgets-2.4.0/CMakeLists.txt")
-    add_subdirectory(libs/KDDockWidgets-2.4.0)
+    add_subdirectory(libs/KDDockWidgets-2.4.0 SYSTEM)
 else()
     message(STATUS "KDDockWidgets not found locally, fetching from GitHub...")
     include(FetchContent)
@@ -29,6 +37,7 @@ else()
         GIT_REPOSITORY https://github.com/KDAB/KDDockWidgets.git
         GIT_TAG        v2.4.0
         GIT_SHALLOW    TRUE
+        SYSTEM
     )
     FetchContent_MakeAvailable(KDDockWidgets)
 endif()
@@ -111,7 +120,7 @@ target_include_directories(appZephyrSense PRIVATE
 )
 
 target_link_libraries(appZephyrSense
-    PRIVATE Qt6::Quick Qt6::QuickControls2 Qt6::SerialPort Qt6::Sql Qt6::Location Qt6::Positioning Qt6::Charts Qt6::Widgets KDAB::kddockwidgets
+    PRIVATE project_warnings Qt6::Quick Qt6::QuickControls2 Qt6::SerialPort Qt6::Sql Qt6::Location Qt6::Positioning Qt6::Charts Qt6::Widgets KDAB::kddockwidgets
 )
 
 include(GNUInstallDirs)
