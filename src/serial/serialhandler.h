@@ -52,6 +52,7 @@ private slots:
     void handleError(QSerialPort::SerialPortError error);
 
 private:
+    void processBuffer();
     void parseFrame(const QByteArray &frame);
 
     QSerialPort *m_serial;
@@ -59,6 +60,15 @@ private:
     QStringList m_ports;
     QString m_errorString;
     int m_baudRate = 115200;
+
+#ifdef ZEPHYR_TESTING
+public:
+    void injectTestData(const QByteArray &data)
+    {
+        m_buffer.append(data);
+        processBuffer();
+    }
+#endif
 };
 
 #endif // SERIALHANDLER_H

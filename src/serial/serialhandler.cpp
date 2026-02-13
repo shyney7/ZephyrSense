@@ -113,9 +113,12 @@ void SerialHandler::closePort()
 
 void SerialHandler::handleReadyRead()
 {
-    // Append incoming data to buffer
     m_buffer.append(m_serial->readAll());
+    processBuffer();
+}
 
+void SerialHandler::processBuffer()
+{
     // Frame detection for fixed-size binary protocol
     // Protocol: '<' + 42 bytes data + '>' = 44 bytes total
     // IMPORTANT: Binary data may contain '<' or '>' bytes, so we check

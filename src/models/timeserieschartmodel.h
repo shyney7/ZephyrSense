@@ -59,6 +59,10 @@ signals:
     void boundsChanged();
     void dataCountChanged();
 
+#ifdef ZEPHYR_TESTING
+    friend class TestTimeSeriesChartModel;
+#endif
+
 private:
     struct DataPoint {
         qint64 timestamp;  // msecs since epoch
