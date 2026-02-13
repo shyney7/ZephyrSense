@@ -1,11 +1,11 @@
 <#
 .SYNOPSIS
-    Collects code coverage for ZephyrSense test suites using Microsoft.CodeCoverage.Console.
+    Collects code coverage for ZephyrSense test suites using LLVM source-based coverage.
 .DESCRIPTION
-    Discovers all tst_*.exe in build/ (or build/tests/), runs each under the coverage collector,
-    merges results into Cobertura XML, and generates a JSON summary.
+    Discovers all tst_*.exe in build/, runs each with profiling enabled,
+    merges profiles with llvm-profdata, and generates reports with llvm-cov.
 .PARAMETER Open
-    Opens the coverage report after generation.
+    Opens an HTML coverage report after generation.
 #>
 
 param(
@@ -16,50 +16,19 @@ $ErrorActionPreference = "Stop"
 
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
 $BuildDir = Join-Path $ProjectRoot "build"
-$TestsDir = Join-Path $BuildDir "tests"
 $CoverageDir = Join-Path $BuildDir "coverage"
-$ConfigFile = Join-Path (Join-Path $ProjectRoot "scripts") "coverage.config"
+$SrcDir = Join-Path $ProjectRoot "src"
 $SummaryScript = Join-Path (Join-Path $ProjectRoot "scripts") "coverage_summary.py"
 
-# Find Microsoft.CodeCoverage.Console
-$CoverageExe = $null
-$VsWherePath = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
-if (Test-Path $VsWherePath) {
-    $VsInstallPath = & $VsWherePath -latest -property installationPath 2>$null
-    if ($VsInstallPath) {
-        # Search in both known locations
-        $SearchPaths = @(
-            (Join-Path $VsInstallPath "Common7\IDE\Extensions\Microsoft\CodeCoverage.Console"),
-            (Join-Path $VsInstallPath "Team Tools\Dynamic Code Coverage Tools")
-        )
-        foreach ($SearchPath in $SearchPaths) {
-            if (Test-Path $SearchPath) {
-                $Found = Get-ChildItem -Path $SearchPath -Filter "Microsoft.CodeCoverage.Console.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
-                if ($Found) { $CoverageExe = $Found.FullName; break }
-            }
-        }
+# Verify LLVM tools are available
+foreach ($Tool in @("llvm-profdata", "llvm-cov")) {
+    if (-not (Get-Command $Tool -ErrorAction SilentlyContinue)) {
+        Write-Error "$Tool not found in PATH. Install LLVM 18+ (21+ recommended for MC/DC)."
+        exit 1
     }
 }
 
-# Fallback: search in common VS paths
-if (-not $CoverageExe) {
-    $CommonPaths = @(
-        "${env:ProgramFiles}\Microsoft Visual Studio\*\*\Common7\IDE\Extensions\Microsoft\CodeCoverage.Console\Microsoft.CodeCoverage.Console.exe",
-        "${env:ProgramFiles}\Microsoft Visual Studio\*\*\Team Tools\Dynamic Code Coverage Tools\Microsoft.CodeCoverage.Console.exe",
-        "${env:ProgramFiles(x86)}\Microsoft Visual Studio\*\*\Team Tools\Dynamic Code Coverage Tools\Microsoft.CodeCoverage.Console.exe"
-    )
-    foreach ($Pattern in $CommonPaths) {
-        $Found = Get-Item -Path $Pattern -ErrorAction SilentlyContinue | Select-Object -First 1
-        if ($Found) { $CoverageExe = $Found.FullName; break }
-    }
-}
-
-if (-not $CoverageExe) {
-    Write-Error "Microsoft.CodeCoverage.Console.exe not found. Ensure Visual Studio is installed with code coverage tools."
-    exit 1
-}
-
-Write-Host "Using coverage tool: $CoverageExe" -ForegroundColor Cyan
+Write-Host "Using: $(Get-Command llvm-cov | Select-Object -ExpandProperty Source)" -ForegroundColor Cyan
 
 # Prepare coverage output directory
 if (Test-Path $CoverageDir) {
@@ -67,77 +36,101 @@ if (Test-Path $CoverageDir) {
 }
 New-Item -ItemType Directory -Path $CoverageDir -Force | Out-Null
 
-# Discover test executables (Ninja puts them in build root, multi-config generators use subdirs like Debug/)
+# Discover test executables (Ninja puts them in build root, multi-config generators use subdirs)
 $TestExes = Get-ChildItem -Path $BuildDir -Filter "tst_*.exe" -Recurse -ErrorAction SilentlyContinue
 if (-not $TestExes -or $TestExes.Count -eq 0) {
-    Write-Error "No test executables found in $BuildDir. Build with -DBUILD_TESTS=ON first."
+    Write-Error "No test executables found in $BuildDir. Build with -DBUILD_TESTS=ON -DENABLE_COVERAGE=ON first."
     exit 1
 }
 
 Write-Host "`nFound $($TestExes.Count) test executable(s):" -ForegroundColor Green
 $TestExes | ForEach-Object { Write-Host "  - $($_.Name)" }
 
-# Collect coverage for each test
-$CoverageFiles = @()
+# Run each test exe with its own profile output
 foreach ($Exe in $TestExes) {
     $Name = $Exe.BaseName
-    $OutputFile = Join-Path $CoverageDir "$Name.coverage"
-    Write-Host "`nCollecting coverage for $Name..." -ForegroundColor Yellow
+    $env:LLVM_PROFILE_FILE = Join-Path $CoverageDir "$Name.profraw"
+    Write-Host "`nRunning $Name..." -ForegroundColor Yellow
 
-    & $CoverageExe collect `
-        --settings $ConfigFile `
-        --output $OutputFile `
-        $Exe.FullName
-
+    & $Exe.FullName
     if ($LASTEXITCODE -ne 0) {
-        Write-Warning "Coverage collection failed for $Name (exit code: $LASTEXITCODE)"
-        continue
+        Write-Warning "$Name exited with code $LASTEXITCODE"
     }
 
-    if (Test-Path $OutputFile) {
-        $CoverageFiles += $OutputFile
-        Write-Host "  -> $OutputFile" -ForegroundColor DarkGreen
-    }
+    Remove-Item Env:LLVM_PROFILE_FILE
 }
 
-if ($CoverageFiles.Count -eq 0) {
-    Write-Error "No coverage files were generated."
+# Merge all .profraw files into a single .profdata
+$ProfrawFiles = Get-ChildItem -Path $CoverageDir -Filter "*.profraw" -ErrorAction SilentlyContinue
+if (-not $ProfrawFiles -or $ProfrawFiles.Count -eq 0) {
+    Write-Error "No .profraw files generated. Were test exes built with -DENABLE_COVERAGE=ON?"
     exit 1
 }
 
-# Merge into Cobertura XML
-$MergedOutput = Join-Path $CoverageDir "coverage.cobertura.xml"
-Write-Host "`nMerging $($CoverageFiles.Count) coverage file(s)..." -ForegroundColor Yellow
+$MergedProfile = Join-Path $CoverageDir "merged.profdata"
+Write-Host "`nMerging $($ProfrawFiles.Count) profile(s)..." -ForegroundColor Yellow
 
-$MergeArgs = @("merge", "-f", "cobertura", "-o", $MergedOutput) + $CoverageFiles
-& $CoverageExe @MergeArgs
-
+& llvm-profdata merge -sparse ($ProfrawFiles | ForEach-Object { $_.FullName }) -o $MergedProfile
 if ($LASTEXITCODE -ne 0) {
-    Write-Warning "Coverage merge returned exit code: $LASTEXITCODE"
-}
-
-if (Test-Path $MergedOutput) {
-    Write-Host "Merged coverage report: $MergedOutput" -ForegroundColor Green
-} else {
-    Write-Error "Failed to generate merged coverage report."
+    Write-Error "llvm-profdata merge failed."
     exit 1
 }
+
+# Build llvm-cov object list: first exe is positional, rest use -object=
+$FirstExe = $TestExes[0].FullName
+$ObjectArgs = @()
+if ($TestExes.Count -gt 1) {
+    $ObjectArgs = $TestExes[1..($TestExes.Count - 1)] | ForEach-Object { "-object=$($_.FullName)" }
+}
+
+$CommonArgs = @($FirstExe) + $ObjectArgs + @(
+    "-instr-profile=$MergedProfile",
+    "-ignore-filename-regex=(libs|build|tests|moc_|qrc_)/",
+    "-sources", $SrcDir
+)
+
+# Export JSON for summary script
+$ExportJson = Join-Path $CoverageDir "coverage.json"
+Write-Host "`nExporting coverage data..." -ForegroundColor Yellow
+
+$ExportArgs = $CommonArgs + @("-format=text")
+$JsonOutput = & llvm-cov export @ExportArgs
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "llvm-cov export failed."
+    exit 1
+}
+[System.IO.File]::WriteAllText($ExportJson, ($JsonOutput -join "`n"), [System.Text.UTF8Encoding]::new($false))
 
 # Generate JSON summary
 if (Test-Path $SummaryScript) {
-    Write-Host "`nGenerating coverage summary..." -ForegroundColor Yellow
-    python $SummaryScript $MergedOutput (Join-Path $CoverageDir "coverage-summary.json")
+    $SummaryJson = Join-Path $CoverageDir "coverage-summary.json"
+    python $SummaryScript $ExportJson $SummaryJson
     if ($LASTEXITCODE -eq 0) {
-        Write-Host "Summary: $(Join-Path $CoverageDir 'coverage-summary.json')" -ForegroundColor Green
+        Write-Host "Summary: $SummaryJson" -ForegroundColor Green
     }
 } else {
     Write-Warning "Summary script not found at $SummaryScript"
 }
 
-# Open report if requested
-if ($Open -and (Test-Path $MergedOutput)) {
-    Write-Host "`nOpening coverage report..." -ForegroundColor Cyan
-    Start-Process $MergedOutput
+# Terminal report
+Write-Host "`n" -NoNewline
+& llvm-cov report @CommonArgs
+
+# HTML report if -Open requested
+if ($Open) {
+    $HtmlDir = Join-Path $CoverageDir "html"
+    Write-Host "`nGenerating HTML report..." -ForegroundColor Yellow
+
+    $ShowArgs = $CommonArgs + @("-format=html", "-output-dir=$HtmlDir")
+    & llvm-cov show @ShowArgs
+
+    if ($LASTEXITCODE -eq 0) {
+        $IndexHtml = Join-Path $HtmlDir "index.html"
+        if (Test-Path $IndexHtml) {
+            Write-Host "Opening $IndexHtml" -ForegroundColor Cyan
+            Start-Process $IndexHtml
+        }
+    }
 }
 
-Write-Host "`nDone." -ForegroundColor Green
+Write-Host "`nDone. Coverage output: $CoverageDir" -ForegroundColor Green

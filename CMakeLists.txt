@@ -18,9 +18,24 @@ qt_standard_project_setup(REQUIRES 6.8)
 add_library(project_warnings INTERFACE)
 target_compile_options(project_warnings INTERFACE
     $<$<CXX_COMPILER_ID:MSVC>:/W4>
-    $<$<CXX_COMPILER_ID:Clang,AppleClang>:-Wall;-Wextra;-Woverloaded-virtual;-Wweak-vtables>
-    $<$<CXX_COMPILER_ID:GNU>:-Wall;-Wextra;-Woverloaded-virtual>
+    $<$<CXX_COMPILER_ID:Clang,AppleClang>:-Wall;-Wextra;-Woverloaded-virtual;-Wshadow>
+    $<$<CXX_COMPILER_ID:GNU>:-Wall;-Wextra;-Woverloaded-virtual;-Wshadow>
 )
+
+# Aggressive release optimizations for clang-cl
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND MSVC)
+    add_compile_options(
+        $<$<CONFIG:Release>:-O3>
+        $<$<CONFIG:Release>:-flto=thin>
+        $<$<CONFIG:Release>:-ffast-math>
+        $<$<CONFIG:Release>:-fomit-frame-pointer>
+    )
+    add_link_options(
+        $<$<CONFIG:Release>:-fuse-ld=lld>
+        $<$<CONFIG:Release>:/OPT:REF>
+        $<$<CONFIG:Release>:/OPT:ICF>
+    )
+endif()
 
 # KDDockWidgets — QtQuick frontend only
 set(KDDockWidgets_FRONTENDS "qtquick" CACHE STRING "" FORCE)

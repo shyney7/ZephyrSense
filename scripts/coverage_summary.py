@@ -1,104 +1,82 @@
 """
-Parse Cobertura XML coverage report and produce a JSON summary.
+Parse llvm-cov JSON export and produce a coverage summary.
 
 Usage:
-    python coverage_summary.py <cobertura.xml> <output.json>
+    python coverage_summary.py <coverage.json> <output.json>
+
+The input is produced by:
+    llvm-cov export -format=text -instr-profile=merged.profdata <objects...>
 
 Output JSON fields:
     - global_line_rate: overall line coverage percentage
-    - global_branch_rate: overall branch coverage percentage
-    - total_files: number of unique source files tracked
+    - global_branch_rate: overall region coverage percentage (if available)
+    - global_mcdc_rate: overall MC/DC coverage percentage (if available)
+    - total_files: number of source files tracked
     - files: list of per-file coverage info, sorted by lowest coverage first
-
-Note: Source files compiled into multiple test targets are deduplicated
-by merging line-hit data across all occurrences (union of covered lines).
 """
 
 from __future__ import annotations
 
 import json
-import re
 import sys
-import xml.etree.ElementTree as ET
-from collections import defaultdict
 from pathlib import PurePosixPath
 
 
-def parse_cobertura(xml_path: str) -> dict:
-    tree = ET.parse(xml_path)
-    root = tree.getroot()
+def parse_llvm_cov(json_path: str) -> dict:
+    with open(json_path, encoding="utf-8") as f:
+        data = json.load(f)
 
-    # Collect per-line hit data across all class entries, keyed by filename.
-    # For each file, track: {line_number: max_hits} across all duplicates.
-    file_lines: dict[str, dict[int, int]] = defaultdict(dict)
+    files = []
 
-    # Track branch data from XML (conditions-covered / conditions attributes)
-    total_branches = 0
-    total_branches_covered = 0
-
-    for package in root.iter("package"):
-        for cls in package.iter("class"):
-            filename = cls.get("filename", "")
+    for report in data["data"]:
+        for file_entry in report["files"]:
+            filename = file_entry["filename"].replace("\\", "/")
 
             # Only include files from our src/ directory
-            if "src" not in filename.replace("\\", "/"):
+            if "/src/" not in filename:
                 continue
 
-            # Normalise path separators for deduplication
-            norm = filename.replace("\\", "/")
+            # Extract relative path from src/ onwards
+            parts = filename.split("/")
+            try:
+                src_idx = next(i for i, p in enumerate(parts) if p == "src")
+                rel_path = "/".join(parts[src_idx:])
+            except StopIteration:
+                rel_path = PurePosixPath(filename).name
 
-            for line in cls.iter("line"):
-                line_num = int(line.get("number", "0"))
-                hits = int(line.get("hits", "0"))
-                # Keep the maximum hit count across all duplicate compilations
-                prev = file_lines[norm].get(line_num, 0)
-                file_lines[norm][line_num] = max(prev, hits)
+            summary = file_entry["summary"]
+            lines = summary["lines"]
 
-                # Accumulate branch data if present
-                cond = line.get("condition-coverage")
-                if cond:
-                    # Format: "50% (1/2)" — extract covered/total
-                    m = re.search(r"\((\d+)/(\d+)\)", cond)
-                    if m:
-                        total_branches_covered += int(m.group(1))
-                        total_branches += int(m.group(2))
+            file_record = {
+                "filename": rel_path,
+                "line_rate": round(lines["percent"], 1),
+                "lines_covered": lines["covered"],
+                "lines_total": lines["count"],
+            }
 
-    # Build per-file summary from merged line data
-    files = []
-    total_lines = 0
-    total_covered = 0
+            # Region (branch) coverage
+            if "regions" in summary and summary["regions"]["count"] > 0:
+                regions = summary["regions"]
+                file_record["region_rate"] = round(regions["percent"], 1)
+                file_record["regions_covered"] = regions["covered"]
+                file_record["regions_total"] = regions["count"]
 
-    for filename, lines in file_lines.items():
-        n_lines = len(lines)
-        covered = sum(1 for h in lines.values() if h > 0)
-        uncovered = [num for num, h in sorted(lines.items()) if h == 0]
-        line_rate = (covered / n_lines * 100) if n_lines else 0.0
+            # MC/DC coverage
+            if "mcdc" in summary and summary["mcdc"]["count"] > 0:
+                mcdc = summary["mcdc"]
+                file_record["mcdc_rate"] = round(mcdc["percent"], 1)
+                file_record["mcdc_covered"] = mcdc["covered"]
+                file_record["mcdc_total"] = mcdc["count"]
 
-        total_lines += n_lines
-        total_covered += covered
-
-        # Extract relative path from src/ onwards
-        parts = filename.split("/")
-        try:
-            src_idx = parts.index("src")
-            rel_path = "/".join(parts[src_idx:])
-        except ValueError:
-            rel_path = PurePosixPath(filename).name
-
-        files.append({
-            "filename": rel_path,
-            "line_rate": round(line_rate, 1),
-            "lines_covered": covered,
-            "lines_total": n_lines,
-            "uncovered_lines": uncovered,
-            "uncovered_count": len(uncovered),
-        })
+            files.append(file_record)
 
     # Sort by line coverage (lowest first) for easy gap identification
     files.sort(key=lambda f: (f["line_rate"], f["filename"]))
 
+    # Compute global totals
+    total_lines = sum(f["lines_total"] for f in files)
+    total_covered = sum(f["lines_covered"] for f in files)
     global_line_rate = (total_covered / total_lines * 100) if total_lines else 0.0
-    global_branch_rate = (total_branches_covered / total_branches * 100) if total_branches else None
 
     result = {
         "global_line_rate": round(global_line_rate, 1),
@@ -107,58 +85,95 @@ def parse_cobertura(xml_path: str) -> dict:
         "total_covered": total_covered,
         "files": files,
     }
-    if global_branch_rate is not None:
-        result["global_branch_rate"] = round(global_branch_rate, 1)
+
+    # Global region (branch) coverage
+    total_regions = sum(f.get("regions_total", 0) for f in files)
+    total_regions_covered = sum(f.get("regions_covered", 0) for f in files)
+    if total_regions > 0:
+        result["global_branch_rate"] = round(
+            total_regions_covered / total_regions * 100, 1
+        )
+
+    # Global MC/DC coverage
+    total_mcdc = sum(f.get("mcdc_total", 0) for f in files)
+    total_mcdc_covered = sum(f.get("mcdc_covered", 0) for f in files)
+    if total_mcdc > 0:
+        result["global_mcdc_rate"] = round(
+            total_mcdc_covered / total_mcdc * 100, 1
+        )
 
     return result
 
 
 def print_summary(summary: dict) -> None:
-    print(f"\n{'='*60}")
+    print(f"\n{'='*65}")
     print(f"  Coverage Summary")
-    print(f"{'='*60}")
-    print(f"  Line coverage:   {summary['global_line_rate']:.1f}%"
-          f"  ({summary['total_covered']}/{summary['total_lines']} lines)")
+    print(f"{'='*65}")
+    print(
+        f"  Line coverage:   {summary['global_line_rate']:.1f}%"
+        f"  ({summary['total_covered']}/{summary['total_lines']} lines)"
+    )
     if "global_branch_rate" in summary:
-        print(f"  Branch coverage: {summary['global_branch_rate']:.1f}%")
+        print(f"  Region coverage: {summary['global_branch_rate']:.1f}%")
+    if "global_mcdc_rate" in summary:
+        print(f"  MC/DC coverage:  {summary['global_mcdc_rate']:.1f}%")
     print(f"  Files tracked:   {summary['total_files']}")
-    print(f"{'='*60}")
+    print(f"{'='*65}")
 
     if summary["files"]:
-        print(f"\n  {'File':<40} {'Lines':>7}  {'Detail':>14}")
-        print(f"  {'-'*40} {'-'*7}  {'-'*14}")
+        has_regions = any("region_rate" in f for f in summary["files"])
+        has_mcdc = any("mcdc_rate" in f for f in summary["files"])
+
+        header = f"  {'File':<40} {'Lines':>7}"
+        divider = f"  {'-'*40} {'-'*7}"
+        if has_regions:
+            header += f"  {'Regions':>8}"
+            divider += f"  {'-'*8}"
+        if has_mcdc:
+            header += f"  {'MC/DC':>7}"
+            divider += f"  {'-'*7}"
+
+        print(f"\n{header}")
+        print(divider)
+
         for f in summary["files"]:
-            detail = f"{f['lines_covered']}/{f['lines_total']}"
-            print(f"  {f['filename']:<40} {f['line_rate']:>6.1f}%  {detail:>14}")
+            line = f"  {f['filename']:<40} {f['line_rate']:>6.1f}%"
+            if has_regions:
+                region = f"{f.get('region_rate', 0):>6.1f}%" if "region_rate" in f else "    n/a"
+                line += f"  {region}"
+            if has_mcdc:
+                mcdc = f"{f.get('mcdc_rate', 0):>5.1f}%" if "mcdc_rate" in f else "   n/a"
+                line += f"  {mcdc}"
+            print(line)
     print()
 
 
 def main():
     if len(sys.argv) < 3:
-        print(f"Usage: {sys.argv[0]} <cobertura.xml> <output.json>")
+        print(f"Usage: {sys.argv[0]} <coverage.json> <output.json>")
         sys.exit(1)
 
-    xml_path = sys.argv[1]
-    json_path = sys.argv[2]
+    json_path = sys.argv[1]
+    output_path = sys.argv[2]
 
     try:
-        summary = parse_cobertura(xml_path)
+        summary = parse_llvm_cov(json_path)
     except FileNotFoundError:
-        print(f"Error: XML file not found: {xml_path}", file=sys.stderr)
+        print(f"Error: JSON file not found: {json_path}", file=sys.stderr)
         sys.exit(1)
-    except ET.ParseError as e:
-        print(f"Error: Failed to parse XML: {e}", file=sys.stderr)
+    except (json.JSONDecodeError, KeyError) as e:
+        print(f"Error: Failed to parse llvm-cov JSON: {e}", file=sys.stderr)
         sys.exit(1)
 
     try:
-        with open(json_path, "w", encoding="utf-8") as f:
+        with open(output_path, "w", encoding="utf-8") as f:
             json.dump(summary, f, indent=2)
     except OSError as e:
         print(f"Error: Cannot write output file: {e}", file=sys.stderr)
         sys.exit(1)
 
     print_summary(summary)
-    print(f"  JSON written to: {json_path}")
+    print(f"  JSON written to: {output_path}")
 
 
 if __name__ == "__main__":

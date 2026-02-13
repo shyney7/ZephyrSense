@@ -20,6 +20,11 @@ jobs:
       - name: Setup MSVC
         uses: ilammy/msvc-dev-cmd@v1
 
+      - name: Install LLVM
+        uses: aminya/setup-cpp@v1
+        with:
+          llvm: "21"
+
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
@@ -29,7 +34,7 @@ jobs:
           cache: true
 
       - name: Configure
-        run: cmake -B build -GNinja -DCMAKE_BUILD_TYPE=Release
+        run: cmake -B build -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl
 
       - name: Build
         run: cmake --build build
@@ -44,6 +49,11 @@ jobs:
       - name: Setup MSVC
         uses: ilammy/msvc-dev-cmd@v1
 
+      - name: Install LLVM
+        uses: aminya/setup-cpp@v1
+        with:
+          llvm: "21"
+
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
@@ -53,7 +63,7 @@ jobs:
           cache: true
 
       - name: Configure
-        run: cmake -B build -GNinja -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=ON
+        run: cmake -B build -GNinja -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=ON -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl
 
       - name: Build
         run: cmake --build build
@@ -71,6 +81,11 @@ jobs:
       - name: Setup MSVC
         uses: ilammy/msvc-dev-cmd@v1
 
+      - name: Install LLVM
+        uses: aminya/setup-cpp@v1
+        with:
+          llvm: "21"
+
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
@@ -80,7 +95,7 @@ jobs:
           cache: true
 
       - name: Configure
-        run: cmake -B build -GNinja -DCMAKE_BUILD_TYPE=Release
+        run: cmake -B build -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl
 
       - name: Build
         run: cmake --build build
@@ -110,10 +125,10 @@ jobs:
       - name: Install LLVM
         uses: aminya/setup-cpp@v1
         with:
-          clangtidy: true
+          llvm: "21"
 
       - name: Configure
-        run: cmake -B build -GNinja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+        run: cmake -B build -GNinja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl
 
       - name: Build
         run: cmake --build build
@@ -134,6 +149,11 @@ jobs:
       - name: Setup MSVC
         uses: ilammy/msvc-dev-cmd@v1
 
+      - name: Install LLVM
+        uses: aminya/setup-cpp@v1
+        with:
+          llvm: "21"
+
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
@@ -153,7 +173,7 @@ jobs:
               - 'libs'
 
       - name: Configure
-        run: cmake -B build -GNinja -DCMAKE_BUILD_TYPE=Release
+        run: cmake -B build -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl
 
       - name: Build
         run: cmake --build build

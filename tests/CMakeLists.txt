@@ -1,6 +1,6 @@
 find_package(Qt6 REQUIRED COMPONENTS Test Core Gui Sql Qml SerialPort)
 
-option(ENABLE_COVERAGE "Enable /PROFILE linker flag for code coverage" OFF)
+option(ENABLE_COVERAGE "Enable Clang source-based code coverage instrumentation" OFF)
 
 # Macro to reduce boilerplate for each test executable
 macro(add_zephyr_test name)
@@ -24,8 +24,10 @@ macro(add_zephyr_test name)
         target_compile_definitions(${name} PRIVATE ${ARG_DEFINES})
     endif()
 
-    if(ENABLE_COVERAGE AND MSVC)
-        target_link_options(${name} PRIVATE /PROFILE)
+    if(ENABLE_COVERAGE)
+        target_compile_options(${name} PRIVATE
+            -fprofile-instr-generate -fcoverage-mapping -fcoverage-mcdc)
+        target_link_options(${name} PRIVATE -fprofile-instr-generate)
     endif()
 
     add_test(NAME ${name} COMMAND ${name} -o ${CMAKE_BINARY_DIR}/test-results/${name}.xml,junitxml)
