@@ -392,7 +392,7 @@ private slots:
         QString tooltip = model.data(model.index(0), SensorReadingModel::TooltipTextRole).toString();
         QVERIFY(tooltip.contains(QStringLiteral("22.5")));
         QVERIFY(tooltip.contains(QStringLiteral("500")));
-        QVERIFY(tooltip.contains(QStringLiteral("48.0")));  // latitude from withAllSensors (48.1f → ~48.099998)
+        QVERIFY(tooltip.contains(QStringLiteral("48.0999")));  // latitude from withAllSensors (48.1f → "48.099998")
     }
 
     // ── QQmlEngine integration tests ──

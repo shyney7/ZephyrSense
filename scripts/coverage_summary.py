@@ -14,7 +14,10 @@ Note: Source files compiled into multiple test targets are deduplicated
 by merging line-hit data across all occurrences (union of covered lines).
 """
 
+from __future__ import annotations
+
 import json
+import re
 import sys
 import xml.etree.ElementTree as ET
 from collections import defaultdict
@@ -28,6 +31,10 @@ def parse_cobertura(xml_path: str) -> dict:
     # Collect per-line hit data across all class entries, keyed by filename.
     # For each file, track: {line_number: max_hits} across all duplicates.
     file_lines: dict[str, dict[int, int]] = defaultdict(dict)
+
+    # Track branch data from XML (conditions-covered / conditions attributes)
+    total_branches = 0
+    total_branches_covered = 0
 
     for package in root.iter("package"):
         for cls in package.iter("class"):
@@ -46,6 +53,15 @@ def parse_cobertura(xml_path: str) -> dict:
                 # Keep the maximum hit count across all duplicate compilations
                 prev = file_lines[norm].get(line_num, 0)
                 file_lines[norm][line_num] = max(prev, hits)
+
+                # Accumulate branch data if present
+                cond = line.get("condition-coverage")
+                if cond:
+                    # Format: "50% (1/2)" — extract covered/total
+                    m = re.search(r"\((\d+)/(\d+)\)", cond)
+                    if m:
+                        total_branches_covered += int(m.group(1))
+                        total_branches += int(m.group(2))
 
     # Build per-file summary from merged line data
     files = []
@@ -82,15 +98,19 @@ def parse_cobertura(xml_path: str) -> dict:
     files.sort(key=lambda f: (f["line_rate"], f["filename"]))
 
     global_line_rate = (total_covered / total_lines * 100) if total_lines else 0.0
+    global_branch_rate = (total_branches_covered / total_branches * 100) if total_branches else None
 
-    return {
+    result = {
         "global_line_rate": round(global_line_rate, 1),
-        "global_branch_rate": 100.0,
         "total_files": len(files),
         "total_lines": total_lines,
         "total_covered": total_covered,
         "files": files,
     }
+    if global_branch_rate is not None:
+        result["global_branch_rate"] = round(global_branch_rate, 1)
+
+    return result
 
 
 def print_summary(summary: dict) -> None:
@@ -99,6 +119,8 @@ def print_summary(summary: dict) -> None:
     print(f"{'='*60}")
     print(f"  Line coverage:   {summary['global_line_rate']:.1f}%"
           f"  ({summary['total_covered']}/{summary['total_lines']} lines)")
+    if "global_branch_rate" in summary:
+        print(f"  Branch coverage: {summary['global_branch_rate']:.1f}%")
     print(f"  Files tracked:   {summary['total_files']}")
     print(f"{'='*60}")
 
@@ -119,10 +141,21 @@ def main():
     xml_path = sys.argv[1]
     json_path = sys.argv[2]
 
-    summary = parse_cobertura(xml_path)
+    try:
+        summary = parse_cobertura(xml_path)
+    except FileNotFoundError:
+        print(f"Error: XML file not found: {xml_path}", file=sys.stderr)
+        sys.exit(1)
+    except ET.ParseError as e:
+        print(f"Error: Failed to parse XML: {e}", file=sys.stderr)
+        sys.exit(1)
 
-    with open(json_path, "w", encoding="utf-8") as f:
-        json.dump(summary, f, indent=2)
+    try:
+        with open(json_path, "w", encoding="utf-8") as f:
+            json.dump(summary, f, indent=2)
+    except OSError as e:
+        print(f"Error: Cannot write output file: {e}", file=sys.stderr)
+        sys.exit(1)
 
     print_summary(summary)
     print(f"  JSON written to: {json_path}")

@@ -67,13 +67,10 @@ if (Test-Path $CoverageDir) {
 }
 New-Item -ItemType Directory -Path $CoverageDir -Force | Out-Null
 
-# Discover test executables (Ninja puts them in build root, MSVC puts them in build/tests/)
-$TestExes = Get-ChildItem -Path $BuildDir -Filter "tst_*.exe" -ErrorAction SilentlyContinue
+# Discover test executables (Ninja puts them in build root, multi-config generators use subdirs like Debug/)
+$TestExes = Get-ChildItem -Path $BuildDir -Filter "tst_*.exe" -Recurse -ErrorAction SilentlyContinue
 if (-not $TestExes -or $TestExes.Count -eq 0) {
-    $TestExes = Get-ChildItem -Path $TestsDir -Filter "tst_*.exe" -ErrorAction SilentlyContinue
-}
-if (-not $TestExes -or $TestExes.Count -eq 0) {
-    Write-Error "No test executables found in $TestsDir. Build with -DBUILD_TESTS=ON first."
+    Write-Error "No test executables found in $BuildDir. Build with -DBUILD_TESTS=ON first."
     exit 1
 }
 
