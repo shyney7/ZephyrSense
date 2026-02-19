@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import QtLocation
+import QtLocation as QtLoc
 import QtPositioning
 import ZephyrSense
 
@@ -30,13 +30,13 @@ Item {
     }
 
     // Main map container
-    MapView {
+    QtLoc.MapView {
         id: mapView
         anchors.fill: parent
 
-        map.plugin: Plugin {
+        map.plugin: QtLoc.Plugin {
             name: "osm"
-            PluginParameter {
+            QtLoc.PluginParameter {
                 name: "osm.useragent"
                 value: "ZephyrSense/1.0"
             }
@@ -47,7 +47,7 @@ Item {
         map.zoomLevel: 10
 
         // Marker layer using MapItemView
-        MapItemView {
+        QtLoc.MapItemView {
             id: markerView
             model: sensorModel
             parent: mapView.map

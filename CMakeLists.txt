@@ -25,6 +25,8 @@ target_compile_options(project_warnings INTERFACE
 # Aggressive release optimizations for clang-cl
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND MSVC)
     add_compile_options(
+		-Wno-c++98-compat
+		-Wno-c++98-compat-pedantic
         $<$<CONFIG:Release>:-O3>
         $<$<CONFIG:Release>:-flto=thin>
         $<$<CONFIG:Release>:-ffast-math>
