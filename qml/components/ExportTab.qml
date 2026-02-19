@@ -37,12 +37,14 @@ Item {
                         }
                         Switch {
                             id: exportSwitch
+                            objectName: "exportSwitch"
                             checked: CsvExporter.enabled
                             onToggled: {
                                 CsvExporter.enabled = checked;
                             }
                         }
                         Label {
+                            objectName: "statusLabel"
                             text: exportSwitch.checked ? "Enabled" : "Disabled"
                             color: exportSwitch.checked ? "green" : "red"
                             font.bold: true
@@ -68,6 +70,7 @@ Item {
                             radius: 4
 
                             Label {
+                                objectName: "filePathLabel"
                                 anchors.fill: parent
                                 anchors.margins: 8
                                 text: CsvExporter.filePath || "No file selected"
@@ -95,6 +98,7 @@ Item {
 
                     // Reset button
                     Button {
+                        objectName: "resetButton"
                         text: "Reset (Disable and Clear Path)"
                         Layout.alignment: Qt.AlignRight
                         onClicked: {

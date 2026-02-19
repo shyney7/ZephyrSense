@@ -1,4 +1,4 @@
-find_package(Qt6 REQUIRED COMPONENTS Test Core Gui Sql Qml SerialPort)
+find_package(Qt6 REQUIRED COMPONENTS Test Core Gui Sql Qml SerialPort QuickTest Quick QuickControls2 QuickDialogs2)
 
 option(ENABLE_COVERAGE "Enable Clang source-based code coverage instrumentation" OFF)
 
@@ -149,3 +149,41 @@ add_zephyr_test(tst_iothread
     LIBRARIES
         Qt6::Core Qt6::Sql Qt6::QmlIntegration
 )
+
+# ── QML Test Suite ──────────────────────────────────────────────────────────
+qt_add_executable(tst_qml qml/setup/tst_qml_setup.cpp)
+
+qt_add_qml_module(tst_qml
+    URI ZephyrSense
+    VERSION 1.0
+    OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/imports/ZephyrSense"
+    NO_PLUGIN
+    SOURCES
+        qml/setup/mocks.h
+        qml/setup/mocks.cpp
+        ${CMAKE_SOURCE_DIR}/src/core/sensorreading.h
+        ${CMAKE_SOURCE_DIR}/src/core/sensorreading.cpp
+)
+
+target_compile_definitions(tst_qml PRIVATE
+    QUICK_TEST_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/qml"
+    QML_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
+)
+target_include_directories(tst_qml PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/core
+    ${CMAKE_CURRENT_SOURCE_DIR}/qml/setup
+)
+target_link_libraries(tst_qml PRIVATE
+    Qt6::QuickTest Qt6::Quick Qt6::QuickControls2 Qt6::Qml
+    Qt6::QmlIntegration Qt6::QuickDialogs2
+    project_warnings
+)
+
+if(ENABLE_COVERAGE)
+    target_compile_options(tst_qml PRIVATE
+        -fprofile-instr-generate -fcoverage-mapping -fcoverage-mcdc)
+    target_link_options(tst_qml PRIVATE -fprofile-instr-generate)
+endif()
+add_test(NAME tst_qml COMMAND tst_qml
+    -o ${CMAKE_BINARY_DIR}/test-results/tst_qml.xml,junitxml)
+set_property(GLOBAL APPEND PROPERTY ZEPHYR_TEST_TARGETS tst_qml)

@@ -35,6 +35,7 @@ Rectangle {
         spacing: 4
 
         Repeater {
+            objectName: "sensorRepeater"
             model: legendRoot.sensors
 
             Rectangle {

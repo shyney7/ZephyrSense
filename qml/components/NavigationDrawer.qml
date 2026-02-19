@@ -36,6 +36,7 @@ Rectangle {
         // Navigation items
         ListView {
             id: navList
+            objectName: "navList"
             Layout.fillWidth: true
             Layout.fillHeight: true
             interactive: false

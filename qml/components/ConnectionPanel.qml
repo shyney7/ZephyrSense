@@ -47,12 +47,14 @@ Rectangle {
 
             ComboBox {
                 id: portComboBox
+                objectName: "portComboBox"
                 Layout.fillWidth: true
                 model: SerialHandler.availablePorts
                 enabled: !SerialHandler.connected
             }
 
             Button {
+                objectName: "refreshButton"
                 text: "Refresh"
                 enabled: !SerialHandler.connected
                 onClicked: SerialHandler.refreshPorts()
@@ -97,6 +99,7 @@ Rectangle {
             }
 
             Rectangle {
+                objectName: "statusIndicator"
                 Layout.preferredWidth: 12
                 Layout.preferredHeight: 12
                 radius: 6
@@ -116,6 +119,7 @@ Rectangle {
 
         // Error display
         Rectangle {
+            objectName: "errorRect"
             Layout.fillWidth: true
             Layout.preferredHeight: errorLabel.implicitHeight + 16
             color: "#FFEBEE"
@@ -142,6 +146,7 @@ Rectangle {
 
             Button {
                 id: connectButton
+                objectName: "connectButton"
                 text: "Connect"
                 Layout.fillWidth: true
                 enabled: !SerialHandler.connected && portComboBox.currentText !== ""
@@ -155,6 +160,7 @@ Rectangle {
 
             Button {
                 id: disconnectButton
+                objectName: "disconnectButton"
                 text: "Disconnect"
                 Layout.fillWidth: true
                 enabled: SerialHandler.connected

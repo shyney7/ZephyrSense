@@ -69,6 +69,8 @@ jobs:
         run: cmake --build build
 
       - name: Run tests
+        env:
+          QT_QPA_PLATFORM: offscreen
         run: ctest --test-dir build --output-on-failure
 
   lint-qml:
