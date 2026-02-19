@@ -27,13 +27,18 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND MSVC)
     add_compile_options(
 		-Wno-c++98-compat
 		-Wno-c++98-compat-pedantic
-        $<$<CONFIG:Release>:-O3>
-        $<$<CONFIG:Release>:-flto=thin>
-        $<$<CONFIG:Release>:-ffast-math>
-        $<$<CONFIG:Release>:-fomit-frame-pointer>
+		$<$<CONFIG:Release>:/O2>
+        $<$<CONFIG:Release>:/clang:-O3>
+		$<$<CONFIG:Release>:/clang:-funroll-loops>
+		$<$<CONFIG:Release>:/clang:-fvectorize>
+		$<$<CONFIG:Release>:/clang:-fslp-vectorize>
+        $<$<CONFIG:Release>:/clang:-flto=full>
+        $<$<CONFIG:Release>:/fp:fast>
+        $<$<CONFIG:Release>:/Oy>
     )
     add_link_options(
         $<$<CONFIG:Release>:-fuse-ld=lld>
+		$<$<CONFIG:Release>:-flto=full>
         $<$<CONFIG:Release>:/OPT:REF>
         $<$<CONFIG:Release>:/OPT:ICF>
     )
