@@ -1,3 +1,6 @@
+pragma ComponentBehavior: Bound
+pragma FunctionSignatureBehavior: Enforced
+
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -5,7 +8,6 @@ import QtLocation as QtLoc
 import QtPositioning
 import ZephyrSense
 
-pragma ComponentBehavior: Bound
 
 Item {
     id: mapViewRoot

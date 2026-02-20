@@ -1,8 +1,9 @@
+pragma ComponentBehavior: Bound
+pragma FunctionSignatureBehavior: Enforced
+
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-
-pragma ComponentBehavior: Bound
 
 Item {
     id: root

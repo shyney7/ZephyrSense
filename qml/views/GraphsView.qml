@@ -1,3 +1,6 @@
+pragma ComponentBehavior: Bound
+pragma FunctionSignatureBehavior: Enforced
+
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -5,7 +8,6 @@ import ZephyrSense
 import com.kdab.dockwidgets 2.0 as KDDW
 import "../components"
 
-pragma ComponentBehavior: Bound
 
 Item {
     id: graphsViewRoot

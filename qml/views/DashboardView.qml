@@ -1,10 +1,12 @@
+pragma ComponentBehavior: Bound
+pragma FunctionSignatureBehavior: Enforced
+
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import ZephyrSense
 import "../components"
 
-pragma ComponentBehavior: Bound
 
 Item {
     id: dashboardRoot
