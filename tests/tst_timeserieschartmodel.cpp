@@ -20,7 +20,7 @@ private:
     {
         TimeSeriesChartModel::DataPoint point;
         point.timestamp = timestamp;
-        for (int i = 0; i < 9; ++i)
+        for (size_t i = 0; i < 9; ++i)
             point.values[i] = values[i];
         model.m_data.append(point);
     }
@@ -360,7 +360,7 @@ private slots:
             for (int i = 0; i < 3; ++i) {
                 SensorReading reading = SensorReadingBuilder()
                     .withAllSensors()
-                    .withTemperature(20.0f + i * 5.0f)
+                    .withTemperature(20.0f + static_cast<float>(i) * 5.0f)
                     .withTimestamp(now.addSecs(-120 + i * 60))
                     .build();
                 query.prepare(QStringLiteral(R"(

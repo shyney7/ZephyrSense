@@ -13,7 +13,7 @@ int TimeSeriesChartModel::rowCount(const QModelIndex &parent) const
 {
     if (parent.isValid())
         return 0;
-    return m_data.count();
+    return static_cast<int>(m_data.count());
 }
 
 int TimeSeriesChartModel::columnCount(const QModelIndex &parent) const
@@ -25,7 +25,7 @@ int TimeSeriesChartModel::columnCount(const QModelIndex &parent) const
 
 QVariant TimeSeriesChartModel::data(const QModelIndex &index, int role) const
 {
-    if (!index.isValid() || index.row() >= m_data.count() || role != Qt::DisplayRole)
+    if (!index.isValid() || index.row() >= static_cast<int>(m_data.count()) || role != Qt::DisplayRole)
         return QVariant();
 
     const DataPoint &point = m_data.at(index.row());
@@ -38,7 +38,7 @@ QVariant TimeSeriesChartModel::data(const QModelIndex &index, int role) const
     // Columns 1-9 are sensor values
     int sensorIndex = index.column() - 1;
     if (sensorIndex >= 0 && sensorIndex < 9) {
-        return point.values[sensorIndex];
+        return point.values[static_cast<size_t>(sensorIndex)];
     }
 
     return QVariant();
@@ -136,7 +136,7 @@ QVariantMap TimeSeriesChartModel::getYBoundsForColumn(int column) const
         return result;
     }
 
-    int sensorIndex = column - 1;
+    auto sensorIndex = static_cast<size_t>(column - 1);
     qreal minVal = std::numeric_limits<qreal>::max();
     qreal maxVal = std::numeric_limits<qreal>::lowest();
 
@@ -171,8 +171,8 @@ void TimeSeriesChartModel::calculateBounds()
     }
 
     // X bounds from first and last timestamp
-    m_xMin = m_data.constFirst().timestamp;
-    m_xMax = m_data.constLast().timestamp;
+    m_xMin = static_cast<qreal>(m_data.constFirst().timestamp);
+    m_xMax = static_cast<qreal>(m_data.constLast().timestamp);
 
     // Y bounds for active column (default: temperature)
     calculateYBoundsForColumn(m_activeColumn);
@@ -186,11 +186,12 @@ void TimeSeriesChartModel::calculateYBoundsForColumn(int column)
         return;
     }
 
-    int sensorIndex = column - 1;  // Column 0 is timestamp, sensors start at 1
-    if (sensorIndex < 0 || sensorIndex >= 9) {
-        qWarning() << "TimeSeriesChartModel: Invalid sensor index:" << sensorIndex;
+    int sensorIdx = column - 1;  // Column 0 is timestamp, sensors start at 1
+    if (sensorIdx < 0 || sensorIdx >= 9) {
+        qWarning() << "TimeSeriesChartModel: Invalid sensor index:" << sensorIdx;
         return;
     }
+    auto sensorIndex = static_cast<size_t>(sensorIdx);
 
     qreal minVal = std::numeric_limits<qreal>::max();
     qreal maxVal = std::numeric_limits<qreal>::lowest();

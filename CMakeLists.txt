@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.25)
 
 project(ZephyrSense VERSION 0.1 LANGUAGES CXX)
 
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_AUTORCC ON)
@@ -14,19 +15,13 @@ find_package(Qt6 REQUIRED COMPONENTS Quick QuickControls2 SerialPort Sql Locatio
 
 qt_standard_project_setup(REQUIRES 6.8)
 
-# Project-wide compiler warnings (applied only to our own targets)
-add_library(project_warnings INTERFACE)
-target_compile_options(project_warnings INTERFACE
-    $<$<CXX_COMPILER_ID:MSVC>:/W4>
-    $<$<CXX_COMPILER_ID:Clang,AppleClang>:-Wall;-Wextra;-Woverloaded-virtual;-Wshadow>
-    $<$<CXX_COMPILER_ID:GNU>:-Wall;-Wextra;-Woverloaded-virtual;-Wshadow>
-)
-
 # Aggressive release optimizations for clang-cl
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND MSVC)
     add_compile_options(
 		-Wno-c++98-compat
 		-Wno-c++98-compat-pedantic
+		-Wno-unique-object-duplication
+		-Wno-switch-default
 		$<$<CONFIG:Release>:/O2>
         $<$<CONFIG:Release>:/clang:-O3>
 		$<$<CONFIG:Release>:/clang:-funroll-loops>
@@ -76,6 +71,28 @@ qt_add_executable(appZephyrSense
     installer/resources.qrc
 )
 
+# Our source files — used by both qt_add_qml_module and set_source_files_properties
+set(ZEPHYR_SOURCES
+    src/core/sensorreading.cpp
+    src/core/sensorreading.h
+    src/core/thresholdmanager.cpp
+    src/core/thresholdmanager.h
+    src/serial/serialhandler.cpp
+    src/serial/serialhandler.h
+    src/data/databasemanager.cpp
+    src/data/databasemanager.h
+    src/data/csvexporter.cpp
+    src/data/csvexporter.h
+    src/models/sensorreadingmodel.cpp
+    src/models/sensorreadingmodel.h
+    src/models/timeserieschartmodel.cpp
+    src/models/timeserieschartmodel.h
+    src/threading/ioworker.cpp
+    src/threading/ioworker.h
+    src/threading/iothread.cpp
+    src/threading/iothread.h
+)
+
 qt_add_qml_module(appZephyrSense
     URI ZephyrSense
     VERSION 1.0
@@ -98,26 +115,24 @@ qt_add_qml_module(appZephyrSense
         qml/views/DashboardView.qml
         qml/views/GraphsView.qml
         qml/views/SettingsView.qml
-    SOURCES
-        src/core/sensorreading.cpp
-        src/core/sensorreading.h
-        src/core/thresholdmanager.cpp
-        src/core/thresholdmanager.h
-        src/serial/serialhandler.cpp
-        src/serial/serialhandler.h
-        src/data/databasemanager.cpp
-        src/data/databasemanager.h
-        src/data/csvexporter.cpp
-        src/data/csvexporter.h
-        src/models/sensorreadingmodel.cpp
-        src/models/sensorreadingmodel.h
-        src/models/timeserieschartmodel.cpp
-        src/models/timeserieschartmodel.h
-        src/threading/ioworker.cpp
-        src/threading/ioworker.h
-        src/threading/iothread.cpp
-        src/threading/iothread.h
+    SOURCES ${ZEPHYR_SOURCES}
 )
+
+# Strict compiler warnings — applied ONLY to our source files.
+# Qt-generated files (MOC, QML AOT, type registrations) are unaffected.
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    set_source_files_properties(main.cpp ${ZEPHYR_SOURCES} PROPERTIES
+        COMPILE_OPTIONS "-Wall;-Wextra;-Woverloaded-virtual;-Wshadow;-Wcovered-switch-default;-Wswitch-enum"
+    )
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    set_source_files_properties(main.cpp ${ZEPHYR_SOURCES} PROPERTIES
+        COMPILE_OPTIONS "/W4"
+    )
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    set_source_files_properties(main.cpp ${ZEPHYR_SOURCES} PROPERTIES
+        COMPILE_OPTIONS "-Wall;-Wextra;-Woverloaded-virtual;-Wshadow;-Wcovered-switch-default;-Wswitch-enum"
+    )
+endif()
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
@@ -142,7 +157,7 @@ target_include_directories(appZephyrSense PRIVATE
 )
 
 target_link_libraries(appZephyrSense
-    PRIVATE project_warnings Qt6::Quick Qt6::QuickControls2 Qt6::SerialPort Qt6::Sql Qt6::Location Qt6::Positioning Qt6::Charts Qt6::Widgets KDAB::kddockwidgets
+    PRIVATE Qt6::Quick Qt6::QuickControls2 Qt6::SerialPort Qt6::Sql Qt6::Location Qt6::Positioning Qt6::Charts Qt6::Widgets KDAB::kddockwidgets
 )
 
 include(GNUInstallDirs)

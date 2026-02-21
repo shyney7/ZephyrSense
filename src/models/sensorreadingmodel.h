@@ -41,7 +41,7 @@ public:
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
     QHash<int, QByteArray> roleNames() const override;
 
-    int count() const { return m_readings.count(); }
+    int count() const { return static_cast<int>(m_readings.count()); }
 
     Q_INVOKABLE void loadFromDatabase(const QDateTime &start, const QDateTime &end);
     Q_INVOKABLE void clear();

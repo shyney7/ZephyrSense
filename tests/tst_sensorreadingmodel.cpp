@@ -189,7 +189,7 @@ private slots:
     {
         SensorReadingModel model;
         for (int i = 0; i < 3; ++i) {
-            model.addReading(SensorReadingBuilder().withCoordinates(48.0f + i, 11.0f).build());
+            model.addReading(SensorReadingBuilder().withCoordinates(48.0f + static_cast<float>(i), 11.0f).build());
         }
         QCOMPARE(model.count(), 3);
         model.clear();
@@ -370,7 +370,7 @@ private slots:
         SensorReadingModel model;
         for (int i = 0; i < 3; ++i) {
             model.addReading(SensorReadingBuilder()
-                .withCoordinates(48.0f + i, 11.0f)
+                .withCoordinates(48.0f + static_cast<float>(i), 11.0f)
                 .build());
         }
 

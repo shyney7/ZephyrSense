@@ -4,6 +4,7 @@
 #include <QAbstractTableModel>
 #include <QQmlEngine>
 #include <QDateTime>
+#include <array>
 #include "sensorreading.h"
 
 class TimeSeriesChartModel : public QAbstractTableModel
@@ -47,7 +48,7 @@ public:
     qreal xMax() const { return m_xMax; }
     qreal yMin() const { return m_yMin; }
     qreal yMax() const { return m_yMax; }
-    int dataCount() const { return m_data.count(); }
+    int dataCount() const { return static_cast<int>(m_data.count()); }
 
     // QML-invokable methods
     Q_INVOKABLE void loadData(const QDateTime &start, const QDateTime &end);
@@ -65,8 +66,8 @@ signals:
 
 private:
     struct DataPoint {
-        qint64 timestamp;  // msecs since epoch
-        qreal values[9];   // 9 sensor values
+        qint64 timestamp;                // msecs since epoch
+        std::array<qreal, 9> values{};   // 9 sensor values
     };
 
     void calculateBounds();

@@ -23,7 +23,7 @@ class SerialHandler : public QObject
 
 public:
     explicit SerialHandler(QObject *parent = nullptr);
-    ~SerialHandler();
+    ~SerialHandler() override;
 
     // Property getters
     QStringList availablePorts() const;

@@ -18,7 +18,22 @@ macro(add_zephyr_test name)
         ${CMAKE_SOURCE_DIR}/src/threading
         ${CMAKE_SOURCE_DIR}/tests
     )
-    target_link_libraries(${name} PRIVATE Qt6::Test project_warnings ${ARG_LIBRARIES})
+    target_link_libraries(${name} PRIVATE Qt6::Test ${ARG_LIBRARIES})
+
+    # Strict warnings — applied ONLY to hand-written source files, not MOC/generated code
+    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        set_source_files_properties(${ARG_SOURCES} PROPERTIES
+            COMPILE_OPTIONS "-Wall;-Wextra;-Woverloaded-virtual;-Wshadow;-Wcovered-switch-default;-Wswitch-enum"
+        )
+    elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+        set_source_files_properties(${ARG_SOURCES} PROPERTIES
+            COMPILE_OPTIONS "/W4"
+        )
+    elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        set_source_files_properties(${ARG_SOURCES} PROPERTIES
+            COMPILE_OPTIONS "-Wall;-Wextra;-Woverloaded-virtual;-Wshadow;-Wcovered-switch-default;-Wswitch-enum"
+        )
+    endif()
 
     if(ARG_DEFINES)
         target_compile_definitions(${name} PRIVATE ${ARG_DEFINES})
@@ -176,8 +191,26 @@ target_include_directories(tst_qml PRIVATE
 target_link_libraries(tst_qml PRIVATE
     Qt6::QuickTest Qt6::Quick Qt6::QuickControls2 Qt6::Qml
     Qt6::QmlIntegration Qt6::QuickDialogs2
-    project_warnings
 )
+
+# Per-file warnings for tst_qml's actual sources only
+set(TST_QML_SOURCES
+    qml/setup/tst_qml_setup.cpp
+    qml/setup/mocks.cpp
+)
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    set_source_files_properties(${TST_QML_SOURCES} PROPERTIES
+        COMPILE_OPTIONS "-Wall;-Wextra;-Woverloaded-virtual;-Wshadow"
+    )
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    set_source_files_properties(${TST_QML_SOURCES} PROPERTIES
+        COMPILE_OPTIONS "/W4"
+    )
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    set_source_files_properties(${TST_QML_SOURCES} PROPERTIES
+        COMPILE_OPTIONS "-Wall;-Wextra;-Woverloaded-virtual;-Wshadow"
+    )
+endif()
 
 if(ENABLE_COVERAGE)
     target_compile_options(tst_qml PRIVATE

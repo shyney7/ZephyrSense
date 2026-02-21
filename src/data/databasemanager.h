@@ -18,7 +18,7 @@ class DatabaseManager : public QObject
 
 public:
     explicit DatabaseManager(QObject *parent = nullptr);
-    ~DatabaseManager();
+    ~DatabaseManager() override;
 
     static constexpr const char* CONNECTION_NAME = "ZephyrSense";
 

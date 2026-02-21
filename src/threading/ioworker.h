@@ -14,7 +14,7 @@ class IOWorker : public QObject
 
 public:
     explicit IOWorker(QObject *parent = nullptr);
-    ~IOWorker();
+    ~IOWorker() override;
 
 public slots:
     // Must be called after moveToThread() - initializes database connection
@@ -43,16 +43,16 @@ private:
     void openCsvFile();
     void closeCsvFile();
 
-    // Database
+    // 8-byte aligned members first
     QSqlDatabase m_db;
     QString m_databasePath;
-    bool m_dbInitialized = false;
-
-    // CSV
     std::unique_ptr<QFile> m_csvFile;
     std::unique_ptr<QTextStream> m_csvStream;
-    bool m_csvEnabled = false;
     QString m_csvFilePath;
+
+    // 1-byte members last
+    bool m_dbInitialized = false;
+    bool m_csvEnabled = false;
 
     static constexpr const char* CONNECTION_NAME = "ZephyrSenseIOWorker";
 };

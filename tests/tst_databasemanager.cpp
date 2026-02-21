@@ -125,7 +125,7 @@ private slots:
         QCOMPARE(result[QStringLiteral("id")].toInt(), 1);
         QCOMPARE(result[QStringLiteral("partectorNumber")].toInt(), reading.partectorNumber);
         QCOMPARE(result[QStringLiteral("co2")].toInt(), reading.co2);
-        QVERIFY(qAbs(result[QStringLiteral("temperature")].toDouble() - reading.temperature) < 0.01);
+        QVERIFY(qAbs(result[QStringLiteral("temperature")].toDouble() - static_cast<double>(reading.temperature)) < 0.01);
     }
 
     void getReadingById_notFound()
