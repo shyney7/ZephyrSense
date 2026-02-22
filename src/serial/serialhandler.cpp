@@ -178,7 +178,8 @@ void SerialHandler::handleError(QSerialPort::SerialPortError error)
     // Handle critical errors that require closing the port
     switch (error) {
     case QSerialPort::ResourceError:
-        // Device disconnected
+    case QSerialPort::ReadError:
+        // Device disconnected or read failure — close and reset
         closePort();
         break;
     case QSerialPort::DeviceNotFoundError:
@@ -192,7 +193,6 @@ void SerialHandler::handleError(QSerialPort::SerialPortError error)
         break;
     case QSerialPort::NoError:
     case QSerialPort::WriteError:
-    case QSerialPort::ReadError:
     case QSerialPort::UnsupportedOperationError:
     case QSerialPort::UnknownError:
     case QSerialPort::TimeoutError:
