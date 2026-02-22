@@ -5,6 +5,7 @@
 #include <QStandardPaths>
 #include <QDir>
 #include <QDebug>
+#include <QLoggingCategory>
 
 #include "src/core/sensorreading.h"
 #include "src/data/databasemanager.h"
@@ -18,6 +19,12 @@
 
 int main(int argc, char *argv[])
 {
+#ifdef QT_NO_DEBUG_OUTPUT
+    // Suppress QML console.log()/console.debug() in Release builds
+    // console.log maps to QtDebugMsg in "qml" and "js" logging categories
+    QLoggingCategory::setFilterRules(QStringLiteral("qml.debug=false\njs.debug=false"));
+#endif
+
     // Set organization info before QGuiApplication (required for QML Settings)
     QCoreApplication::setOrganizationName(QStringLiteral("ZephyrSense"));
     QCoreApplication::setOrganizationDomain(QStringLiteral("zephyrsense.local"));

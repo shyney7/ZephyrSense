@@ -160,6 +160,11 @@ target_link_libraries(appZephyrSense
     PRIVATE Qt6::Quick Qt6::QuickControls2 Qt6::SerialPort Qt6::Sql Qt6::Location Qt6::Positioning Qt6::Graphs Qt6::Widgets KDAB::kddockwidgets
 )
 
+# Suppress qDebug() output in Release builds (compile-time elimination)
+target_compile_definitions(appZephyrSense PRIVATE
+    $<$<NOT:$<CONFIG:Debug>>:QT_NO_DEBUG_OUTPUT>
+)
+
 include(GNUInstallDirs)
 install(TARGETS appZephyrSense
     BUNDLE DESTINATION .
