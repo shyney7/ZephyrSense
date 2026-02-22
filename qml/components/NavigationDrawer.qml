@@ -1,4 +1,5 @@
 pragma ComponentBehavior: Bound
+pragma FunctionSignatureBehavior: Enforced
 
 import QtQuick
 import QtQuick.Controls
@@ -36,6 +37,7 @@ Rectangle {
         // Navigation items
         ListView {
             id: navList
+            objectName: "navList"
             Layout.fillWidth: true
             Layout.fillHeight: true
             interactive: false

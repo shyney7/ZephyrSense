@@ -1,7 +1,9 @@
 #include "serialhandler.h"
 
 #include <QDebug>
-#include <cstring>
+#include <algorithm>
+#include <array>
+#include <bit>
 
 SerialHandler::SerialHandler(QObject *parent)
     : QObject(parent)
@@ -113,9 +115,12 @@ void SerialHandler::closePort()
 
 void SerialHandler::handleReadyRead()
 {
-    // Append incoming data to buffer
     m_buffer.append(m_serial->readAll());
+    processBuffer();
+}
 
+void SerialHandler::processBuffer()
+{
     // Frame detection for fixed-size binary protocol
     // Protocol: '<' + 42 bytes data + '>' = 44 bytes total
     // IMPORTANT: Binary data may contain '<' or '>' bytes, so we check
@@ -126,7 +131,7 @@ void SerialHandler::handleReadyRead()
 
     while (m_buffer.size() >= FRAME_SIZE) {
         // Find start delimiter '<'
-        int startIdx = m_buffer.indexOf('<');
+        qsizetype startIdx = m_buffer.indexOf('<');
         if (startIdx == -1) {
             // No start delimiter found, discard all data
             m_buffer.clear();
@@ -173,7 +178,8 @@ void SerialHandler::handleError(QSerialPort::SerialPortError error)
     // Handle critical errors that require closing the port
     switch (error) {
     case QSerialPort::ResourceError:
-        // Device disconnected
+    case QSerialPort::ReadError:
+        // Device disconnected or read failure — close and reset
         closePort();
         break;
     case QSerialPort::DeviceNotFoundError:
@@ -185,7 +191,12 @@ void SerialHandler::handleError(QSerialPort::SerialPortError error)
         }
         emit connectionStateChanged(false);
         break;
-    default:
+    case QSerialPort::NoError:
+    case QSerialPort::WriteError:
+    case QSerialPort::UnsupportedOperationError:
+    case QSerialPort::UnknownError:
+    case QSerialPort::TimeoutError:
+    case QSerialPort::NotOpenError:
         break;
     }
 
@@ -199,9 +210,12 @@ void SerialHandler::parseFrame(const QByteArray &frame)
         return;
     }
 
-    // Copy binary data to packed struct
-    SensorDataRaw raw;
-    std::memcpy(&raw, frame.constData(), sizeof(SensorDataRaw));
+    // Type-safe binary deserialization via std::bit_cast (C++20)
+    static_assert(std::is_trivially_copyable_v<SensorDataRaw>,
+                  "SensorDataRaw must be trivially copyable for bit_cast");
+    std::array<char, sizeof(SensorDataRaw)> buf;
+    std::ranges::copy_n(frame.constData(), sizeof(SensorDataRaw), buf.begin());
+    const SensorDataRaw raw = std::bit_cast<SensorDataRaw>(buf);
 
     // Create high-level reading with timestamp
     SensorReading reading(raw);

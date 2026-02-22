@@ -1,8 +1,9 @@
+pragma ComponentBehavior: Bound
+pragma FunctionSignatureBehavior: Enforced
+
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-
-pragma ComponentBehavior: Bound
 
 Item {
     id: root
@@ -29,6 +30,7 @@ Item {
         spacing: 4
 
         Label {
+            objectName: "labelText"
             text: root.label
             font.pixelSize: 12
             color: "white"
@@ -48,6 +50,7 @@ Item {
             // Hour selector
             ComboBox {
                 id: hourCombo
+                objectName: "hourCombo"
                 Layout.preferredWidth: 80
                 model: {
                     var hours = []

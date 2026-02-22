@@ -1,9 +1,13 @@
+pragma ComponentBehavior: Bound
+pragma FunctionSignatureBehavior: Enforced
+
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import ZephyrSense
 import com.kdab.dockwidgets 2.0 as KDDW
 import "../components"
+
 
 Item {
     id: graphsViewRoot
@@ -15,6 +19,7 @@ Item {
     property date historicalStart: new Date()
     property date historicalEnd: new Date()
     property list<string> availableDates: []
+    property alias rangeGroup: rangeGroupInst
 
     // True when any dock widget is detached into a floating window
     property bool hasFloatingDocks: dockPartectorNum.isFloating
@@ -40,7 +45,7 @@ Item {
         running: graphsViewRoot.currentMode === GraphsView.VisualizationMode.Live
                  && (graphsViewRoot.visible || graphsViewRoot.hasFloatingDocks)
         repeat: true
-        onTriggered: loadLiveData()
+        onTriggered: graphsViewRoot.loadLiveData()
     }
 
     ColumnLayout {
@@ -87,7 +92,7 @@ Item {
                 onCurrentIndexChanged: {
                     if (currentIndex >= 0) {
                         graphsViewRoot.updateIntervalMs = model[currentIndex].ms
-                        switchToLiveMode()
+                        graphsViewRoot.switchToLiveMode()
                     }
                 }
             }
@@ -98,7 +103,7 @@ Item {
                 verticalAlignment: Text.AlignVCenter
             }
 
-            ButtonGroup { id: rangeGroup }
+            ButtonGroup { id: rangeGroupInst }
 
             Repeater {
                 model: [
@@ -114,10 +119,10 @@ Item {
                     text: modelData.label
                     checkable: true
                     checked: index === 2  // Default: 1h
-                    ButtonGroup.group: rangeGroup
+                    ButtonGroup.group: graphsViewRoot.rangeGroup
 
                     onClicked: {
-                        loadPresetFromNow(modelData.minutes)
+                        graphsViewRoot.loadPresetFromNow(modelData.minutes)
                     }
                 }
             }
@@ -149,7 +154,7 @@ Item {
 
                 Label {
                     text: chartModel.dataCount > 0 ?
-                          "Range: " + formatTime(chartModel.xMin) + " - " + formatTime(chartModel.xMax) :
+                          "Range: " + graphsViewRoot.formatTime(chartModel.xMin) + " - " + graphsViewRoot.formatTime(chartModel.xMax) :
                           "No data loaded"
                     font.pixelSize: 12
                     color: "#757575"
@@ -163,6 +168,7 @@ Item {
             uniqueName: "SensorGraphsDockArea"
             Layout.fillWidth: true
             Layout.fillHeight: true
+            readonly property int locationOnBottom: KDDW.KDDockWidgets.Location_OnBottom
 
             // Dock widgets for each sensor
             KDDW.DockWidget {
@@ -266,7 +272,7 @@ Item {
 
             // Initial layout: all 9 as tabs in a single group
             Component.onCompleted: {
-                addDockWidget(dockPartectorNum, KDDW.KDDockWidgets.Location_OnBottom)
+                dockingArea.addDockWidget(dockPartectorNum, dockingArea.locationOnBottom)
                 dockPartectorNum.addDockWidgetAsTab(dockPartectorDiam)
                 dockPartectorNum.addDockWidgetAsTab(dockPartectorMass)
                 dockPartectorNum.addDockWidgetAsTab(dockGrimmValue)
@@ -342,7 +348,7 @@ Item {
                     text: "Load Data"
                     highlighted: true
                     onClicked: {
-                        switchToHistoricalMode()
+                        graphsViewRoot.switchToHistoricalMode()
                         customRangePopup.close()
                     }
                 }
@@ -404,7 +410,7 @@ Item {
         refreshAvailableDates()
         // Small delay to ensure model is ready
         Qt.callLater(function() {
-            loadLiveData()
+            graphsViewRoot.loadLiveData()
         })
     }
 }

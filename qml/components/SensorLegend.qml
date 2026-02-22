@@ -1,4 +1,5 @@
 pragma ComponentBehavior: Bound
+pragma FunctionSignatureBehavior: Enforced
 
 import QtQuick
 import QtQuick.Controls
@@ -35,6 +36,7 @@ Rectangle {
         spacing: 4
 
         Repeater {
+            objectName: "sensorRepeater"
             model: legendRoot.sensors
 
             Rectangle {

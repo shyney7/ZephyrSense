@@ -483,75 +483,59 @@ QString ThresholdManager::getColorForSensor(const QString &sensorKey, qreal valu
 {
     // If sensor is disabled, return neutral blue
     if (!isSensorEnabledForKey(sensorKey)) {
-        return QStringLiteral("#2196F3");  // Neutral blue for disabled sensors
+        return QStringLiteral("#2196F3");
     }
 
-    // Color constants
-    const QString colorGreen = QStringLiteral("#4CAF50");
-    const QString colorYellow = QStringLiteral("#FF9800");
-    const QString colorRed = QStringLiteral("#F44336");
+    QString result = QStringLiteral("#4CAF50"); // green default
 
-    // Check thresholds based on sensor type
     if (sensorKey == QLatin1String("temperature")) {
-        // Bidirectional - check both high and low
-        if (value >= m_temperatureDanger || value <= m_temperatureLowDanger)
-            return colorRed;
-        if (value >= m_temperatureWarning || value <= m_temperatureLowWarning)
-            return colorYellow;
-        return colorGreen;
+        if (value >= static_cast<qreal>(m_temperatureDanger) || value <= static_cast<qreal>(m_temperatureLowDanger))
+            result = QStringLiteral("#F44336");
+        else if (value >= static_cast<qreal>(m_temperatureWarning) || value <= static_cast<qreal>(m_temperatureLowWarning))
+            result = QStringLiteral("#FF9800");
     } else if (sensorKey == QLatin1String("humidity")) {
-        // Bidirectional - check both high and low
-        if (value >= m_humidityDanger || value <= m_humidityLowDanger)
-            return colorRed;
-        if (value >= m_humidityWarning || value <= m_humidityLowWarning)
-            return colorYellow;
-        return colorGreen;
+        if (value >= static_cast<qreal>(m_humidityDanger) || value <= static_cast<qreal>(m_humidityLowDanger))
+            result = QStringLiteral("#F44336");
+        else if (value >= static_cast<qreal>(m_humidityWarning) || value <= static_cast<qreal>(m_humidityLowWarning))
+            result = QStringLiteral("#FF9800");
     } else if (sensorKey == QLatin1String("co2")) {
-        if (value >= m_co2Danger)
-            return colorRed;
-        if (value >= m_co2Warning)
-            return colorYellow;
-        return colorGreen;
+        if (value >= static_cast<qreal>(m_co2Danger))
+            result = QStringLiteral("#F44336");
+        else if (value >= static_cast<qreal>(m_co2Warning))
+            result = QStringLiteral("#FF9800");
     } else if (sensorKey == QLatin1String("partectorNumber")) {
-        if (value >= m_partectorNumberDanger)
-            return colorRed;
-        if (value >= m_partectorNumberWarning)
-            return colorYellow;
-        return colorGreen;
+        if (value >= static_cast<qreal>(m_partectorNumberDanger))
+            result = QStringLiteral("#F44336");
+        else if (value >= static_cast<qreal>(m_partectorNumberWarning))
+            result = QStringLiteral("#FF9800");
     } else if (sensorKey == QLatin1String("partectorDiam")) {
-        if (value >= m_partectorDiamDanger)
-            return colorRed;
-        if (value >= m_partectorDiamWarning)
-            return colorYellow;
-        return colorGreen;
+        if (value >= static_cast<qreal>(m_partectorDiamDanger))
+            result = QStringLiteral("#F44336");
+        else if (value >= static_cast<qreal>(m_partectorDiamWarning))
+            result = QStringLiteral("#FF9800");
     } else if (sensorKey == QLatin1String("partectorMass")) {
-        if (value >= m_partectorMassDanger)
-            return colorRed;
-        if (value >= m_partectorMassWarning)
-            return colorYellow;
-        return colorGreen;
+        if (value >= static_cast<qreal>(m_partectorMassDanger))
+            result = QStringLiteral("#F44336");
+        else if (value >= static_cast<qreal>(m_partectorMassWarning))
+            result = QStringLiteral("#FF9800");
     } else if (sensorKey == QLatin1String("grimmValue")) {
-        if (value >= m_grimmValueDanger)
-            return colorRed;
-        if (value >= m_grimmValueWarning)
-            return colorYellow;
-        return colorGreen;
+        if (value >= static_cast<qreal>(m_grimmValueDanger))
+            result = QStringLiteral("#F44336");
+        else if (value >= static_cast<qreal>(m_grimmValueWarning))
+            result = QStringLiteral("#FF9800");
     } else if (sensorKey == QLatin1String("pressure")) {
-        if (value >= m_pressureDanger)
-            return colorRed;
-        if (value >= m_pressureWarning)
-            return colorYellow;
-        return colorGreen;
+        if (value >= static_cast<qreal>(m_pressureDanger))
+            result = QStringLiteral("#F44336");
+        else if (value >= static_cast<qreal>(m_pressureWarning))
+            result = QStringLiteral("#FF9800");
     } else if (sensorKey == QLatin1String("altitude")) {
-        if (value >= m_altitudeDanger)
-            return colorRed;
-        if (value >= m_altitudeWarning)
-            return colorYellow;
-        return colorGreen;
+        if (value >= static_cast<qreal>(m_altitudeDanger))
+            result = QStringLiteral("#F44336");
+        else if (value >= static_cast<qreal>(m_altitudeWarning))
+            result = QStringLiteral("#FF9800");
     }
 
-    // Default green if sensor not recognized
-    return colorGreen;
+    return result;
 }
 
 // Check if a sensor is enabled for hazard calculation

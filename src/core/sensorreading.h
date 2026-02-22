@@ -30,6 +30,7 @@ class SensorReading
 {
     Q_GADGET
     QML_VALUE_TYPE(sensorReading)
+    Q_PROPERTY(QDateTime timestamp MEMBER timestamp)
     Q_PROPERTY(int partectorNumber MEMBER partectorNumber)
     Q_PROPERTY(int partectorDiam MEMBER partectorDiam)
     Q_PROPERTY(float partectorMass MEMBER partectorMass)
@@ -41,13 +42,13 @@ class SensorReading
     Q_PROPERTY(float latitude MEMBER latitude)
     Q_PROPERTY(float longitude MEMBER longitude)
     Q_PROPERTY(int co2 MEMBER co2)
-    Q_PROPERTY(QDateTime timestamp MEMBER timestamp)
 
 public:
     SensorReading() = default;
     explicit SensorReading(const SensorDataRaw &raw);
 
-    // Sensor fields
+    // Sensor fields — ordered largest-alignment first to avoid internal padding
+    QDateTime timestamp = QDateTime::currentDateTime();
     int partectorNumber = 0;
     int partectorDiam = 0;
     float partectorMass = 0.0f;
@@ -59,7 +60,6 @@ public:
     float latitude = 0.0f;
     float longitude = 0.0f;
     int co2 = 0;
-    QDateTime timestamp = QDateTime::currentDateTime();
 };
 
 Q_DECLARE_METATYPE(SensorReading)

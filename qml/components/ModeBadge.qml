@@ -1,3 +1,6 @@
+pragma ComponentBehavior: Bound
+pragma FunctionSignatureBehavior: Enforced
+
 import QtQuick
 import QtQuick.Controls
 

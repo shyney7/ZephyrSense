@@ -186,6 +186,152 @@ private slots:
         QVERIFY(data2.contains("222"));
     }
 
+    // ── New error path tests ──
+
+    void processReading_dbNotInitialized()
+    {
+        IOWorker worker;
+        // Don't call initialize() — DB not set up
+        SensorReading reading;
+        reading.partectorNumber = 42;
+        reading.timestamp = QDateTime::currentDateTime();
+
+        // Should not crash, just log a warning
+        worker.processReading(reading);
+    }
+
+    void setCsvEnabled_sameValue_noop()
+    {
+        IOWorker worker;
+        // CSV is disabled by default (m_csvEnabled == false)
+        worker.setCsvEnabled(false);
+        // No crash, no state change — early return path
+    }
+
+    void setCsvEnabled_disableClosesCsv()
+    {
+        IOWorker worker;
+        QString dbPath = m_tmpDir->filePath("test.db");
+        worker.initialize(dbPath);
+
+        QString csvPath = m_tmpDir->filePath("disable_test.csv");
+        worker.setCsvEnabled(true);
+        worker.setCsvFilePath(csvPath);
+
+        SensorReading reading;
+        reading.timestamp = QDateTime::currentDateTime();
+        worker.processReading(reading);
+        worker.flushAll();
+
+        // Disable CSV — should close the file
+        worker.setCsvEnabled(false);
+
+        // Writing another reading should NOT go to CSV
+        worker.processReading(reading);
+        worker.flushAll();
+
+        // File should have exactly 1 data line (plus header)
+        QFile file(csvPath);
+        QVERIFY(file.open(QIODevice::ReadOnly | QIODevice::Text));
+        QTextStream stream(&file);
+        stream.readLine();  // header
+        QString line1 = stream.readLine();
+        QVERIFY(!line1.isEmpty());
+        QString line2 = stream.readLine();
+        QVERIFY(line2.isEmpty());  // no second data line
+    }
+
+    void setCsvFilePath_sameValue_noop()
+    {
+        IOWorker worker;
+        QString path = m_tmpDir->filePath("same.csv");
+        worker.setCsvFilePath(path);
+        // Set same path again — early return
+        worker.setCsvFilePath(path);
+    }
+
+    void openDatabase_alreadyOpen()
+    {
+        IOWorker worker;
+        QString dbPath = m_tmpDir->filePath("test.db");
+        QSignalSpy spy(&worker, &IOWorker::initialized);
+
+        worker.initialize(dbPath);
+        QCOMPARE(spy.count(), 1);
+        QVERIFY(spy.constFirst().at(0).toBool());
+
+        // Call initialize again — should reuse existing open connection
+        worker.initialize(dbPath);
+        QCOMPARE(spy.count(), 2);
+        QVERIFY(spy.at(1).at(0).toBool());
+    }
+
+    void insertReading_dbClosed()
+    {
+        IOWorker worker;
+        QString dbPath = m_tmpDir->filePath("test.db");
+        worker.initialize(dbPath);
+
+        // Manually close the DB connection
+        {
+            QSqlDatabase db = QSqlDatabase::database("ZephyrSenseIOWorker");
+            db.close();
+        }
+
+        QSignalSpy spy(&worker, &IOWorker::databaseError);
+        SensorReading reading;
+        reading.timestamp = QDateTime::currentDateTime();
+        worker.processReading(reading);
+
+        QCOMPARE(spy.count(), 1);
+    }
+
+    void openCsvFile_emptyPath()
+    {
+        IOWorker worker;
+        QString dbPath = m_tmpDir->filePath("test.db");
+        worker.initialize(dbPath);
+
+        // Enable CSV but don't set a path
+        worker.setCsvEnabled(true);
+
+        SensorReading reading;
+        reading.timestamp = QDateTime::currentDateTime();
+        // processReading with CSV enabled but empty path → openCsvFile returns early
+        worker.processReading(reading);
+        // Should not crash
+    }
+
+    void openCsvFile_invalidPath()
+    {
+        IOWorker worker;
+        QString dbPath = m_tmpDir->filePath("test.db");
+        worker.initialize(dbPath);
+
+        worker.setCsvEnabled(true);
+        worker.setCsvFilePath(QStringLiteral("Z:/nonexistent/dir/test.csv"));
+
+        QSignalSpy spy(&worker, &IOWorker::csvError);
+        SensorReading reading;
+        reading.timestamp = QDateTime::currentDateTime();
+        worker.processReading(reading);
+
+        QCOMPARE(spy.count(), 1);
+    }
+
+    void openDatabase_invalidPath()
+    {
+        IOWorker worker;
+        QSignalSpy initSpy(&worker, &IOWorker::initialized);
+        QSignalSpy errorSpy(&worker, &IOWorker::databaseError);
+
+        worker.initialize(QStringLiteral("Z:/nonexistent/dir/test.db"));
+
+        QCOMPARE(initSpy.count(), 1);
+        QVERIFY(!initSpy.constFirst().at(0).toBool());
+        QCOMPARE(errorSpy.count(), 1);
+    }
+
 private:
     std::unique_ptr<QTemporaryDir> m_tmpDir;
 };

@@ -35,8 +35,8 @@ signals:
     void exportError(const QString &message);
 
 private:
-    bool m_enabled = false;
     QString m_filePath;
+    bool m_enabled = false;
 };
 
 #endif // CSVEXPORTER_H

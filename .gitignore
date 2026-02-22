@@ -84,6 +84,7 @@ package-lock.json
 .DS_Store
 TO-DOS.md
 CLAUDE.md
+AGENTS.md
 .planning
 /research.claude/
 commands.html
@@ -97,3 +98,8 @@ libs/
 
 # Installer output
 /installer/Output/
+
+# Python virtual environments
+.venv/
+# coverage files
+*.profraw

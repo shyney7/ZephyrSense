@@ -13,12 +13,12 @@ int SensorReadingModel::rowCount(const QModelIndex &parent) const
 {
     if (parent.isValid())
         return 0;
-    return m_readings.count();
+    return static_cast<int>(m_readings.count());
 }
 
 QVariant SensorReadingModel::data(const QModelIndex &index, int role) const
 {
-    if (!index.isValid() || index.row() < 0 || index.row() >= m_readings.count())
+    if (!index.isValid() || index.row() < 0 || index.row() >= static_cast<int>(m_readings.count()))
         return QVariant();
 
     const ReadingEntry &entry = m_readings.at(index.row());
@@ -163,7 +163,8 @@ void SensorReadingModel::addReading(const SensorReading &reading)
         return;
     }
 
-    beginInsertRows(QModelIndex(), m_readings.count(), m_readings.count());
+    const int newRow = static_cast<int>(m_readings.count());
+    beginInsertRows(QModelIndex(), newRow, newRow);
     ReadingEntry entry;
     entry.id = m_nextId++;
     entry.reading = reading;
@@ -174,7 +175,7 @@ void SensorReadingModel::addReading(const SensorReading &reading)
 
 SensorReading SensorReadingModel::readingAt(int index) const
 {
-    if (index >= 0 && index < m_readings.count())
+    if (index >= 0 && index < static_cast<int>(m_readings.count()))
         return m_readings.at(index).reading;
     return SensorReading();
 }
@@ -182,7 +183,7 @@ SensorReading SensorReadingModel::readingAt(int index) const
 QVariantMap SensorReadingModel::getReading(int index) const
 {
     QVariantMap result;
-    if (index < 0 || index >= m_readings.count())
+    if (index < 0 || index >= static_cast<int>(m_readings.count()))
         return result;
 
     const SensorReading &reading = m_readings.at(index).reading;
@@ -248,7 +249,7 @@ void SensorReadingModel::connectToThresholdManager()
 void SensorReadingModel::onThresholdsChanged()
 {
     if (!m_readings.isEmpty()) {
-        emit dataChanged(index(0), index(m_readings.count() - 1), {HazardLevelRole});
+        emit dataChanged(index(0), index(static_cast<int>(m_readings.count()) - 1), {HazardLevelRole});
     }
 }
 
@@ -295,8 +296,8 @@ void SensorReadingModel::pruneOldReadings(int windowMinutes)
     QDateTime cutoff = QDateTime::currentDateTime().addSecs(-static_cast<qint64>(windowMinutes) * 60);
 
     // Find index of first reading to keep
-    int firstToKeep = 0;
-    for (int i = 0; i < m_readings.count(); ++i) {
+    qsizetype firstToKeep = 0;
+    for (qsizetype i = 0; i < m_readings.count(); ++i) {
         if (m_readings.at(i).reading.timestamp >= cutoff) {
             firstToKeep = i;
             break;
@@ -308,7 +309,7 @@ void SensorReadingModel::pruneOldReadings(int windowMinutes)
     }
 
     if (firstToKeep > 0) {
-        beginRemoveRows(QModelIndex(), 0, firstToKeep - 1);
+        beginRemoveRows(QModelIndex(), 0, static_cast<int>(firstToKeep) - 1);
         m_readings.remove(0, firstToKeep);
         endRemoveRows();
         emit countChanged();

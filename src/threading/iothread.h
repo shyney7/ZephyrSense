@@ -12,7 +12,7 @@ class IOThread : public QObject
 
 public:
     explicit IOThread(const QString &databasePath, QObject *parent = nullptr);
-    ~IOThread();
+    ~IOThread() override;
 
     void start();
     void stop();
