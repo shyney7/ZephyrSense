@@ -68,9 +68,9 @@ private slots:
     void stop_emitsStoppedSignal()
     {
         IOThread ioThread(m_dbPath);
+        QSignalSpy startSpy(&ioThread, &IOThread::started);
         ioThread.start();
         // Wait for thread to be fully started
-        QSignalSpy startSpy(&ioThread, &IOThread::started);
         QVERIFY(startSpy.wait(3000));
 
         QSignalSpy stopSpy(&ioThread, &IOThread::stopped);
@@ -90,8 +90,8 @@ private slots:
     void destructor_stopsThread()
     {
         auto ioThread = std::make_unique<IOThread>(m_dbPath);
-        ioThread->start();
         QSignalSpy startSpy(ioThread.get(), &IOThread::started);
+        ioThread->start();
         QVERIFY(startSpy.wait(3000));
         QVERIFY(ioThread->isRunning());
 

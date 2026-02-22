@@ -1,6 +1,7 @@
 #include <QTest>
 #include <QSignalSpy>
 #include <QQmlEngine>
+#include <QFile>
 #include <QStandardPaths>
 #include <QMetaEnum>
 #include "timeserieschartmodel.h"

@@ -3,6 +3,7 @@
 #include <QSettings>
 #include <QQmlEngine>
 #include <QStandardPaths>
+#include <QFile>
 #include <QSqlDatabase>
 #include <QSqlQuery>
 #include "sensorreadingmodel.h"
