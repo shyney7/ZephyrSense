@@ -30,7 +30,7 @@ jobs:
         with:
           version: '6.10.1'
           arch: win64_msvc2022_64
-          modules: qtserialport qtlocation qtpositioning qtcharts
+          modules: qtserialport qtlocation qtpositioning qtgraphs
           cache: true
 
       - name: Configure
@@ -59,7 +59,7 @@ jobs:
         with:
           version: '6.10.1'
           arch: win64_msvc2022_64
-          modules: qtserialport qtlocation qtpositioning qtcharts
+          modules: qtserialport qtlocation qtpositioning qtgraphs
           cache: true
 
       - name: Configure
@@ -94,7 +94,7 @@ jobs:
         with:
           version: '6.10.1'
           arch: win64_msvc2022_64
-          modules: qtserialport qtlocation qtpositioning qtcharts
+          modules: qtserialport qtlocation qtpositioning qtgraphs
           cache: true
 
       - name: Configure
@@ -122,7 +122,7 @@ jobs:
         with:
           version: '6.10.1'
           arch: win64_msvc2022_64
-          modules: qtserialport qtlocation qtpositioning qtcharts
+          modules: qtserialport qtlocation qtpositioning qtgraphs
           cache: true
 
       - name: Install LLVM
@@ -162,7 +162,7 @@ jobs:
         with:
           version: '6.10.1'
           arch: win64_msvc2022_64
-          modules: qtserialport qtlocation qtpositioning qtcharts
+          modules: qtserialport qtlocation qtpositioning qtgraphs
           cache: true
 
       - name: Initialize CodeQL
@@ -195,7 +195,7 @@ jobs:
         uses: jurplel/install-qt-action@v4
         with:
           version: '6.10.1'
-          modules: qtserialport qtlocation qtpositioning qtcharts
+          modules: qtserialport qtlocation qtpositioning qtgraphs
           cache: true
 
       - name: Install clazy and Ninja

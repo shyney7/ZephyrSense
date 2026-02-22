@@ -2,10 +2,12 @@ pragma ComponentBehavior: Bound
 pragma FunctionSignatureBehavior: Enforced
 
 import QtQuick
-import QtCharts
+import QtQuick.Controls
+import QtQuick.Layouts
+import QtGraphs
 import ZephyrSense
 
-ChartView {
+Item {
     id: chartView
 
     // Model reference (set from parent)
@@ -42,38 +44,52 @@ ChartView {
         "#795548"   // CO2 - Brown
     ]
 
-    title: sensorNames[activeColumn] || "Sensor Data"
-    antialiasing: true
-    animationOptions: ChartView.NoAnimation
-    legend.visible: false  // Using custom legend
-
-    DateTimeAxis {
-        id: timeAxis
-        format: "hh:mm"
-        tickCount: 6
-        min: chartView.chartModel ? new Date(chartView.chartModel.xMin) : new Date()
-        max: chartView.chartModel ? new Date(chartView.chartModel.xMax) : new Date()
+    // NOTE: ySection binding triggers QTBUG-142437 console warnings on Qt <6.10.2
+    XYModelMapper {
+        model: chartView.chartModel
+        series: dataSeries
+        orientation: Qt.Vertical
+        xSection: 0  // Timestamp column
+        ySection: chartView.activeColumn
     }
 
-    ValueAxis {
-        id: valueAxis
-        labelFormat: "%.1f"
-        min: chartView.chartModel ? chartView.chartModel.yMin : 0
-        max: chartView.chartModel ? chartView.chartModel.yMax : 100
-    }
+    ColumnLayout {
+        anchors.fill: parent
+        spacing: 0
 
-    LineSeries {
-        id: dataSeries
-        name: chartView.sensorNames[chartView.activeColumn]
-        color: chartView.sensorColors[chartView.activeColumn]
-        width: 2
-        axisX: timeAxis
-        axisY: valueAxis
+        Label {
+            Layout.alignment: Qt.AlignHCenter
+            text: chartView.sensorNames[chartView.activeColumn] || "Sensor Data"
+            font.bold: true
+            font.pixelSize: 14
+        }
 
-        VXYModelMapper {
-            model: chartView.chartModel
-            xColumn: 0  // Timestamp column
-            yColumn: chartView.activeColumn
+        GraphsView {
+            id: graphsView
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+
+            axisX: DateTimeAxis {
+                id: timeAxis
+                labelFormat: "hh:mm"
+                tickInterval: 0
+                min: chartView.chartModel ? new Date(chartView.chartModel.xMin) : new Date()
+                max: chartView.chartModel ? new Date(chartView.chartModel.xMax) : new Date()
+            }
+
+            axisY: ValueAxis {
+                id: valueAxis
+                labelDecimals: 1
+                min: chartView.chartModel ? chartView.chartModel.yMin : 0
+                max: chartView.chartModel ? chartView.chartModel.yMax : 100
+            }
+
+            LineSeries {
+                id: dataSeries
+                name: chartView.sensorNames[chartView.activeColumn]
+                color: chartView.sensorColors[chartView.activeColumn]
+                width: 2
+            }
         }
     }
 

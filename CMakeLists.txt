@@ -11,7 +11,7 @@ if(NOT DEFINED CMAKE_PREFIX_PATH AND NOT DEFINED ENV{CMAKE_PREFIX_PATH})
 endif()
 set(app_icon_resource_windows "${CMAKE_CURRENT_SOURCE_DIR}/installer/appicon.rc")
 
-find_package(Qt6 REQUIRED COMPONENTS Quick QuickControls2 SerialPort Sql Location Positioning Charts Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Quick QuickControls2 SerialPort Sql Location Positioning Graphs Widgets)
 
 qt_standard_project_setup(REQUIRES 6.8)
 
@@ -157,7 +157,7 @@ target_include_directories(appZephyrSense PRIVATE
 )
 
 target_link_libraries(appZephyrSense
-    PRIVATE Qt6::Quick Qt6::QuickControls2 Qt6::SerialPort Qt6::Sql Qt6::Location Qt6::Positioning Qt6::Charts Qt6::Widgets KDAB::kddockwidgets
+    PRIVATE Qt6::Quick Qt6::QuickControls2 Qt6::SerialPort Qt6::Sql Qt6::Location Qt6::Positioning Qt6::Graphs Qt6::Widgets KDAB::kddockwidgets
 )
 
 include(GNUInstallDirs)

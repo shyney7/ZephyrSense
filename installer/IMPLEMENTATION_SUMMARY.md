@@ -94,7 +94,7 @@ The Windows offline installer for ZephyrSense v0.1.0 has been successfully imple
 - ✅ QML modules:
   - `qml/QtQuick/` - UI framework
   - `qml/QtQuick/Controls/` - UI controls
-  - `qml/QtCharts/` - Charting components
+  - `qml/QtGraphs/` - Charting components
   - `qml/QtLocation/` - Map display
   - `qml/QtPositioning/` - GPS data
   - And 30+ more QML modules
@@ -141,7 +141,7 @@ The Windows offline installer for ZephyrSense v0.1.0 has been successfully imple
 - [x] Release build exists: `build/Release/appZephyrSense.exe`
 - [x] Qt DLLs deployed: `Qt6Core.dll`, `Qt6Gui.dll`, etc.
 - [x] Qt plugins deployed: `platforms/`, `sqldrivers/`, etc.
-- [x] QML modules deployed: `qml/QtQuick/`, `qml/QtCharts/`, etc.
+- [x] QML modules deployed: `qml/QtQuick/`, `qml/QtGraphs/`, etc.
 - [x] VC++ Runtime present: `vc_redist.x64.exe`
 - [x] Inno Setup 6 installed: `C:\Program Files (x86)\Inno Setup 6\ISCC.exe`
 
