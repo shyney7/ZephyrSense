@@ -31,7 +31,7 @@ macro(add_zephyr_test name)
         )
     elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         set_source_files_properties(${ARG_SOURCES} PROPERTIES
-            COMPILE_OPTIONS "-Wall;-Wextra;-Woverloaded-virtual;-Wshadow;-Wcovered-switch-default;-Wswitch-enum"
+            COMPILE_OPTIONS "-Wall;-Wextra;-Woverloaded-virtual;-Wshadow;-Wswitch-enum"
         )
     endif()
 

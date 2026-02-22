@@ -130,7 +130,7 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     )
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     set_source_files_properties(main.cpp ${ZEPHYR_SOURCES} PROPERTIES
-        COMPILE_OPTIONS "-Wall;-Wextra;-Woverloaded-virtual;-Wshadow;-Wcovered-switch-default;-Wswitch-enum"
+        COMPILE_OPTIONS "-Wall;-Wextra;-Woverloaded-virtual;-Wshadow;-Wswitch-enum"
     )
 endif()
 
