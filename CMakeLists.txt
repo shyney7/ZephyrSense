@@ -73,6 +73,8 @@ qt_add_executable(appZephyrSense
 
 # Our source files — used by both qt_add_qml_module and set_source_files_properties
 set(ZEPHYR_SOURCES
+    src/core/dockstatetracker.cpp
+    src/core/dockstatetracker.h
     src/core/sensorreading.cpp
     src/core/sensorreading.h
     src/core/thresholdmanager.cpp

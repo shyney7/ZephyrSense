@@ -21,29 +21,18 @@ Item {
     property list<string> availableDates: []
     property alias rangeGroup: rangeGroupInst
 
-    // True when any dock widget is detached into a floating window
-    property bool hasFloatingDocks: dockPartectorNum.isFloating
-                                    || dockPartectorDiam.isFloating
-                                    || dockPartectorMass.isFloating
-                                    || dockGrimmValue.isFloating
-                                    || dockTemperature.isFloating
-                                    || dockHumidity.isFloating
-                                    || dockPressure.isFloating
-                                    || dockAltitude.isFloating
-                                    || dockCo2.isFloating
-
     // Chart data model (shared by all 9 dock charts)
     TimeSeriesChartModel {
         id: chartModel
     }
 
-    // Live update timer — keeps running when hidden if any dock is floating,
-    // so detached charts stay updated while the user works in another view
+    // Live update timer — keeps running when hidden if any dock is outside
+    // the main window, so detached charts stay updated in other views
     Timer {
         id: liveUpdateTimer
         interval: graphsViewRoot.updateIntervalMs
         running: graphsViewRoot.currentMode === GraphsView.VisualizationMode.Live
-                 && (graphsViewRoot.visible || graphsViewRoot.hasFloatingDocks)
+                 && (graphsViewRoot.visible || DockStateTracker.hasDocksOutsideMainWindow)
         repeat: true
         onTriggered: graphsViewRoot.loadLiveData()
     }
@@ -272,6 +261,17 @@ Item {
 
             // Initial layout: all 9 as tabs in a single group
             Component.onCompleted: {
+                // Register docks for outside-main-window tracking
+                DockStateTracker.trackDockWidget(dockPartectorNum)
+                DockStateTracker.trackDockWidget(dockPartectorDiam)
+                DockStateTracker.trackDockWidget(dockPartectorMass)
+                DockStateTracker.trackDockWidget(dockGrimmValue)
+                DockStateTracker.trackDockWidget(dockTemperature)
+                DockStateTracker.trackDockWidget(dockHumidity)
+                DockStateTracker.trackDockWidget(dockPressure)
+                DockStateTracker.trackDockWidget(dockAltitude)
+                DockStateTracker.trackDockWidget(dockCo2)
+
                 dockingArea.addDockWidget(dockPartectorNum, dockingArea.locationOnBottom)
                 dockPartectorNum.addDockWidgetAsTab(dockPartectorDiam)
                 dockPartectorNum.addDockWidgetAsTab(dockPartectorMass)
