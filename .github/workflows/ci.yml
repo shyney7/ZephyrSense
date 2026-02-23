@@ -28,9 +28,9 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-          version: '6.10.1'
+          version: '6.10.2'
           arch: win64_msvc2022_64
-          modules: qtserialport qtlocation qtpositioning qtgraphs
+          modules: qtserialport qtlocation qtpositioning qtgraphs qtquick3d qtshadertools
           cache: true
 
       - name: Configure
@@ -57,9 +57,9 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-          version: '6.10.1'
+          version: '6.10.2'
           arch: win64_msvc2022_64
-          modules: qtserialport qtlocation qtpositioning qtgraphs
+          modules: qtserialport qtlocation qtpositioning qtgraphs qtquick3d qtshadertools
           cache: true
 
       - name: Configure
@@ -92,9 +92,9 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-          version: '6.10.1'
+          version: '6.10.2'
           arch: win64_msvc2022_64
-          modules: qtserialport qtlocation qtpositioning qtgraphs
+          modules: qtserialport qtlocation qtpositioning qtgraphs qtquick3d qtshadertools
           cache: true
 
       - name: Configure
@@ -120,9 +120,9 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-          version: '6.10.1'
+          version: '6.10.2'
           arch: win64_msvc2022_64
-          modules: qtserialport qtlocation qtpositioning qtgraphs
+          modules: qtserialport qtlocation qtpositioning qtgraphs qtquick3d qtshadertools
           cache: true
 
       - name: Install LLVM
@@ -160,9 +160,9 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-          version: '6.10.1'
+          version: '6.10.2'
           arch: win64_msvc2022_64
-          modules: qtserialport qtlocation qtpositioning qtgraphs
+          modules: qtserialport qtlocation qtpositioning qtgraphs qtquick3d qtshadertools
           cache: true
 
       - name: Initialize CodeQL
@@ -194,8 +194,9 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-          version: '6.10.1'
-          modules: qtserialport qtlocation qtpositioning qtgraphs
+          version: '6.10.2'
+          arch: gcc_64
+          modules: qtserialport qtlocation qtpositioning qtgraphs qtquick3d qtshadertools
           cache: true
 
       - name: Install clazy and Ninja
