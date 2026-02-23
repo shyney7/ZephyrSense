@@ -62,7 +62,7 @@ ApplicationWindow {
             selectedReadingData: mainWindow.selectedReadingData
             onLiveModeSwitched: mainWindow.selectedReadingId = -1
         }
-        GraphsView { id: graphsViewItem }
+        SensorGraphsView { id: graphsViewItem }
         SettingsView { id: settingsViewItem }
     }
 

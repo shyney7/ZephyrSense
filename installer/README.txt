@@ -1,5 +1,5 @@
 ========================================
-ZephyrSense v0.3.1 - Installation Guide
+ZephyrSense v0.4.0 - Installation Guide
 ========================================
 
 Thank you for installing ZephyrSense!
@@ -113,10 +113,18 @@ For bug reports, feature requests, or questions:
 
 VERSION HISTORY
 ---------------
+v0.4.0 (2026-02-23)
+- Feature: Migrated from deprecated Qt Charts to Qt Graphs (hardware-accelerated 2D rendering)
+- Fix: Floating dock detection now uses DockStateTracker C++ singleton with isInMainWindow()
+- Fix: Multiple docks grouped in one floating window now correctly keep live updates running
+- Improvement: Release builds suppress all qDebug() output at compile time (zero overhead)
+- Improvement: QML console.log() suppressed in Release builds via QLoggingCategory filter
+- Update: Qt Framework updated from 6.10.1 to 6.10.2
+
 v0.3.1 (2026-02-06)
 - Fix: Pause view timers when hidden to save resources (StackLayout optimization)
 - Fix: Detached sensor graphs keep updating when user switches to another view
-- Detail: GraphsView timer stays alive when any dock widget is floating
+- Detail: SensorGraphsView timer stays alive when any dock widget is floating
 - Detail: MapView and DashboardView timers pause when not the active view
 
 v0.3.0 (2026-02-06)

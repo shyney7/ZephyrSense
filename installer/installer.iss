@@ -1,11 +1,11 @@
-; ZephyrSense v0.3.1 Inno Setup Installer Script
-; Generated: 2026-02-06
+; ZephyrSense v0.4.0 Inno Setup Installer Script
+; Generated: 2026-02-23
 
 [Setup]
 ; Application Identity
 AppId={{B8E5F7C2-9A4D-4E1B-8F3C-2D6A5E7B9C1D}}
 AppName=ZephyrSense
-AppVersion=0.3.1
+AppVersion=0.4.0
 AppPublisher=Marcel Oliveira Brito
 AppPublisherURL=https://github.com/shyney7/ZephyrSense
 AppSupportURL=https://github.com/shyney7/ZephyrSense/issues
@@ -20,7 +20,7 @@ InfoBeforeFile=README.txt
 
 ; Output Configuration
 OutputDir=Output
-OutputBaseFilename=ZephyrSense-Setup-0.3.1
+OutputBaseFilename=ZephyrSense-Setup-0.4.0
 Compression=lzma2/max
 SolidCompression=yes
 
@@ -41,12 +41,12 @@ UninstallDisplayIcon={app}\appZephyrSense.exe
 DisableProgramGroupPage=yes
 
 ; Version Information
-VersionInfoVersion=0.3.1.0
+VersionInfoVersion=0.4.0.0
 VersionInfoCompany=ZephyrSense
 VersionInfoDescription=ZephyrSense Installer
 VersionInfoCopyright=Copyright (C) 2026 ZephyrSense
 VersionInfoProductName=ZephyrSense
-VersionInfoProductVersion=0.3.1
+VersionInfoProductVersion=0.4.0
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"

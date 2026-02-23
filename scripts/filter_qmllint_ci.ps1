@@ -33,7 +33,7 @@ function Test-IsKddwFalsePositive {
         return $true
     }
 
-    $isGraphsViewBlock = $text -match "qml[/\\]views[/\\]GraphsView\.qml"
+    $isGraphsViewBlock = $text -match "qml[/\\]views[/\\]SensorGraphsView\.qml"
     if (-not $isGraphsViewBlock) {
         return $false
     }

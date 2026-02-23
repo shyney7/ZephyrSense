@@ -3,9 +3,9 @@ import QtTest
 
 TestCase {
     id: testCase
-    name: "GraphsViewLogic"
+    name: "SensorGraphsViewLogic"
 
-    // Replicate GraphsView JS logic
+    // Replicate SensorGraphsView JS logic
     QtObject {
         id: logic
 

@@ -57,7 +57,7 @@ Rectangle {
                 ListElement {
                     title: "Graphs"
                     iconText: "G"
-                    viewPath: "qml/views/GraphsView.qml"
+                    viewPath: "qml/views/SensorGraphsView.qml"
                 }
                 ListElement {
                     title: "Settings"

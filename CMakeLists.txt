@@ -115,7 +115,7 @@ qt_add_qml_module(appZephyrSense
         qml/components/SensorDockChart.qml
         qml/views/MapView.qml
         qml/views/DashboardView.qml
-        qml/views/GraphsView.qml
+        qml/views/SensorGraphsView.qml
         qml/views/SettingsView.qml
     SOURCES ${ZEPHYR_SOURCES}
 )

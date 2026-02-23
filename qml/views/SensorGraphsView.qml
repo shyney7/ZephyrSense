@@ -14,7 +14,7 @@ Item {
 
     // Mode state
     enum VisualizationMode { Live, Historical }
-    property int currentMode: GraphsView.VisualizationMode.Live
+    property int currentMode: SensorGraphsView.VisualizationMode.Live
     property int updateIntervalMs: 2000
     property date historicalStart: new Date()
     property date historicalEnd: new Date()
@@ -31,7 +31,7 @@ Item {
     Timer {
         id: liveUpdateTimer
         interval: graphsViewRoot.updateIntervalMs
-        running: graphsViewRoot.currentMode === GraphsView.VisualizationMode.Live
+        running: graphsViewRoot.currentMode === SensorGraphsView.VisualizationMode.Live
                  && (graphsViewRoot.visible || DockStateTracker.hasDocksOutsideMainWindow)
         repeat: true
         onTriggered: graphsViewRoot.loadLiveData()
@@ -54,7 +54,7 @@ Item {
             }
 
             ModeBadge {
-                isLive: graphsViewRoot.currentMode === GraphsView.VisualizationMode.Live
+                isLive: graphsViewRoot.currentMode === SensorGraphsView.VisualizationMode.Live
             }
 
             Item { Layout.fillWidth: true }
@@ -358,13 +358,13 @@ Item {
 
     // Helper functions
     function switchToLiveMode(): void {
-        currentMode = GraphsView.VisualizationMode.Live
+        currentMode = SensorGraphsView.VisualizationMode.Live
         liveUpdateTimer.restart()
         loadLiveData()
     }
 
     function switchToHistoricalMode(): void {
-        currentMode = GraphsView.VisualizationMode.Historical
+        currentMode = SensorGraphsView.VisualizationMode.Historical
         liveUpdateTimer.stop()
         chartModel.loadData(historicalStart, historicalEnd)
     }
