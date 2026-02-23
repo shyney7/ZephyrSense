@@ -89,14 +89,6 @@ ApplicationWindow {
         ignoreUnknownSignals: true
     }
 
-    // Debug output for received readings
-    Connections {
-        target: SerialHandler
-        function onNewReading(reading: sensorReading): void {
-            console.log("Received reading - Temp:", reading.temperature, "Humidity:", reading.humidity, "Lat:", reading.latitude, "Lon:", reading.longitude);
-        }
-    }
-
     // Initialize data layer
     Component.onCompleted: {
         // Initialize database (creates tables if needed)

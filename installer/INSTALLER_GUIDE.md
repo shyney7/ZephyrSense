@@ -99,7 +99,7 @@ Or open `installer.iss` in Inno Setup IDE and press F9 to compile.
 - **QML Modules:**
   - `qml/QtQuick/`
   - `qml/QtQuick/Controls/`
-  - `qml/QtCharts/`
+  - `qml/QtGraphs/`
   - `qml/QtLocation/`
   - And more...
 - **DirectX Shader Compiler:** `dxcompiler.dll`, `dxil.dll`, `d3dcompiler_47.dll`
@@ -136,7 +136,7 @@ Or open `installer.iss` in Inno Setup IDE and press F9 to compile.
 - [ ] Verify Release build exists: `build\Release\appZephyrSense.exe`
 - [ ] Verify Qt DLLs deployed: `build\Release\Qt6Core.dll`, `Qt6Gui.dll`, etc.
 - [ ] Verify plugins deployed: `build\Release\platforms\`, `sqldrivers\`, etc.
-- [ ] Verify QML modules: `build\Release\qml\QtQuick\`, `QtCharts\`, etc.
+- [ ] Verify QML modules: `build\Release\qml\QtQuick\`, `QtGraphs\`, etc.
 - [ ] Verify VC++ Runtime: `build\Release\vc_redist.x64.exe`
 - [ ] Run `build_installer.bat` successfully
 - [ ] Verify output file created: `installer\Output\ZephyrSense-Setup-0.1.0.exe`

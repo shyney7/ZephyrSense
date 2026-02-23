@@ -32,7 +32,7 @@ if not exist "build\Release\Qt6Core.dll" (
     echo ERROR: Qt dependencies not deployed!
     echo.
     echo Please run windeployqt:
-    echo   C:\Qt\6.10.1\msvc2022_64\bin\windeployqt.exe --release --qmldir qml\ build\Release\appZephyrSense.exe
+    echo   C:\Qt\6.10.2\msvc2022_64\bin\windeployqt.exe --release --qmldir qml\ build\Release\appZephyrSense.exe
     echo.
     exit /b 1
 )

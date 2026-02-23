@@ -7,11 +7,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_AUTORCC ON)
 if(NOT DEFINED CMAKE_PREFIX_PATH AND NOT DEFINED ENV{CMAKE_PREFIX_PATH})
-    set(CMAKE_PREFIX_PATH "C:/Qt/6.10.1/msvc2022_64")
+    set(CMAKE_PREFIX_PATH "C:/Qt/6.10.2/msvc2022_64")
 endif()
 set(app_icon_resource_windows "${CMAKE_CURRENT_SOURCE_DIR}/installer/appicon.rc")
 
-find_package(Qt6 REQUIRED COMPONENTS Quick QuickControls2 SerialPort Sql Location Positioning Charts Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Quick QuickControls2 SerialPort Sql Location Positioning Graphs Widgets)
 
 qt_standard_project_setup(REQUIRES 6.8)
 
@@ -73,6 +73,8 @@ qt_add_executable(appZephyrSense
 
 # Our source files — used by both qt_add_qml_module and set_source_files_properties
 set(ZEPHYR_SOURCES
+    src/core/dockstatetracker.cpp
+    src/core/dockstatetracker.h
     src/core/sensorreading.cpp
     src/core/sensorreading.h
     src/core/thresholdmanager.cpp
@@ -157,7 +159,12 @@ target_include_directories(appZephyrSense PRIVATE
 )
 
 target_link_libraries(appZephyrSense
-    PRIVATE Qt6::Quick Qt6::QuickControls2 Qt6::SerialPort Qt6::Sql Qt6::Location Qt6::Positioning Qt6::Charts Qt6::Widgets KDAB::kddockwidgets
+    PRIVATE Qt6::Quick Qt6::QuickControls2 Qt6::SerialPort Qt6::Sql Qt6::Location Qt6::Positioning Qt6::Graphs Qt6::Widgets KDAB::kddockwidgets
+)
+
+# Suppress qDebug() output in Release builds (compile-time elimination)
+target_compile_definitions(appZephyrSense PRIVATE
+    $<$<NOT:$<CONFIG:Debug>>:QT_NO_DEBUG_OUTPUT>
 )
 
 include(GNUInstallDirs)

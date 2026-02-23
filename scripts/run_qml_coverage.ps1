@@ -19,7 +19,7 @@ $BuildDir = Join-Path $ProjectRoot "build"
 $CoverageDir = Join-Path $BuildDir "coverage"
 $QmlDir = Join-Path $ProjectRoot "qml"
 $VenvPython = Join-Path $ProjectRoot ".venv\qoverage\Scripts\python.exe"
-$QmlDom = "C:\Qt\6.10.1\msvc2022_64\bin\qmldom.exe"
+$QmlDom = "C:\Qt\6.10.2\msvc2022_64\bin\qmldom.exe"
 $TestExe = Join-Path $BuildDir "tst_qml.exe"
 
 # Verify prerequisites

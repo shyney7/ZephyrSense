@@ -2,9 +2,11 @@ pragma ComponentBehavior: Bound
 pragma FunctionSignatureBehavior: Enforced
 
 import QtQuick
-import QtCharts
+import QtQuick.Controls
+import QtQuick.Layouts
+import QtGraphs
 
-ChartView {
+Item {
     id: chartView
 
     // Model reference (shared across all dock charts)
@@ -56,48 +58,63 @@ ChartView {
     property real localYMin: 0
     property real localYMax: 100
 
-    title: sensorNames[sensorColumn] + " [" + sensorUnits[sensorColumn] + "]"
-    titleFont.bold: true
-    titleFont.pixelSize: 15
-    antialiasing: true
-    animationOptions: ChartView.NoAnimation
-    legend.visible: false
-
-    DateTimeAxis {
-        id: timeAxis
-        format: "hh:mm"
-        tickCount: 6
-        labelsFont.bold: true
-        labelsFont.pixelSize: 12
-        min: chartView.chartModel ? new Date(chartView.chartModel.xMin) : new Date()
-        max: chartView.chartModel ? new Date(chartView.chartModel.xMax) : new Date()
+    XYModelMapper {
+        model: chartView.chartModel
+        series: dataSeries
+        orientation: Qt.Vertical
+        xSection: 0
+        ySection: chartView.sensorColumn
     }
 
-    ValueAxis {
-        id: valueAxis
-        labelFormat: "%.1f"
-        labelsFont.bold: true
-        labelsFont.pixelSize: 12
-        min: chartView.localYMin
-        max: chartView.localYMax
-    }
+    ColumnLayout {
+        anchors.fill: parent
+        spacing: 0
 
-    LineSeries {
-        id: dataSeries
-        name: chartView.sensorNames[chartView.sensorColumn]
-        color: chartView.sensorColors[chartView.sensorColumn]
-        width: 3
-        axisX: timeAxis
-        axisY: valueAxis
+        Label {
+            Layout.alignment: Qt.AlignHCenter
+            text: chartView.sensorNames[chartView.sensorColumn]
+                  + " [" + chartView.sensorUnits[chartView.sensorColumn] + "]"
+            font.bold: true
+            font.pixelSize: 15
+        }
 
-        VXYModelMapper {
-            model: chartView.chartModel
-            xColumn: 0
-            yColumn: chartView.sensorColumn
+        GraphsView {
+            id: graphsView
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+
+            axisX: DateTimeAxis {
+                id: timeAxis
+                labelFormat: "hh:mm"
+                tickInterval: 0
+                min: chartView.chartModel ? new Date(chartView.chartModel.xMin) : new Date()
+                max: chartView.chartModel ? new Date(chartView.chartModel.xMax) : new Date()
+            }
+
+            axisY: ValueAxis {
+                id: valueAxis
+                labelDecimals: 1
+                min: chartView.localYMin
+                max: chartView.localYMax
+            }
+
+            theme: GraphsTheme {
+                axisXLabelFont.bold: true
+                axisXLabelFont.pixelSize: 12
+                axisYLabelFont.bold: true
+                axisYLabelFont.pixelSize: 12
+            }
+
+            LineSeries {
+                id: dataSeries
+                name: chartView.sensorNames[chartView.sensorColumn]
+                color: chartView.sensorColors[chartView.sensorColumn]
+                width: 3
+            }
         }
     }
 
-    function updateLocalBounds() {
+    function updateLocalBounds(): void {
         if (chartModel) {
             var b = chartModel.getYBoundsForColumn(sensorColumn)
             localYMin = b.yMin
@@ -107,8 +124,8 @@ ChartView {
 
     Connections {
         target: chartView.chartModel
-        function onBoundsChanged() { chartView.updateLocalBounds() }
+        function onBoundsChanged(): void { chartView.updateLocalBounds() }
     }
 
-    Component.onCompleted: updateLocalBounds()
+    Component.onCompleted: chartView.updateLocalBounds()
 }
