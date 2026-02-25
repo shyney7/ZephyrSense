@@ -46,7 +46,7 @@ set(KDDockWidgets_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(KDDockWidgets_TESTS OFF CACHE BOOL "" FORCE)
 set(KDDockWidgets_DOCS OFF CACHE BOOL "" FORCE)
 # Required: generates com/kdab/dockwidgets/qmldir + .qmltypes on disk for qmllint/language server
-set(KDDockWidgets_QML_MODULE ON CACHE BOOL "" FORCE)
+# set(KDDockWidgets_QML_MODULE ON CACHE BOOL "" FORCE)
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/libs/KDDockWidgets-2.4.0/CMakeLists.txt")
     add_subdirectory(libs/KDDockWidgets-2.4.0 SYSTEM)
 else()
