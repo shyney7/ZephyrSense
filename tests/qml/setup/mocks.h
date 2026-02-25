@@ -147,7 +147,7 @@ public:
                 return 0.0;
             }
             const qreal clampedValue = qBound(minValue, value, fallbackMax);
-            return qBound(0.0, (clampedValue - minValue) / (fallbackMax - minValue), 1.0) * 360.0;
+            return ((clampedValue - minValue) / (fallbackMax - minValue)) * 360.0;
         };
 
         if (sensorKey == QLatin1String("co2")) {

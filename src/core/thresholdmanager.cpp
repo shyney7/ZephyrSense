@@ -554,7 +554,7 @@ qreal ThresholdManager::getSweepAngleForSensor(const QString &sensorKey, qreal v
         return legacyLinearSweep();
     }
 
-    const qreal bufferedMax = danger + (danger * 0.25);
+    const qreal bufferedMax = danger * 1.25;
     if (value <= warning) {
         const qreal normalizedA = qBound(0.0, (value - minValue) / (warning - minValue), 1.0);
         return normalizedA * 180.0;
