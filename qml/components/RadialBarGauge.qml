@@ -9,6 +9,10 @@ Item {
     id: root
 
     SystemPalette { id: palette; colorGroup: SystemPalette.Active }
+    QtObject {
+        id: internalState
+        property int thresholdsEpoch: 0
+    }
 
     // Public properties
     property real value: 0
@@ -18,6 +22,7 @@ Item {
     property string sensorName: ""
     property string unit: ""
     property int precision: 1
+    readonly property int thresholdsEpoch: internalState.thresholdsEpoch
 
     implicitWidth: 140
     implicitHeight: 140
@@ -26,10 +31,28 @@ Item {
     readonly property real gaugeSize: Math.max(Math.min(width, height), 1)
     readonly property real dialWidth: 14
     readonly property real normalizedValue: Math.min(Math.max(value, minValue), maxValue)
-    readonly property real sweepAngle: ((normalizedValue - minValue) / (maxValue - minValue)) * 360
+    readonly property real sweepAngle: root.computeAdaptiveSweep(root.thresholdsEpoch)
 
-    // Color computed in C++ for performance - responds to thresholdsChanged signal automatically
-    readonly property string progressColor: ThresholdManager.getColorForSensor(sensorKey, normalizedValue)
+    // Color switching logic remains in ThresholdManager.getColorForSensor().
+    // thresholdsEpoch ensures this binding re-evaluates on thresholdsChanged.
+    readonly property string progressColor: root.computeProgressColor(root.thresholdsEpoch)
+
+    function computeAdaptiveSweep(_thresholdsEpoch: int): real {
+        // _thresholdsEpoch is a reactivity dependency; value is intentionally unused.
+        return ThresholdManager.getSweepAngleForSensor(root.sensorKey, root.value, root.minValue, root.maxValue);
+    }
+
+    function computeProgressColor(_thresholdsEpoch: int): string {
+        // _thresholdsEpoch is a reactivity dependency; value is intentionally unused.
+        return ThresholdManager.getColorForSensor(root.sensorKey, root.normalizedValue);
+    }
+
+    Connections {
+        target: ThresholdManager
+        function onThresholdsChanged(): void {
+            internalState.thresholdsEpoch += 1;
+        }
+    }
 
     // Sensor name label at top
     Text {

@@ -139,11 +139,56 @@ public:
     Q_INVOKABLE QString getColorForSensor(const QString &, qreal) const {
         return QStringLiteral("#4CAF50");
     }
+    Q_INVOKABLE qreal getSweepAngleForSensor(const QString &sensorKey, qreal value,
+                                             qreal minValue, qreal fallbackMax) const
+    {
+        const auto legacyLinearSweep = [value, minValue, fallbackMax]() -> qreal {
+            if (minValue >= fallbackMax) {
+                return 0.0;
+            }
+            const qreal clampedValue = qBound(minValue, value, fallbackMax);
+            return qBound(0.0, (clampedValue - minValue) / (fallbackMax - minValue), 1.0) * 360.0;
+        };
+
+        if (sensorKey == QLatin1String("co2")) {
+            if (m_co2Warning <= minValue || m_co2Danger <= m_co2Warning || m_co2Danger <= 0.0) {
+                return legacyLinearSweep();
+            }
+
+            const qreal bufferedMax = m_co2Danger * 1.25;
+            if (value <= m_co2Warning) {
+                const qreal normalizedA = qBound(0.0, (value - minValue) / (m_co2Warning - minValue), 1.0);
+                return normalizedA * 180.0;
+            }
+
+            if (value <= m_co2Danger) {
+                const qreal normalizedB = qBound(0.0, (value - m_co2Warning) / (m_co2Danger - m_co2Warning), 1.0);
+                return 180.0 + (normalizedB * 90.0);
+            }
+
+            const qreal normalizedC = qBound(0.0, (value - m_co2Danger) / (bufferedMax - m_co2Danger), 1.0);
+            return 270.0 + (normalizedC * 90.0);
+        }
+
+        // Legacy fallback behavior for unknown keys / empty sensorKey.
+        return legacyLinearSweep();
+    }
     Q_INVOKABLE bool isSensorEnabledForKey(const QString &) const { return true; }
     Q_INVOKABLE void resetToDefaults() { emit thresholdsChanged(); }
+    Q_INVOKABLE void setCo2Thresholds(qreal warning, qreal danger)
+    {
+        m_co2Warning = warning;
+        m_co2Danger = danger;
+        emit thresholdsChanged();
+    }
+    Q_INVOKABLE void emitThresholdsChanged() { emit thresholdsChanged(); }
 
 signals:
     void thresholdsChanged();
+
+private:
+    qreal m_co2Warning = 1000.0;
+    qreal m_co2Danger = 2000.0;
 };
 
 #endif // MOCKS_H

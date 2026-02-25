@@ -52,7 +52,7 @@ Item {
             name: "PNC UFP",
             unit: "#/cm\u00B3",
             min: 0,
-            max: 50000,
+            max: 500000,
             precision: 0
         },
         {
@@ -68,7 +68,7 @@ Item {
             name: "PM0.3",
             unit: "\u00B5g/m\u00B3",
             min: 0,
-            max: 100,
+            max: 200,
             precision: 2
         },
         {
@@ -76,7 +76,7 @@ Item {
             name: "PNC PM",
             unit: "#/cm\u00B3",
             min: 0,
-            max: 100,
+            max: 200000,
             precision: 2
         },
         {
@@ -100,7 +100,7 @@ Item {
             name: "Pressure",
             unit: "hPa",
             min: 900,
-            max: 1100,
+            max: 1150,
             precision: 1
         },
         {
@@ -108,7 +108,7 @@ Item {
             name: "Altitude",
             unit: "m",
             min: 0,
-            max: 3000,
+            max: 8000,
             precision: 1
         },
         {
@@ -116,7 +116,7 @@ Item {
             name: "CO\u2082",
             unit: "ppm",
             min: 0,
-            max: 5000,
+            max: 10000,
             precision: 0
         }
     ]

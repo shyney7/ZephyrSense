@@ -52,6 +52,55 @@ TestCase {
         compare(gauge.sweepAngle, 180)
     }
 
+    function test_sweepAngle_adaptive_co2_warning() {
+        var gauge = createTemporaryObject(gaugeComponent, testCase,
+                                          { sensorKey: "co2", value: 1000, minValue: 0, maxValue: 5000 })
+        verify(gauge)
+        compare(gauge.sweepAngle, 180)
+    }
+
+    function test_sweepAngle_adaptive_co2_buffered_max() {
+        var gauge = createTemporaryObject(gaugeComponent, testCase,
+                                          { sensorKey: "co2", value: 2500, minValue: 0, maxValue: 5000 })
+        verify(gauge)
+        compare(gauge.sweepAngle, 360)
+    }
+
+    function test_sweepAngle_adaptive_co2_danger() {
+        var gauge = createTemporaryObject(gaugeComponent, testCase,
+                                          { sensorKey: "co2", value: 2000, minValue: 0, maxValue: 5000 })
+        verify(gauge)
+        compare(gauge.sweepAngle, 270)
+    }
+
+    function test_sweepAngle_updates_on_threshold_change() {
+        ThresholdManager.setCo2Thresholds(1000, 2000)
+        var gauge = createTemporaryObject(gaugeComponent, testCase,
+                                          { sensorKey: "co2", value: 1500, minValue: 0, maxValue: 5000 })
+        verify(gauge)
+
+        var beforeSweep = gauge.sweepAngle
+        var beforeEpoch = gauge.thresholdsEpoch
+        ThresholdManager.setCo2Thresholds(1200, 2200)
+        wait(0)
+
+        compare(gauge.thresholdsEpoch, beforeEpoch + 1)
+        verify(gauge.sweepAngle !== beforeSweep)
+        ThresholdManager.setCo2Thresholds(1000, 2000)
+    }
+
+    function test_progressColor_updates_on_threshold_change() {
+        var gauge = createTemporaryObject(gaugeComponent, testCase,
+                                          { sensorKey: "co2", value: 1500, minValue: 0, maxValue: 5000 })
+        verify(gauge)
+
+        var beforeEpoch = gauge.thresholdsEpoch
+        ThresholdManager.emitThresholdsChanged()
+        wait(0)
+
+        compare(gauge.thresholdsEpoch, beforeEpoch + 1)
+    }
+
     function test_gaugeSize() {
         var gauge = createTemporaryObject(gaugeComponent, testCase,
                                           { width: 200, height: 150 })

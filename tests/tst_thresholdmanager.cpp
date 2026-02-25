@@ -1,6 +1,7 @@
 #include <QTest>
 #include <QSignalSpy>
 #include <QSettings>
+#include <QtMath>
 #include "thresholdmanager.h"
 
 class TestThresholdManager : public QObject
@@ -264,6 +265,70 @@ private slots:
         int level = m_mgr->computeHazardLevel(
             0, 0, 0.0f, 0.0f, 22.0f, 45.0f, 1013.0f, /*altitude=*/4500.0f, 400);
         QCOMPARE(level, static_cast<int>(ThresholdManager::Red));
+    }
+
+    // ── getSweepAngleForSensor tests ──
+
+    void getSweepAngleForSensor_co2Boundaries()
+    {
+        const qreal atWarning = m_mgr->getSweepAngleForSensor(QStringLiteral("co2"), 1000.0, 0.0, 5000.0);
+        const qreal atDanger = m_mgr->getSweepAngleForSensor(QStringLiteral("co2"), 2000.0, 0.0, 5000.0);
+        const qreal atBufferedMax = m_mgr->getSweepAngleForSensor(QStringLiteral("co2"), 2500.0, 0.0, 5000.0);
+        const qreal aboveBufferedMax = m_mgr->getSweepAngleForSensor(QStringLiteral("co2"), 9000.0, 0.0, 5000.0);
+        const qreal atMinimum = m_mgr->getSweepAngleForSensor(QStringLiteral("co2"), 0.0, 0.0, 5000.0);
+
+        QVERIFY(qAbs(atWarning - 180.0) < 0.0001);
+        QVERIFY(qAbs(atDanger - 270.0) < 0.0001);
+        QVERIFY(qAbs(atBufferedMax - 360.0) < 0.0001);
+        QVERIFY(qAbs(aboveBufferedMax - 360.0) < 0.0001);
+        QVERIFY(qAbs(atMinimum - 0.0) < 0.0001);
+    }
+
+    void getSweepAngleForSensor_co2SegmentBMidpoint()
+    {
+        // warning=1000, danger=2000, midpoint value=1500 => 225 degrees
+        const qreal midpointSweep = m_mgr->getSweepAngleForSensor(QStringLiteral("co2"), 1500.0, 0.0, 5000.0);
+        QVERIFY(qAbs(midpointSweep - 225.0) < 0.0001);
+    }
+
+    void getSweepAngleForSensor_co2SegmentCMidpoint()
+    {
+        // danger=2000, bufferedMax=2500, midpoint value=2250 => 315 degrees
+        const qreal midpointSweep = m_mgr->getSweepAngleForSensor(QStringLiteral("co2"), 2250.0, 0.0, 5000.0);
+        QVERIFY(qAbs(midpointSweep - 315.0) < 0.0001);
+    }
+
+    void getSweepAngleForSensor_unknownSensorFallsBackToLinear()
+    {
+        const qreal fallbackSweep = m_mgr->getSweepAngleForSensor(QStringLiteral("unknown"), 50.0, 0.0, 100.0);
+        QVERIFY(qAbs(fallbackSweep - 180.0) < 0.0001);
+    }
+
+    void getSweepAngleForSensor_invalidThresholdsFallBackToLinear()
+    {
+        m_mgr->setCo2Warning(3000);
+        m_mgr->setCo2Danger(2000); // invalid: danger <= warning
+        const qreal fallbackSweep = m_mgr->getSweepAngleForSensor(QStringLiteral("co2"), 2500.0, 0.0, 5000.0);
+        QVERIFY(qAbs(fallbackSweep - 180.0) < 0.0001);
+    }
+
+    void getSweepAngleForSensor_disabledSensorStillUsesThresholds()
+    {
+        m_mgr->setCo2Enabled(false);
+        const qreal thresholdSweep = m_mgr->getSweepAngleForSensor(QStringLiteral("co2"), 1000.0, 0.0, 5000.0);
+        QVERIFY(qAbs(thresholdSweep - 180.0) < 0.0001);
+    }
+
+    void getSweepAngleForSensor_grimmValueBoundaries()
+    {
+        // Defaults: warning=25, danger=50, bufferedMax=62.5
+        const qreal atWarning = m_mgr->getSweepAngleForSensor(QStringLiteral("grimmValue"), 25.0, 0.0, 200000.0);
+        const qreal atDanger = m_mgr->getSweepAngleForSensor(QStringLiteral("grimmValue"), 50.0, 0.0, 200000.0);
+        const qreal atBufferedMax = m_mgr->getSweepAngleForSensor(QStringLiteral("grimmValue"), 62.5, 0.0, 200000.0);
+
+        QVERIFY(qAbs(atWarning - 180.0) < 0.0001);
+        QVERIFY(qAbs(atDanger - 270.0) < 0.0001);
+        QVERIFY(qAbs(atBufferedMax - 360.0) < 0.0001);
     }
 
     // ── getColorForSensor tests ──
