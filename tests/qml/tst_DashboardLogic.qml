@@ -20,16 +20,18 @@ TestCase {
             return Qt.formatDateTime(dt, "yyyy-MM-dd hh:mm:ss")
         }
 
+        // Must match DashboardView.qml sensorConfig (lines 49-122) exactly.
+        // If production values change, update this copy to keep tests in sync.
         readonly property var sensorConfig: [
-            { key: "partectorNumber", name: "PNC UFP", unit: "#/cm\u00B3", min: 0, max: 50000, precision: 0 },
-            { key: "partectorDiam", name: "\u00D8 UFP", unit: "nm", min: 0, max: 500, precision: 0 },
-            { key: "partectorMass", name: "PM0.3", unit: "\u00B5g/m\u00B3", min: 0, max: 100, precision: 2 },
-            { key: "grimmValue", name: "PNC PM", unit: "#/cm\u00B3", min: 0, max: 100, precision: 2 },
-            { key: "temperature", name: "Temperature", unit: "\u00B0C", min: -20, max: 60, precision: 1 },
-            { key: "humidity", name: "Humidity", unit: "%", min: 0, max: 100, precision: 1 },
-            { key: "pressure", name: "Pressure", unit: "hPa", min: 900, max: 1100, precision: 1 },
-            { key: "altitude", name: "Altitude", unit: "m", min: 0, max: 3000, precision: 1 },
-            { key: "co2", name: "CO\u2082", unit: "ppm", min: 0, max: 5000, precision: 0 }
+            { sensorKey: "partectorNumber", sensorName: "PNC UFP", unit: "#/cm\u00B3", minValue: 0, maxValue: 500000, precision: 0 },
+            { sensorKey: "partectorDiam", sensorName: "\u00D8 UFP", unit: "nm", minValue: 0, maxValue: 500, precision: 0 },
+            { sensorKey: "partectorMass", sensorName: "PM0.3", unit: "\u00B5g/m\u00B3", minValue: 0, maxValue: 200, precision: 2 },
+            { sensorKey: "grimmValue", sensorName: "PNC PM", unit: "#/cm\u00B3", minValue: 0, maxValue: 200000, precision: 2 },
+            { sensorKey: "temperature", sensorName: "Temperature", unit: "\u00B0C", minValue: -20, maxValue: 60, precision: 1 },
+            { sensorKey: "humidity", sensorName: "Humidity", unit: "%", minValue: 0, maxValue: 100, precision: 1 },
+            { sensorKey: "pressure", sensorName: "Pressure", unit: "hPa", minValue: 900, maxValue: 1150, precision: 1 },
+            { sensorKey: "altitude", sensorName: "Altitude", unit: "m", minValue: 0, maxValue: 8000, precision: 1 },
+            { sensorKey: "co2", sensorName: "CO\u2082", unit: "ppm", minValue: 0, maxValue: 10000, precision: 0 }
         ]
     }
 
@@ -88,12 +90,75 @@ TestCase {
         // Verify each entry has required keys
         for (var i = 0; i < logic.sensorConfig.length; i++) {
             var cfg = logic.sensorConfig[i]
-            verify(cfg.key !== undefined, "key missing at index " + i)
-            verify(cfg.name !== undefined, "name missing at index " + i)
+            verify(cfg.sensorKey !== undefined, "sensorKey missing at index " + i)
+            verify(cfg.sensorName !== undefined, "sensorName missing at index " + i)
             verify(cfg.unit !== undefined, "unit missing at index " + i)
-            verify(cfg.min !== undefined, "min missing at index " + i)
-            verify(cfg.max !== undefined, "max missing at index " + i)
+            verify(cfg.minValue !== undefined, "minValue missing at index " + i)
+            verify(cfg.maxValue !== undefined, "maxValue missing at index " + i)
             verify(cfg.precision !== undefined, "precision missing at index " + i)
         }
+    }
+
+    // Catches config drift between test copy and production DashboardView.qml
+    function test_sensorConfig_matchesProduction() {
+        var expected = [
+            { sensorKey: "partectorNumber", sensorName: "PNC UFP", unit: "#/cm\u00B3", minValue: 0, maxValue: 500000, precision: 0 },
+            { sensorKey: "partectorDiam", sensorName: "\u00D8 UFP", unit: "nm", minValue: 0, maxValue: 500, precision: 0 },
+            { sensorKey: "partectorMass", sensorName: "PM0.3", unit: "\u00B5g/m\u00B3", minValue: 0, maxValue: 200, precision: 2 },
+            { sensorKey: "grimmValue", sensorName: "PNC PM", unit: "#/cm\u00B3", minValue: 0, maxValue: 200000, precision: 2 },
+            { sensorKey: "temperature", sensorName: "Temperature", unit: "\u00B0C", minValue: -20, maxValue: 60, precision: 1 },
+            { sensorKey: "humidity", sensorName: "Humidity", unit: "%", minValue: 0, maxValue: 100, precision: 1 },
+            { sensorKey: "pressure", sensorName: "Pressure", unit: "hPa", minValue: 900, maxValue: 1150, precision: 1 },
+            { sensorKey: "altitude", sensorName: "Altitude", unit: "m", minValue: 0, maxValue: 8000, precision: 1 },
+            { sensorKey: "co2", sensorName: "CO\u2082", unit: "ppm", minValue: 0, maxValue: 10000, precision: 0 }
+        ]
+
+        for (var i = 0; i < expected.length; i++) {
+            var cfg = logic.sensorConfig[i]
+            var exp = expected[i]
+            compare(cfg.sensorKey, exp.sensorKey, "sensorKey mismatch at index " + i)
+            compare(cfg.sensorName, exp.sensorName, "sensorName mismatch at index " + i)
+            compare(cfg.unit, exp.unit, "unit mismatch at index " + i)
+            compare(cfg.minValue, exp.minValue, "minValue mismatch at index " + i)
+            compare(cfg.maxValue, exp.maxValue, "maxValue mismatch at index " + i)
+            compare(cfg.precision, exp.precision, "precision mismatch at index " + i)
+        }
+    }
+
+    // Verifies RadialBarGauge receives all properties (catches delegate binding regressions)
+    property Component gaugeComponent: Qt.createComponent(
+        "file:///" + _sourceDir + "/qml/components/RadialBarGauge.qml")
+
+    function test_gaugeReceivesModelData() {
+        compare(gaugeComponent.status, Component.Ready,
+                "Failed to load RadialBarGauge: " + gaugeComponent.errorString())
+
+        // Use temperature config — has non-default minValue (-20) making it easy to detect defaults
+        var cfg = logic.sensorConfig[4]
+        var gauge = createTemporaryObject(gaugeComponent, testCase, {
+            sensorKey: cfg.sensorKey,
+            sensorName: cfg.sensorName,
+            unit: cfg.unit,
+            minValue: cfg.minValue,
+            maxValue: cfg.maxValue,
+            precision: cfg.precision,
+            value: 25.5
+        })
+        verify(gauge, "Failed to create RadialBarGauge")
+
+        // Exact value checks — catches wrong or default values
+        compare(gauge.sensorKey, "temperature", "sensorKey not propagated")
+        compare(gauge.sensorName, "Temperature", "sensorName not propagated")
+        compare(gauge.unit, "\u00B0C", "unit not propagated")
+        compare(gauge.minValue, -20, "minValue not propagated")
+        compare(gauge.maxValue, 60, "maxValue not propagated")
+        compare(gauge.precision, 1, "precision not propagated")
+        compare(gauge.value, 25.5, "value not propagated")
+
+        // Guard against RadialBarGauge defaults (the exact regression symptom)
+        verify(gauge.sensorKey !== "", "sensorKey stuck at default (empty)")
+        verify(gauge.sensorName !== "", "sensorName stuck at default (empty)")
+        verify(gauge.unit !== "", "unit stuck at default (empty)")
+        verify(gauge.maxValue !== 100, "maxValue stuck at default (100)")
     }
 }

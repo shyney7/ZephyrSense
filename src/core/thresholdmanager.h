@@ -5,54 +5,54 @@
 #include <QQmlEngine>
 #include <QSettings>
 
-class ThresholdManager : public QObject
+class ThresholdManager final : public QObject
 {
     Q_OBJECT
     QML_ELEMENT
     QML_SINGLETON
 
     // HazardLevel enum
-    Q_PROPERTY(int co2Warning READ co2Warning WRITE setCo2Warning NOTIFY co2WarningChanged)
-    Q_PROPERTY(int co2Danger READ co2Danger WRITE setCo2Danger NOTIFY co2DangerChanged)
+    Q_PROPERTY(int co2Warning READ co2Warning WRITE setCo2Warning NOTIFY co2WarningChanged FINAL)
+    Q_PROPERTY(int co2Danger READ co2Danger WRITE setCo2Danger NOTIFY co2DangerChanged FINAL)
 
-    Q_PROPERTY(float temperatureWarning READ temperatureWarning WRITE setTemperatureWarning NOTIFY temperatureWarningChanged)
-    Q_PROPERTY(float temperatureDanger READ temperatureDanger WRITE setTemperatureDanger NOTIFY temperatureDangerChanged)
-    Q_PROPERTY(float temperatureLowWarning READ temperatureLowWarning WRITE setTemperatureLowWarning NOTIFY temperatureLowWarningChanged)
-    Q_PROPERTY(float temperatureLowDanger READ temperatureLowDanger WRITE setTemperatureLowDanger NOTIFY temperatureLowDangerChanged)
+    Q_PROPERTY(float temperatureWarning READ temperatureWarning WRITE setTemperatureWarning NOTIFY temperatureWarningChanged FINAL)
+    Q_PROPERTY(float temperatureDanger READ temperatureDanger WRITE setTemperatureDanger NOTIFY temperatureDangerChanged FINAL)
+    Q_PROPERTY(float temperatureLowWarning READ temperatureLowWarning WRITE setTemperatureLowWarning NOTIFY temperatureLowWarningChanged FINAL)
+    Q_PROPERTY(float temperatureLowDanger READ temperatureLowDanger WRITE setTemperatureLowDanger NOTIFY temperatureLowDangerChanged FINAL)
 
-    Q_PROPERTY(float humidityWarning READ humidityWarning WRITE setHumidityWarning NOTIFY humidityWarningChanged)
-    Q_PROPERTY(float humidityDanger READ humidityDanger WRITE setHumidityDanger NOTIFY humidityDangerChanged)
-    Q_PROPERTY(float humidityLowWarning READ humidityLowWarning WRITE setHumidityLowWarning NOTIFY humidityLowWarningChanged)
-    Q_PROPERTY(float humidityLowDanger READ humidityLowDanger WRITE setHumidityLowDanger NOTIFY humidityLowDangerChanged)
+    Q_PROPERTY(float humidityWarning READ humidityWarning WRITE setHumidityWarning NOTIFY humidityWarningChanged FINAL)
+    Q_PROPERTY(float humidityDanger READ humidityDanger WRITE setHumidityDanger NOTIFY humidityDangerChanged FINAL)
+    Q_PROPERTY(float humidityLowWarning READ humidityLowWarning WRITE setHumidityLowWarning NOTIFY humidityLowWarningChanged FINAL)
+    Q_PROPERTY(float humidityLowDanger READ humidityLowDanger WRITE setHumidityLowDanger NOTIFY humidityLowDangerChanged FINAL)
 
-    Q_PROPERTY(float partectorMassWarning READ partectorMassWarning WRITE setPartectorMassWarning NOTIFY partectorMassWarningChanged)
-    Q_PROPERTY(float partectorMassDanger READ partectorMassDanger WRITE setPartectorMassDanger NOTIFY partectorMassDangerChanged)
+    Q_PROPERTY(float partectorMassWarning READ partectorMassWarning WRITE setPartectorMassWarning NOTIFY partectorMassWarningChanged FINAL)
+    Q_PROPERTY(float partectorMassDanger READ partectorMassDanger WRITE setPartectorMassDanger NOTIFY partectorMassDangerChanged FINAL)
 
-    Q_PROPERTY(float grimmValueWarning READ grimmValueWarning WRITE setGrimmValueWarning NOTIFY grimmValueWarningChanged)
-    Q_PROPERTY(float grimmValueDanger READ grimmValueDanger WRITE setGrimmValueDanger NOTIFY grimmValueDangerChanged)
+    Q_PROPERTY(float grimmValueWarning READ grimmValueWarning WRITE setGrimmValueWarning NOTIFY grimmValueWarningChanged FINAL)
+    Q_PROPERTY(float grimmValueDanger READ grimmValueDanger WRITE setGrimmValueDanger NOTIFY grimmValueDangerChanged FINAL)
 
-    Q_PROPERTY(int partectorNumberWarning READ partectorNumberWarning WRITE setPartectorNumberWarning NOTIFY partectorNumberWarningChanged)
-    Q_PROPERTY(int partectorNumberDanger READ partectorNumberDanger WRITE setPartectorNumberDanger NOTIFY partectorNumberDangerChanged)
+    Q_PROPERTY(int partectorNumberWarning READ partectorNumberWarning WRITE setPartectorNumberWarning NOTIFY partectorNumberWarningChanged FINAL)
+    Q_PROPERTY(int partectorNumberDanger READ partectorNumberDanger WRITE setPartectorNumberDanger NOTIFY partectorNumberDangerChanged FINAL)
 
-    Q_PROPERTY(int partectorDiamWarning READ partectorDiamWarning WRITE setPartectorDiamWarning NOTIFY partectorDiamWarningChanged)
-    Q_PROPERTY(int partectorDiamDanger READ partectorDiamDanger WRITE setPartectorDiamDanger NOTIFY partectorDiamDangerChanged)
+    Q_PROPERTY(int partectorDiamWarning READ partectorDiamWarning WRITE setPartectorDiamWarning NOTIFY partectorDiamWarningChanged FINAL)
+    Q_PROPERTY(int partectorDiamDanger READ partectorDiamDanger WRITE setPartectorDiamDanger NOTIFY partectorDiamDangerChanged FINAL)
 
-    Q_PROPERTY(float pressureWarning READ pressureWarning WRITE setPressureWarning NOTIFY pressureWarningChanged)
-    Q_PROPERTY(float pressureDanger READ pressureDanger WRITE setPressureDanger NOTIFY pressureDangerChanged)
+    Q_PROPERTY(float pressureWarning READ pressureWarning WRITE setPressureWarning NOTIFY pressureWarningChanged FINAL)
+    Q_PROPERTY(float pressureDanger READ pressureDanger WRITE setPressureDanger NOTIFY pressureDangerChanged FINAL)
 
-    Q_PROPERTY(float altitudeWarning READ altitudeWarning WRITE setAltitudeWarning NOTIFY altitudeWarningChanged)
-    Q_PROPERTY(float altitudeDanger READ altitudeDanger WRITE setAltitudeDanger NOTIFY altitudeDangerChanged)
+    Q_PROPERTY(float altitudeWarning READ altitudeWarning WRITE setAltitudeWarning NOTIFY altitudeWarningChanged FINAL)
+    Q_PROPERTY(float altitudeDanger READ altitudeDanger WRITE setAltitudeDanger NOTIFY altitudeDangerChanged FINAL)
 
     // Sensor enable/disable properties (for selective hazard calculation)
-    Q_PROPERTY(bool partectorMassEnabled READ partectorMassEnabled WRITE setPartectorMassEnabled NOTIFY partectorMassEnabledChanged)
-    Q_PROPERTY(bool partectorNumberEnabled READ partectorNumberEnabled WRITE setPartectorNumberEnabled NOTIFY partectorNumberEnabledChanged)
-    Q_PROPERTY(bool partectorDiamEnabled READ partectorDiamEnabled WRITE setPartectorDiamEnabled NOTIFY partectorDiamEnabledChanged)
-    Q_PROPERTY(bool grimmValueEnabled READ grimmValueEnabled WRITE setGrimmValueEnabled NOTIFY grimmValueEnabledChanged)
-    Q_PROPERTY(bool co2Enabled READ co2Enabled WRITE setCo2Enabled NOTIFY co2EnabledChanged)
-    Q_PROPERTY(bool temperatureEnabled READ temperatureEnabled WRITE setTemperatureEnabled NOTIFY temperatureEnabledChanged)
-    Q_PROPERTY(bool humidityEnabled READ humidityEnabled WRITE setHumidityEnabled NOTIFY humidityEnabledChanged)
-    Q_PROPERTY(bool pressureEnabled READ pressureEnabled WRITE setPressureEnabled NOTIFY pressureEnabledChanged)
-    Q_PROPERTY(bool altitudeEnabled READ altitudeEnabled WRITE setAltitudeEnabled NOTIFY altitudeEnabledChanged)
+    Q_PROPERTY(bool partectorMassEnabled READ partectorMassEnabled WRITE setPartectorMassEnabled NOTIFY partectorMassEnabledChanged FINAL)
+    Q_PROPERTY(bool partectorNumberEnabled READ partectorNumberEnabled WRITE setPartectorNumberEnabled NOTIFY partectorNumberEnabledChanged FINAL)
+    Q_PROPERTY(bool partectorDiamEnabled READ partectorDiamEnabled WRITE setPartectorDiamEnabled NOTIFY partectorDiamEnabledChanged FINAL)
+    Q_PROPERTY(bool grimmValueEnabled READ grimmValueEnabled WRITE setGrimmValueEnabled NOTIFY grimmValueEnabledChanged FINAL)
+    Q_PROPERTY(bool co2Enabled READ co2Enabled WRITE setCo2Enabled NOTIFY co2EnabledChanged FINAL)
+    Q_PROPERTY(bool temperatureEnabled READ temperatureEnabled WRITE setTemperatureEnabled NOTIFY temperatureEnabledChanged FINAL)
+    Q_PROPERTY(bool humidityEnabled READ humidityEnabled WRITE setHumidityEnabled NOTIFY humidityEnabledChanged FINAL)
+    Q_PROPERTY(bool pressureEnabled READ pressureEnabled WRITE setPressureEnabled NOTIFY pressureEnabledChanged FINAL)
+    Q_PROPERTY(bool altitudeEnabled READ altitudeEnabled WRITE setAltitudeEnabled NOTIFY altitudeEnabledChanged FINAL)
 
 public:
     enum HazardLevel {

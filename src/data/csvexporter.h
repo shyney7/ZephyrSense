@@ -6,14 +6,14 @@
 #include <QUrl>
 #include "sensorreading.h"
 
-class CsvExporter : public QObject
+class CsvExporter final : public QObject
 {
     Q_OBJECT
     QML_ELEMENT
     QML_SINGLETON
 
-    Q_PROPERTY(bool enabled READ isEnabled WRITE setEnabled NOTIFY enabledChanged)
-    Q_PROPERTY(QString filePath READ filePath WRITE setFilePath NOTIFY filePathChanged)
+    Q_PROPERTY(bool enabled READ isEnabled WRITE setEnabled NOTIFY enabledChanged FINAL)
+    Q_PROPERTY(QString filePath READ filePath WRITE setFilePath NOTIFY filePathChanged FINAL)
 
 public:
     explicit CsvExporter(QObject *parent = nullptr);

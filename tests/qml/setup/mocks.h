@@ -13,17 +13,17 @@
 #include <QDateTime>
 #include <QUrl>
 
-class MockSerialHandler : public QObject
+class MockSerialHandler final : public QObject
 {
     Q_OBJECT
     QML_NAMED_ELEMENT(SerialHandler)
     QML_SINGLETON
 
-    Q_PROPERTY(QStringList availablePorts READ availablePorts NOTIFY portsChanged)
-    Q_PROPERTY(bool connected READ isConnected WRITE setConnected NOTIFY connectionStateChanged)
-    Q_PROPERTY(QString errorString READ errorString WRITE setErrorString NOTIFY errorOccurred)
-    Q_PROPERTY(QString currentPort READ currentPort NOTIFY connectionStateChanged)
-    Q_PROPERTY(int baudRate READ baudRate WRITE setBaudRate NOTIFY baudRateChanged)
+    Q_PROPERTY(QStringList availablePorts READ availablePorts NOTIFY portsChanged FINAL)
+    Q_PROPERTY(bool connected READ isConnected WRITE setConnected NOTIFY connectionStateChanged FINAL)
+    Q_PROPERTY(QString errorString READ errorString WRITE setErrorString NOTIFY errorOccurred FINAL)
+    Q_PROPERTY(QString currentPort READ currentPort NOTIFY connectionStateChanged FINAL)
+    Q_PROPERTY(int baudRate READ baudRate WRITE setBaudRate NOTIFY baudRateChanged FINAL)
 
 public:
     explicit MockSerialHandler(QObject *parent = nullptr) : QObject(parent) {}
@@ -65,13 +65,13 @@ private:
     int m_baudRate = 115200;
 };
 
-class MockDatabaseManager : public QObject
+class MockDatabaseManager final : public QObject
 {
     Q_OBJECT
     QML_NAMED_ELEMENT(DatabaseManager)
     QML_SINGLETON
 
-    Q_PROPERTY(QString databasePath READ databasePath CONSTANT)
+    Q_PROPERTY(QString databasePath READ databasePath CONSTANT FINAL)
 
 public:
     explicit MockDatabaseManager(QObject *parent = nullptr) : QObject(parent) {}
@@ -98,14 +98,14 @@ private:
     QVariantList m_dates;
 };
 
-class MockCsvExporter : public QObject
+class MockCsvExporter final : public QObject
 {
     Q_OBJECT
     QML_NAMED_ELEMENT(CsvExporter)
     QML_SINGLETON
 
-    Q_PROPERTY(bool enabled READ isEnabled WRITE setEnabled NOTIFY enabledChanged)
-    Q_PROPERTY(QString filePath READ filePath WRITE setFilePath NOTIFY filePathChanged)
+    Q_PROPERTY(bool enabled READ isEnabled WRITE setEnabled NOTIFY enabledChanged FINAL)
+    Q_PROPERTY(QString filePath READ filePath WRITE setFilePath NOTIFY filePathChanged FINAL)
 
 public:
     explicit MockCsvExporter(QObject *parent = nullptr) : QObject(parent) {}
@@ -127,7 +127,7 @@ private:
     QString m_filePath;
 };
 
-class MockThresholdManager : public QObject
+class MockThresholdManager final : public QObject
 {
     Q_OBJECT
     QML_NAMED_ELEMENT(ThresholdManager)

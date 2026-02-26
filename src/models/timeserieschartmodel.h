@@ -13,11 +13,11 @@ class TimeSeriesChartModel : public QAbstractTableModel
     QML_ELEMENT
 
     // Axis bounds for QML binding
-    Q_PROPERTY(qreal xMin READ xMin NOTIFY boundsChanged)
-    Q_PROPERTY(qreal xMax READ xMax NOTIFY boundsChanged)
-    Q_PROPERTY(qreal yMin READ yMin NOTIFY boundsChanged)
-    Q_PROPERTY(qreal yMax READ yMax NOTIFY boundsChanged)
-    Q_PROPERTY(int dataCount READ dataCount NOTIFY dataCountChanged)
+    Q_PROPERTY(qreal xMin READ xMin NOTIFY boundsChanged FINAL)
+    Q_PROPERTY(qreal xMax READ xMax NOTIFY boundsChanged FINAL)
+    Q_PROPERTY(qreal yMin READ yMin NOTIFY boundsChanged FINAL)
+    Q_PROPERTY(qreal yMax READ yMax NOTIFY boundsChanged FINAL)
+    Q_PROPERTY(int dataCount READ dataCount NOTIFY dataCountChanged FINAL)
 
 public:
     // Column indices - timestamp first, then 9 sensors (excluding lat/lon)
@@ -54,7 +54,8 @@ public:
     Q_INVOKABLE void loadData(const QDateTime &start, const QDateTime &end);
     Q_INVOKABLE void clear();
     Q_INVOKABLE void updateYBoundsForColumn(int column);
-    Q_INVOKABLE QVariantMap getYBoundsForColumn(int column) const;
+    Q_INVOKABLE qreal getYMinForColumn(int column) const;
+    Q_INVOKABLE qreal getYMaxForColumn(int column) const;
 
 signals:
     void boundsChanged();

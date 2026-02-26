@@ -178,7 +178,7 @@ Rectangle {
     // Handle error signal
     Connections {
         target: SerialHandler
-        function onErrorOccurred(message) {
+        function onErrorOccurred(message: string): void {
             console.log("Serial error:", message)
         }
     }

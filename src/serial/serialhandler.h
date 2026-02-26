@@ -9,17 +9,17 @@
 
 #include "sensorreading.h"
 
-class SerialHandler : public QObject
+class SerialHandler final : public QObject
 {
     Q_OBJECT
     QML_ELEMENT
     QML_SINGLETON
 
-    Q_PROPERTY(QStringList availablePorts READ availablePorts NOTIFY portsChanged)
-    Q_PROPERTY(bool connected READ isConnected NOTIFY connectionStateChanged)
-    Q_PROPERTY(QString errorString READ errorString NOTIFY errorOccurred)
-    Q_PROPERTY(QString currentPort READ currentPort NOTIFY connectionStateChanged)
-    Q_PROPERTY(int baudRate READ baudRate WRITE setBaudRate NOTIFY baudRateChanged)
+    Q_PROPERTY(QStringList availablePorts READ availablePorts NOTIFY portsChanged FINAL)
+    Q_PROPERTY(bool connected READ isConnected NOTIFY connectionStateChanged FINAL)
+    Q_PROPERTY(QString errorString READ errorString NOTIFY errorOccurred FINAL)
+    Q_PROPERTY(QString currentPort READ currentPort NOTIFY connectionStateChanged FINAL)
+    Q_PROPERTY(int baudRate READ baudRate WRITE setBaudRate NOTIFY baudRateChanged FINAL)
 
 public:
     explicit SerialHandler(QObject *parent = nullptr);

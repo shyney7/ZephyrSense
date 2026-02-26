@@ -126,14 +126,10 @@ void TimeSeriesChartModel::updateYBoundsForColumn(int column)
     emit boundsChanged();
 }
 
-QVariantMap TimeSeriesChartModel::getYBoundsForColumn(int column) const
+qreal TimeSeriesChartModel::getYMinForColumn(int column) const
 {
-    QVariantMap result;
-    result[QStringLiteral("yMin")] = 0.0;
-    result[QStringLiteral("yMax")] = 100.0;
-
     if (column < PartectorNumberColumn || column >= ColumnCount || m_data.isEmpty()) {
-        return result;
+        return 0.0;
     }
 
     auto sensorIndex = static_cast<size_t>(column - 1);
@@ -146,15 +142,39 @@ QVariantMap TimeSeriesChartModel::getYBoundsForColumn(int column) const
         if (value > maxVal) maxVal = value;
     }
 
-    // Add 10% padding to Y axis for better visualization
     qreal padding = (maxVal - minVal) * 0.1;
-    result[QStringLiteral("yMin")] = minVal - padding;
-    result[QStringLiteral("yMax")] = maxVal + padding;
+    qreal result = minVal - padding;
 
     // Ensure we have some range even if all values are the same
-    if (qFuzzyCompare(minVal - padding, maxVal + padding)) {
-        result[QStringLiteral("yMin")] = minVal - 1.0;
-        result[QStringLiteral("yMax")] = maxVal + 1.0;
+    if (qFuzzyCompare(result, maxVal + padding)) {
+        result = minVal - 1.0;
+    }
+
+    return result;
+}
+
+qreal TimeSeriesChartModel::getYMaxForColumn(int column) const
+{
+    if (column < PartectorNumberColumn || column >= ColumnCount || m_data.isEmpty()) {
+        return 100.0;
+    }
+
+    auto sensorIndex = static_cast<size_t>(column - 1);
+    qreal minVal = std::numeric_limits<qreal>::max();
+    qreal maxVal = std::numeric_limits<qreal>::lowest();
+
+    for (const DataPoint &point : m_data) {
+        qreal value = point.values[sensorIndex];
+        if (value < minVal) minVal = value;
+        if (value > maxVal) maxVal = value;
+    }
+
+    qreal padding = (maxVal - minVal) * 0.1;
+    qreal result = maxVal + padding;
+
+    // Ensure we have some range even if all values are the same
+    if (qFuzzyCompare(minVal - padding, result)) {
+        result = maxVal + 1.0;
     }
 
     return result;

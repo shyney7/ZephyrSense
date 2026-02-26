@@ -193,33 +193,33 @@ Item {
                 Repeater {
                     model: [
                         {
-                            text: "10m",
+                            label: "10m",
                             minutes: 10
                         },
                         {
-                            text: "30m",
+                            label: "30m",
                             minutes: 30
                         },
                         {
-                            text: "1h",
+                            label: "1h",
                             minutes: 60
                         },
                         {
-                            text: "6h",
+                            label: "6h",
                             minutes: 360
                         },
                         {
-                            text: "24h",
+                            label: "24h",
                             minutes: 1440
                         }
                     ]
 
                     Button {
-                        required property var modelData
                         required property int index
-                        property int minutes: modelData.minutes
+                        required property string label
+                        required property int minutes
 
-                        text: modelData.text
+                        text: label
                         checkable: true
                         checked: index === 2  // Default to 1h
                         ButtonGroup.group: windowGroup
@@ -248,34 +248,35 @@ Item {
                 Repeater {
                     model: [
                         {
-                            text: "Last 1h",
+                            label: "Last 1h",
                             preset: "1h"
                         },
                         {
-                            text: "Last 6h",
+                            label: "Last 6h",
                             preset: "6h"
                         },
                         {
-                            text: "Last 24h",
+                            label: "Last 24h",
                             preset: "24h"
                         },
                         {
-                            text: "Last 7d",
+                            label: "Last 7d",
                             preset: "7d"
                         },
                         {
-                            text: "Last 30d",
+                            label: "Last 30d",
                             preset: "30d"
                         }
                     ]
 
                     Button {
-                        required property var modelData
+                        required property string label
+                        required property string preset
 
-                        text: modelData.text
+                        text: label
                         Layout.preferredWidth: 80
 
-                        onClicked: mapViewRoot.loadPreset(modelData.preset)
+                        onClicked: mapViewRoot.loadPreset(preset)
                     }
                 }
 

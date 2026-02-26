@@ -104,14 +104,15 @@ Item {
 
                 Button {
                     required property int index
-                    required property var modelData
-                    text: modelData.label
+                    required property string label
+                    required property int minutes
+                    text: label
                     checkable: true
                     checked: index === 2  // Default: 1h
                     ButtonGroup.group: graphsViewRoot.rangeGroup
 
                     onClicked: {
-                        graphsViewRoot.loadPresetFromNow(modelData.minutes)
+                        graphsViewRoot.loadPresetFromNow(minutes)
                     }
                 }
             }

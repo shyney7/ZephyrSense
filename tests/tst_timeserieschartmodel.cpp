@@ -184,9 +184,8 @@ private slots:
     void getYBoundsForColumn_emptyData()
     {
         TimeSeriesChartModel model;
-        QVariantMap bounds = model.getYBoundsForColumn(TimeSeriesChartModel::TemperatureColumn);
-        QCOMPARE(bounds[QStringLiteral("yMin")].toReal(), 0.0);
-        QCOMPARE(bounds[QStringLiteral("yMax")].toReal(), 100.0);
+        QCOMPARE(model.getYMinForColumn(TimeSeriesChartModel::TemperatureColumn), 0.0);
+        QCOMPARE(model.getYMaxForColumn(TimeSeriesChartModel::TemperatureColumn), 100.0);
     }
 
     void getYBoundsForColumn_invalidColumn()
@@ -195,14 +194,12 @@ private slots:
         addSimpleDataPoint(model, 1000, 22.5);
 
         // Column 0 (timestamp) is invalid for Y bounds
-        QVariantMap bounds0 = model.getYBoundsForColumn(0);
-        QCOMPARE(bounds0[QStringLiteral("yMin")].toReal(), 0.0);
-        QCOMPARE(bounds0[QStringLiteral("yMax")].toReal(), 100.0);
+        QCOMPARE(model.getYMinForColumn(0), 0.0);
+        QCOMPARE(model.getYMaxForColumn(0), 100.0);
 
         // Column 10 is out of range
-        QVariantMap bounds10 = model.getYBoundsForColumn(10);
-        QCOMPARE(bounds10[QStringLiteral("yMin")].toReal(), 0.0);
-        QCOMPARE(bounds10[QStringLiteral("yMax")].toReal(), 100.0);
+        QCOMPARE(model.getYMinForColumn(10), 0.0);
+        QCOMPARE(model.getYMaxForColumn(10), 100.0);
     }
 
     void getYBoundsForColumn_range()
@@ -214,9 +211,8 @@ private slots:
         addDataPoint(model, 1000, v1);
         addDataPoint(model, 2000, v2);
 
-        QVariantMap bounds = model.getYBoundsForColumn(TimeSeriesChartModel::TemperatureColumn);
-        qreal yMin = bounds[QStringLiteral("yMin")].toReal();
-        qreal yMax = bounds[QStringLiteral("yMax")].toReal();
+        qreal yMin = model.getYMinForColumn(TimeSeriesChartModel::TemperatureColumn);
+        qreal yMax = model.getYMaxForColumn(TimeSeriesChartModel::TemperatureColumn);
 
         // 10% padding: range is 10, padding is 1
         QVERIFY(qAbs(yMin - 19.0) < 0.01);
@@ -231,9 +227,8 @@ private slots:
         addDataPoint(model, 1000, v1);
         addDataPoint(model, 2000, v2);
 
-        QVariantMap bounds = model.getYBoundsForColumn(TimeSeriesChartModel::TemperatureColumn);
-        qreal yMin = bounds[QStringLiteral("yMin")].toReal();
-        qreal yMax = bounds[QStringLiteral("yMax")].toReal();
+        qreal yMin = model.getYMinForColumn(TimeSeriesChartModel::TemperatureColumn);
+        qreal yMax = model.getYMaxForColumn(TimeSeriesChartModel::TemperatureColumn);
 
         // When all values are the same, should have min-1 to max+1
         QVERIFY(qAbs(yMin - 24.0) < 0.01);

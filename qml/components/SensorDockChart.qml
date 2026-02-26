@@ -5,12 +5,13 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtGraphs
+import ZephyrSense
 
 Item {
     id: chartView
 
     // Model reference (shared across all dock charts)
-    required property var chartModel
+    required property TimeSeriesChartModel chartModel
     // Sensor column index (1-9, fixed at creation)
     required property int sensorColumn
 
@@ -116,9 +117,8 @@ Item {
 
     function updateLocalBounds(): void {
         if (chartModel) {
-            var b = chartModel.getYBoundsForColumn(sensorColumn)
-            localYMin = b.yMin
-            localYMax = b.yMax
+            localYMin = chartModel.getYMinForColumn(sensorColumn)
+            localYMax = chartModel.getYMaxForColumn(sensorColumn)
         }
     }
 

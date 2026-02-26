@@ -13,7 +13,7 @@ class SensorReadingModel : public QAbstractListModel
     Q_OBJECT
     QML_ELEMENT
 
-    Q_PROPERTY(int count READ count NOTIFY countChanged)
+    Q_PROPERTY(int count READ count NOTIFY countChanged FINAL)
 
 public:
     enum Roles {

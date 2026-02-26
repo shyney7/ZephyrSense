@@ -48,75 +48,75 @@ Item {
     // Sensor configuration for the 9 gauges
     readonly property var sensorConfig: [
         {
-            key: "partectorNumber",
-            name: "PNC UFP",
+            sensorKey: "partectorNumber",
+            sensorName: "PNC UFP",
             unit: "#/cm\u00B3",
-            min: 0,
-            max: 500000,
+            minValue: 0,
+            maxValue: 500000,
             precision: 0
         },
         {
-            key: "partectorDiam",
-            name: "\u00D8 UFP",
+            sensorKey: "partectorDiam",
+            sensorName: "\u00D8 UFP",
             unit: "nm",
-            min: 0,
-            max: 500,
+            minValue: 0,
+            maxValue: 500,
             precision: 0
         },
         {
-            key: "partectorMass",
-            name: "PM0.3",
+            sensorKey: "partectorMass",
+            sensorName: "PM0.3",
             unit: "\u00B5g/m\u00B3",
-            min: 0,
-            max: 200,
+            minValue: 0,
+            maxValue: 200,
             precision: 2
         },
         {
-            key: "grimmValue",
-            name: "PNC PM",
+            sensorKey: "grimmValue",
+            sensorName: "PNC PM",
             unit: "#/cm\u00B3",
-            min: 0,
-            max: 200000,
+            minValue: 0,
+            maxValue: 200000,
             precision: 2
         },
         {
-            key: "temperature",
-            name: "Temperature",
+            sensorKey: "temperature",
+            sensorName: "Temperature",
             unit: "\u00B0C",
-            min: -20,
-            max: 60,
+            minValue: -20,
+            maxValue: 60,
             precision: 1
         },
         {
-            key: "humidity",
-            name: "Humidity",
+            sensorKey: "humidity",
+            sensorName: "Humidity",
             unit: "%",
-            min: 0,
-            max: 100,
+            minValue: 0,
+            maxValue: 100,
             precision: 1
         },
         {
-            key: "pressure",
-            name: "Pressure",
+            sensorKey: "pressure",
+            sensorName: "Pressure",
             unit: "hPa",
-            min: 900,
-            max: 1150,
+            minValue: 900,
+            maxValue: 1150,
             precision: 1
         },
         {
-            key: "altitude",
-            name: "Altitude",
+            sensorKey: "altitude",
+            sensorName: "Altitude",
             unit: "m",
-            min: 0,
-            max: 8000,
+            minValue: 0,
+            maxValue: 8000,
             precision: 1
         },
         {
-            key: "co2",
-            name: "CO\u2082",
+            sensorKey: "co2",
+            sensorName: "CO\u2082",
             unit: "ppm",
-            min: 0,
-            max: 10000,
+            minValue: 0,
+            maxValue: 10000,
             precision: 0
         }
     ]
@@ -316,11 +316,11 @@ Item {
                     Layout.minimumWidth: 140
                     Layout.minimumHeight: 140
 
-                    value: dashboardRoot.currentReading[modelData.key] || 0
-                    minValue: modelData.min
-                    maxValue: modelData.max
-                    sensorKey: modelData.key
-                    sensorName: modelData.name
+                    value: dashboardRoot.currentReading[modelData.sensorKey] ?? 0
+                    minValue: modelData.minValue
+                    maxValue: modelData.maxValue
+                    sensorKey: modelData.sensorKey
+                    sensorName: modelData.sensorName
                     unit: modelData.unit
                     precision: modelData.precision
                 }
