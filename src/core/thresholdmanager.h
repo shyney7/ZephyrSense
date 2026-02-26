@@ -158,6 +158,10 @@ public:
     // Get display color for a specific sensor based on its current value and thresholds
     Q_INVOKABLE QString getColorForSensor(const QString &sensorKey, qreal value) const;
 
+    // Get adaptive sweep angle for a specific sensor's radial gauge
+    Q_INVOKABLE qreal getSweepAngleForSensor(const QString &sensorKey, qreal value,
+                                             qreal minValue, qreal fallbackMax) const;
+
     // Check if a sensor is enabled for hazard calculation
     Q_INVOKABLE bool isSensorEnabledForKey(const QString &sensorKey) const;
 
@@ -203,6 +207,7 @@ signals:
 private:
     void loadSettings();
     void saveSettings();
+    bool getHighThresholdsForSensor(const QString &sensorKey, qreal *warning, qreal *danger) const;
 
     static ThresholdManager* s_instance;
 

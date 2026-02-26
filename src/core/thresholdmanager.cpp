@@ -478,6 +478,97 @@ void ThresholdManager::setAltitudeEnabled(bool value)
     }
 }
 
+bool ThresholdManager::getHighThresholdsForSensor(const QString &sensorKey, qreal *warning, qreal *danger) const
+{
+    if (warning == nullptr || danger == nullptr) {
+        return false;
+    }
+
+    if (sensorKey == QLatin1String("co2")) {
+        *warning = static_cast<qreal>(m_co2Warning);
+        *danger = static_cast<qreal>(m_co2Danger);
+        return true;
+    }
+    if (sensorKey == QLatin1String("temperature")) {
+        *warning = static_cast<qreal>(m_temperatureWarning);
+        *danger = static_cast<qreal>(m_temperatureDanger);
+        return true;
+    }
+    if (sensorKey == QLatin1String("humidity")) {
+        *warning = static_cast<qreal>(m_humidityWarning);
+        *danger = static_cast<qreal>(m_humidityDanger);
+        return true;
+    }
+    if (sensorKey == QLatin1String("partectorMass")) {
+        *warning = static_cast<qreal>(m_partectorMassWarning);
+        *danger = static_cast<qreal>(m_partectorMassDanger);
+        return true;
+    }
+    if (sensorKey == QLatin1String("grimmValue")) {
+        *warning = static_cast<qreal>(m_grimmValueWarning);
+        *danger = static_cast<qreal>(m_grimmValueDanger);
+        return true;
+    }
+    if (sensorKey == QLatin1String("partectorNumber")) {
+        *warning = static_cast<qreal>(m_partectorNumberWarning);
+        *danger = static_cast<qreal>(m_partectorNumberDanger);
+        return true;
+    }
+    if (sensorKey == QLatin1String("partectorDiam")) {
+        *warning = static_cast<qreal>(m_partectorDiamWarning);
+        *danger = static_cast<qreal>(m_partectorDiamDanger);
+        return true;
+    }
+    if (sensorKey == QLatin1String("pressure")) {
+        *warning = static_cast<qreal>(m_pressureWarning);
+        *danger = static_cast<qreal>(m_pressureDanger);
+        return true;
+    }
+    if (sensorKey == QLatin1String("altitude")) {
+        *warning = static_cast<qreal>(m_altitudeWarning);
+        *danger = static_cast<qreal>(m_altitudeDanger);
+        return true;
+    }
+
+    return false;
+}
+
+qreal ThresholdManager::getSweepAngleForSensor(const QString &sensorKey, qreal value,
+                                               qreal minValue, qreal fallbackMax) const
+{
+    const auto legacyLinearSweep = [value, minValue, fallbackMax]() -> qreal {
+        if (minValue >= fallbackMax) {
+            return 0.0;
+        }
+        const qreal clampedValue = qBound(minValue, value, fallbackMax);
+        return ((clampedValue - minValue) / (fallbackMax - minValue)) * 360.0;
+    };
+
+    qreal warning = 0.0;
+    qreal danger = 0.0;
+    if (!getHighThresholdsForSensor(sensorKey, &warning, &danger)) {
+        return legacyLinearSweep();
+    }
+
+    if (warning <= minValue || danger <= warning || danger <= 0.0) {
+        return legacyLinearSweep();
+    }
+
+    const qreal bufferedMax = danger * 1.25;
+    if (value <= warning) {
+        const qreal normalizedA = qBound(0.0, (value - minValue) / (warning - minValue), 1.0);
+        return normalizedA * 180.0;
+    }
+
+    if (value <= danger) {
+        const qreal normalizedB = qBound(0.0, (value - warning) / (danger - warning), 1.0);
+        return 180.0 + (normalizedB * 90.0);
+    }
+
+    const qreal normalizedC = qBound(0.0, (value - danger) / (bufferedMax - danger), 1.0);
+    return 270.0 + (normalizedC * 90.0);
+}
+
 // Get display color for a specific sensor based on its value and thresholds
 QString ThresholdManager::getColorForSensor(const QString &sensorKey, qreal value) const
 {
