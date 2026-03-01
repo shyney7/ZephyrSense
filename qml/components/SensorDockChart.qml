@@ -1,5 +1,7 @@
 pragma ComponentBehavior: Bound
 pragma FunctionSignatureBehavior: Enforced
+pragma NativeMethodBehavior: AcceptThisObject
+pragma ValueTypeBehavior: Addressable
 
 import QtQuick
 import QtQuick.Controls
@@ -16,7 +18,7 @@ Item {
     required property int sensorColumn
 
     // Sensor metadata
-    readonly property var sensorNames: [
+    readonly property list<string> sensorNames: [
         "",
         "PNC UFP",
         "\u00D8 UFP",
@@ -29,7 +31,7 @@ Item {
         "CO\u2082"
     ]
 
-    readonly property var sensorColors: [
+    readonly property list<color> sensorColors: [
         "transparent",
         "#E91E63",
         "#9C27B0",
@@ -42,7 +44,7 @@ Item {
         "#795548"
     ]
 
-    readonly property var sensorUnits: [
+    readonly property list<string> sensorUnits: [
         "",
         "#/cm\u00B3",
         "nm",

@@ -1,5 +1,7 @@
 pragma ComponentBehavior: Bound
 pragma FunctionSignatureBehavior: Enforced
+pragma NativeMethodBehavior: AcceptThisObject
+pragma ValueTypeBehavior: Addressable
 
 import QtQuick
 import QtQuick.Controls
@@ -34,17 +36,7 @@ Item {
     readonly property bool isFrozenMode: frozenReadingId >= 0 && updateIntervalMs < 0
 
     // Current sensor values
-    property var currentReading: ({
-            partectorNumber: 0,
-            partectorDiam: 0,
-            partectorMass: 0,
-            grimmValue: 0,
-            temperature: 0,
-            humidity: 0,
-            pressure: 0,
-            altitude: 0,
-            co2: 0
-        })
+    property sensorReading currentReading
 
     // Sensor configuration for the 9 gauges (single source of truth)
     SensorConfigProvider { id: configProvider }
@@ -79,17 +71,7 @@ Item {
                 }
             }
 
-            dashboardRoot.currentReading = {
-                partectorNumber: reading.partectorNumber,
-                partectorDiam: reading.partectorDiam,
-                partectorMass: reading.partectorMass,
-                grimmValue: reading.grimmValue,
-                temperature: reading.temperature,
-                humidity: reading.humidity,
-                pressure: reading.pressure,
-                altitude: reading.altitude,
-                co2: reading.co2
-            };
+            dashboardRoot.currentReading = reading;
             dashboardRoot.lastUpdateTime = now;
             dashboardRoot.lastSerialUpdateTime = now;
         }
@@ -110,19 +92,9 @@ Item {
         readingModel.loadFromDatabase(startTime, endTime);
 
         if (readingModel.count > 0) {
-            var reading = readingModel.getReading(readingModel.count - 1);
-            dashboardRoot.currentReading = {
-                partectorNumber: reading.partectorNumber || 0,
-                partectorDiam: reading.partectorDiam || 0,
-                partectorMass: reading.partectorMass || 0,
-                grimmValue: reading.grimmValue || 0,
-                temperature: reading.temperature || 0,
-                humidity: reading.humidity || 0,
-                pressure: reading.pressure || 0,
-                altitude: reading.altitude || 0,
-                co2: reading.co2 || 0
-            };
-            dashboardRoot.lastUpdateTime = reading.timestamp || new Date();
+            let reading = readingModel.readingAt(readingModel.count - 1);
+            dashboardRoot.currentReading = reading;
+            dashboardRoot.lastUpdateTime = reading.timestamp;
         } else {
             console.log("No data available in database");
         }
@@ -136,17 +108,7 @@ Item {
         // selectedReadingData is set before selectedReadingId in Main.qml,
         // so the typed reading data is always available when this fires
         let reading = dashboardRoot.selectedReadingData;
-        dashboardRoot.currentReading = {
-            partectorNumber: reading.partectorNumber,
-            partectorDiam: reading.partectorDiam,
-            partectorMass: reading.partectorMass,
-            grimmValue: reading.grimmValue,
-            temperature: reading.temperature,
-            humidity: reading.humidity,
-            pressure: reading.pressure,
-            altitude: reading.altitude,
-            co2: reading.co2
-        };
+        dashboardRoot.currentReading = reading;
         dashboardRoot.frozenTimestamp = reading.timestamp;
         console.log("Loaded frozen reading ID:", readingId);
     }
@@ -158,18 +120,18 @@ Item {
         dashboardRoot.updateIntervalMs = intervalMs || 1000;
         updateTimer.stop();
         updateTimer.start();
-        fetchLatestReading();
+        dashboardRoot.fetchLatestReading();
     }
 
     // Monitor frozen reading ID changes
     onFrozenReadingIdChanged: {
         // Guard: only process if ID is valid and different from last processed
-        if (frozenReadingId >= 0 && frozenReadingId !== lastProcessedFrozenId) {
-            lastProcessedFrozenId = frozenReadingId;
+        if (dashboardRoot.frozenReadingId >= 0 && dashboardRoot.frozenReadingId !== dashboardRoot.lastProcessedFrozenId) {
+            dashboardRoot.lastProcessedFrozenId = dashboardRoot.frozenReadingId;
             // Switch to frozen mode
             dashboardRoot.updateIntervalMs = -1;
             updateTimer.stop();
-            loadFrozenReading(frozenReadingId);
+            dashboardRoot.loadFrozenReading(dashboardRoot.frozenReadingId);
         }
     }
 
@@ -177,8 +139,8 @@ Item {
     Component.onCompleted: {
         // Only fetch for live mode - frozen mode is handled by onFrozenReadingIdChanged
         // which fires when the binding initializes
-        if (frozenReadingId < 0) {
-            fetchLatestReading();
+        if (dashboardRoot.frozenReadingId < 0) {
+            dashboardRoot.fetchLatestReading();
         }
     }
 
@@ -294,8 +256,8 @@ Item {
                 textRole: "text"
                 currentIndex: 0
 
-                onActivated: function (index) {
-                    var newInterval = model[index].value;
+                onActivated: function (index: int): void {
+                    var newInterval = intervalSelector.model[index].value;
                     if (dashboardRoot.isFrozenMode) {
                         // Switch back to live mode
                         dashboardRoot.switchToLive(newInterval);

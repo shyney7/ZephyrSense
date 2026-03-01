@@ -1,5 +1,7 @@
 pragma ComponentBehavior: Bound
 pragma FunctionSignatureBehavior: Enforced
+pragma NativeMethodBehavior: AcceptThisObject
+pragma ValueTypeBehavior: Addressable
 
 import QtQuick
 import QtQuick.Shapes
@@ -37,14 +39,14 @@ Item {
 
     // Color switching logic remains in ThresholdManager.getColorForSensor().
     // thresholdsEpoch ensures this binding re-evaluates on thresholdsChanged.
-    readonly property string progressColor: root.computeProgressColor(root.thresholdsEpoch)
+    readonly property color progressColor: root.computeProgressColor(root.thresholdsEpoch)
 
     function computeAdaptiveSweep(_thresholdsEpoch: int): real {
         // _thresholdsEpoch is a reactivity dependency; value is intentionally unused.
         return root.thresholdMgr.getSweepAngleForSensor(root.sensorKey, root.value, root.minValue, root.maxValue);
     }
 
-    function computeProgressColor(_thresholdsEpoch: int): string {
+    function computeProgressColor(_thresholdsEpoch: int): color {
         // _thresholdsEpoch is a reactivity dependency; value is intentionally unused.
         return root.thresholdMgr.getColorForSensor(root.sensorKey, root.normalizedValue);
     }

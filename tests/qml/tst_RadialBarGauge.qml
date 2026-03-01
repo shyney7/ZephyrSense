@@ -122,6 +122,6 @@ TestCase {
                                           { sensorKey: "temperature", value: 25 })
         verify(gauge)
         // Mock always returns "#4CAF50"
-        compare(gauge.progressColor, "#4CAF50")
+        compare(gauge.progressColor, "#4caf50")
     }
 }

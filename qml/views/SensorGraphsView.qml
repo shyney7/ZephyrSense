@@ -1,5 +1,7 @@
 pragma ComponentBehavior: Bound
 pragma FunctionSignatureBehavior: Enforced
+pragma NativeMethodBehavior: AcceptThisObject
+pragma ValueTypeBehavior: Addressable
 
 import QtQuick
 import QtQuick.Controls
@@ -318,7 +320,7 @@ Item {
                     Layout.fillWidth: true
                     availableDates: graphsViewRoot.availableDates
 
-                    onDateTimeChanged: function(dt) {
+                    onDateTimeChanged: function(dt: date): void {
                         graphsViewRoot.historicalStart = dt
                     }
                 }
@@ -329,7 +331,7 @@ Item {
                     Layout.fillWidth: true
                     availableDates: graphsViewRoot.availableDates
 
-                    onDateTimeChanged: function(dt) {
+                    onDateTimeChanged: function(dt: date): void {
                         graphsViewRoot.historicalEnd = dt
                     }
                 }
@@ -362,27 +364,27 @@ Item {
 
     // Helper functions
     function switchToLiveMode(): void {
-        currentMode = SensorGraphsView.VisualizationMode.Live
+        graphsViewRoot.currentMode = SensorGraphsView.VisualizationMode.Live
         liveUpdateTimer.restart()
-        loadLiveData()
+        graphsViewRoot.loadLiveData()
     }
 
     function switchToHistoricalMode(): void {
-        currentMode = SensorGraphsView.VisualizationMode.Historical
+        graphsViewRoot.currentMode = SensorGraphsView.VisualizationMode.Historical
         liveUpdateTimer.stop()
-        chartModel.loadData(historicalStart, historicalEnd)
+        chartModel.loadData(graphsViewRoot.historicalStart, graphsViewRoot.historicalEnd)
     }
 
     function loadLiveData(): void {
         // Use selected time range from preset buttons
         var minutes = 60  // Default
-        for (var i = 0; i < rangeGroup.buttons.length; i++) {
-            if (rangeGroup.buttons[i].checked) {
+        for (var i = 0; i < graphsViewRoot.rangeGroup.buttons.length; i++) {
+            if (graphsViewRoot.rangeGroup.buttons[i].checked) {
                 minutes = [10, 30, 60, 300][i]
                 break
             }
         }
-        loadDataForRange(minutes)
+        graphsViewRoot.loadDataForRange(minutes)
     }
 
     function loadDataForRange(minutes: int): void {
@@ -394,14 +396,14 @@ Item {
     function loadPresetFromNow(minutes: int): void {
         var now = new Date()
         var start = new Date(now.getTime() - minutes * 60 * 1000)
-        switchToHistoricalMode()
+        graphsViewRoot.switchToHistoricalMode()
         graphsViewRoot.historicalStart = start
         graphsViewRoot.historicalEnd = now
         chartModel.loadData(start, now)
     }
 
     function refreshAvailableDates(): void {
-        availableDates = graphsViewRoot.dbManager.getAvailableDates()
+        graphsViewRoot.availableDates = graphsViewRoot.dbManager.getAvailableDates()
     }
 
     function formatTime(msecs: real): string {
@@ -411,7 +413,7 @@ Item {
 
     // Load default data on component completion
     Component.onCompleted: {
-        refreshAvailableDates()
+        graphsViewRoot.refreshAvailableDates()
         // Small delay to ensure model is ready
         Qt.callLater(function() {
             graphsViewRoot.loadLiveData()

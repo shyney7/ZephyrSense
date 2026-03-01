@@ -1,5 +1,7 @@
 pragma ComponentBehavior: Bound
 pragma FunctionSignatureBehavior: Enforced
+pragma NativeMethodBehavior: AcceptThisObject
+pragma ValueTypeBehavior: Addressable
 
 import QtQuick
 import QtQuick.Controls
@@ -17,7 +19,7 @@ Item {
     property int activeColumn: 5  // Default: Temperature
 
     // Sensor names for display
-    readonly property var sensorNames: [
+    readonly property list<string> sensorNames: [
         "", // 0 = Timestamp (not displayed)
         "PNC UFP",
         "\u00D8 UFP",
@@ -31,7 +33,7 @@ Item {
     ]
 
     // Sensor colors
-    readonly property var sensorColors: [
+    readonly property list<color> sensorColors: [
         "transparent",
         "#E91E63",  // Partector Number - Pink
         "#9C27B0",  // Partector Diameter - Purple

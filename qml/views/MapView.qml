@@ -1,5 +1,7 @@
 pragma ComponentBehavior: Bound
 pragma FunctionSignatureBehavior: Enforced
+pragma NativeMethodBehavior: AcceptThisObject
+pragma ValueTypeBehavior: Addressable
 
 import QtQuick
 import QtQuick.Controls
@@ -61,7 +63,7 @@ Item {
                 // latitude, longitude, tooltipText, readingId
                 required property int index
 
-                onMarkerClicked: function (id) {
+                onMarkerClicked: function (id: int): void {
                     mapViewRoot.showDashboardForReading(id, sensorModel.readingAt(index));
                 }
             }
@@ -330,7 +332,7 @@ Item {
                     Layout.fillWidth: true
                     availableDates: mapViewRoot.availableDates
 
-                    onDateTimeChanged: function (dt) {
+                    onDateTimeChanged: function (dt: date): void {
                         mapViewRoot.historicalStart = dt;
                     }
                 }
@@ -341,7 +343,7 @@ Item {
                     Layout.fillWidth: true
                     availableDates: mapViewRoot.availableDates
 
-                    onDateTimeChanged: function (dt) {
+                    onDateTimeChanged: function (dt: date): void {
                         mapViewRoot.historicalEnd = dt;
                     }
                 }
@@ -382,8 +384,8 @@ Item {
     }
 
     function switchToLiveMode(forceReload: bool): void {
-        var wasLive = (currentMode === MapView.VisualizationMode.Live);
-        currentMode = MapView.VisualizationMode.Live;
+        var wasLive = (mapViewRoot.currentMode === MapView.VisualizationMode.Live);
+        mapViewRoot.currentMode = MapView.VisualizationMode.Live;
 
         // If already in live mode and not forcing reload, just restart timer
         if (wasLive && !forceReload) {
@@ -392,7 +394,7 @@ Item {
         }
 
         // Load initial data from database for the time window
-        var windowMinutes = getWindowMinutes();
+        var windowMinutes = mapViewRoot.getWindowMinutes();
         var now = new Date();
         var start = new Date(now.getTime() - windowMinutes * 60 * 1000);
         sensorModel.loadFromDatabase(start, now);
@@ -403,16 +405,16 @@ Item {
     }
 
     function switchToHistoricalMode(): void {
-        currentMode = MapView.VisualizationMode.Historical;
+        mapViewRoot.currentMode = MapView.VisualizationMode.Historical;
         liveUpdateTimer.stop();
         sensorModel.stopLiveUpdates();
         sensorModel.loadFromDatabase(mapViewRoot.historicalStart, mapViewRoot.historicalEnd);
-        centerOnData();
+        mapViewRoot.centerOnData();
     }
 
     function loadLiveData(): void {
         // Initial load when starting live mode
-        var windowMinutes = getWindowMinutes();
+        var windowMinutes = mapViewRoot.getWindowMinutes();
         var now = new Date();
         var start = new Date(now.getTime() - windowMinutes * 60 * 1000);
         sensorModel.loadFromDatabase(start, now);
@@ -441,7 +443,7 @@ Item {
         }
         mapViewRoot.historicalStart = start;
         mapViewRoot.historicalEnd = now;
-        switchToHistoricalMode();
+        mapViewRoot.switchToHistoricalMode();
     }
 
     function centerOnData(): void {
@@ -452,13 +454,13 @@ Item {
     }
 
     function refreshAvailableDates(): void {
-        availableDates = mapViewRoot.dbManager.getAvailableDates();
+        mapViewRoot.availableDates = mapViewRoot.dbManager.getAvailableDates();
     }
 
     Component.onCompleted: {
-        refreshAvailableDates();
+        mapViewRoot.refreshAvailableDates();
         // Start in live mode
-        currentMode = MapView.VisualizationMode.Live;
-        loadLiveData();
+        mapViewRoot.currentMode = MapView.VisualizationMode.Live;
+        mapViewRoot.loadLiveData();
     }
 }
