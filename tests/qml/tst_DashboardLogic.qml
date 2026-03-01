@@ -19,20 +19,25 @@ TestCase {
                 return ""
             return Qt.formatDateTime(dt, "yyyy-MM-dd hh:mm:ss")
         }
+    }
 
-        // Must match DashboardView.qml sensorConfig (lines 49-122) exactly.
-        // If production values change, update this copy to keep tests in sync.
-        readonly property var sensorConfig: [
-            { sensorKey: "partectorNumber", sensorName: "PNC UFP", unit: "#/cm\u00B3", minValue: 0, maxValue: 500000, precision: 0 },
-            { sensorKey: "partectorDiam", sensorName: "\u00D8 UFP", unit: "nm", minValue: 0, maxValue: 500, precision: 0 },
-            { sensorKey: "partectorMass", sensorName: "PM0.3", unit: "\u00B5g/m\u00B3", minValue: 0, maxValue: 200, precision: 2 },
-            { sensorKey: "grimmValue", sensorName: "PNC PM", unit: "#/cm\u00B3", minValue: 0, maxValue: 200000, precision: 2 },
-            { sensorKey: "temperature", sensorName: "Temperature", unit: "\u00B0C", minValue: -20, maxValue: 60, precision: 1 },
-            { sensorKey: "humidity", sensorName: "Humidity", unit: "%", minValue: 0, maxValue: 100, precision: 1 },
-            { sensorKey: "pressure", sensorName: "Pressure", unit: "hPa", minValue: 900, maxValue: 1150, precision: 1 },
-            { sensorKey: "altitude", sensorName: "Altitude", unit: "m", minValue: 0, maxValue: 8000, precision: 1 },
-            { sensorKey: "co2", sensorName: "CO\u2082", unit: "ppm", minValue: 0, maxValue: 10000, precision: 0 }
-        ]
+    // Load production SensorConfigProvider (single source of truth shared with DashboardView)
+    property Component configComponent: Qt.createComponent(
+        "file:///" + _sourceDir + "/qml/data/SensorConfigProvider.qml")
+    property QtObject configProvider: null
+
+    function initTestCase() {
+        compare(configComponent.status, Component.Ready,
+                "Failed to load SensorConfigProvider: " + configComponent.errorString())
+        configProvider = configComponent.createObject(testCase)
+        verify(configProvider)
+    }
+
+    function cleanupTestCase() {
+        if (configProvider) {
+            configProvider.destroy()
+            configProvider = null
+        }
     }
 
     function test_formatTimestamp_epoch0() {
@@ -85,11 +90,11 @@ TestCase {
     }
 
     function test_sensorConfig_count() {
-        compare(logic.sensorConfig.length, 9)
+        compare(testCase.configProvider.sensorConfig.length, 9)
 
         // Verify each entry has required keys
-        for (var i = 0; i < logic.sensorConfig.length; i++) {
-            var cfg = logic.sensorConfig[i]
+        for (var i = 0; i < testCase.configProvider.sensorConfig.length; i++) {
+            var cfg = testCase.configProvider.sensorConfig[i]
             verify(cfg.sensorKey !== undefined, "sensorKey missing at index " + i)
             verify(cfg.sensorName !== undefined, "sensorName missing at index " + i)
             verify(cfg.unit !== undefined, "unit missing at index " + i)
@@ -99,7 +104,7 @@ TestCase {
         }
     }
 
-    // Catches config drift between test copy and production DashboardView.qml
+    // Catches config drift between expected values and production SensorConfigProvider.qml
     function test_sensorConfig_matchesProduction() {
         var expected = [
             { sensorKey: "partectorNumber", sensorName: "PNC UFP", unit: "#/cm\u00B3", minValue: 0, maxValue: 500000, precision: 0 },
@@ -114,7 +119,7 @@ TestCase {
         ]
 
         for (var i = 0; i < expected.length; i++) {
-            var cfg = logic.sensorConfig[i]
+            var cfg = testCase.configProvider.sensorConfig[i]
             var exp = expected[i]
             compare(cfg.sensorKey, exp.sensorKey, "sensorKey mismatch at index " + i)
             compare(cfg.sensorName, exp.sensorName, "sensorName mismatch at index " + i)
@@ -125,7 +130,7 @@ TestCase {
         }
     }
 
-    // Verifies RadialBarGauge receives all properties (catches delegate binding regressions)
+    // Verifies RadialBarGauge accepts all sensorConfig properties via explicit assignment
     property Component gaugeComponent: Qt.createComponent(
         "file:///" + _sourceDir + "/qml/components/RadialBarGauge.qml")
 
@@ -134,7 +139,7 @@ TestCase {
                 "Failed to load RadialBarGauge: " + gaugeComponent.errorString())
 
         // Use temperature config — has non-default minValue (-20) making it easy to detect defaults
-        var cfg = logic.sensorConfig[4]
+        var cfg = testCase.configProvider.sensorConfig[4]
         var gauge = createTemporaryObject(gaugeComponent, testCase, {
             sensorKey: cfg.sensorKey,
             sensorName: cfg.sensorName,

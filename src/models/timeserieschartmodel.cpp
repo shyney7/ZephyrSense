@@ -126,10 +126,10 @@ void TimeSeriesChartModel::updateYBoundsForColumn(int column)
     emit boundsChanged();
 }
 
-qreal TimeSeriesChartModel::getYMinForColumn(int column) const
+std::pair<qreal, qreal> TimeSeriesChartModel::computeColumnBounds(int column) const
 {
     if (column < PartectorNumberColumn || column >= ColumnCount || m_data.isEmpty()) {
-        return 0.0;
+        return {0.0, 100.0};
     }
 
     auto sensorIndex = static_cast<size_t>(column - 1);
@@ -142,42 +142,28 @@ qreal TimeSeriesChartModel::getYMinForColumn(int column) const
         if (value > maxVal) maxVal = value;
     }
 
+    // Add 10% padding to Y axis for better visualization
     qreal padding = (maxVal - minVal) * 0.1;
-    qreal result = minVal - padding;
+    qreal paddedMin = minVal - padding;
+    qreal paddedMax = maxVal + padding;
 
     // Ensure we have some range even if all values are the same
-    if (qFuzzyCompare(result, maxVal + padding)) {
-        result = minVal - 1.0;
+    if (qFuzzyCompare(paddedMin, paddedMax)) {
+        paddedMin = minVal - 1.0;
+        paddedMax = maxVal + 1.0;
     }
 
-    return result;
+    return {paddedMin, paddedMax};
+}
+
+qreal TimeSeriesChartModel::getYMinForColumn(int column) const
+{
+    return computeColumnBounds(column).first;
 }
 
 qreal TimeSeriesChartModel::getYMaxForColumn(int column) const
 {
-    if (column < PartectorNumberColumn || column >= ColumnCount || m_data.isEmpty()) {
-        return 100.0;
-    }
-
-    auto sensorIndex = static_cast<size_t>(column - 1);
-    qreal minVal = std::numeric_limits<qreal>::max();
-    qreal maxVal = std::numeric_limits<qreal>::lowest();
-
-    for (const DataPoint &point : m_data) {
-        qreal value = point.values[sensorIndex];
-        if (value < minVal) minVal = value;
-        if (value > maxVal) maxVal = value;
-    }
-
-    qreal padding = (maxVal - minVal) * 0.1;
-    qreal result = maxVal + padding;
-
-    // Ensure we have some range even if all values are the same
-    if (qFuzzyCompare(minVal - padding, result)) {
-        result = maxVal + 1.0;
-    }
-
-    return result;
+    return computeColumnBounds(column).second;
 }
 
 void TimeSeriesChartModel::calculateBounds()
@@ -206,30 +192,7 @@ void TimeSeriesChartModel::calculateYBoundsForColumn(int column)
         return;
     }
 
-    int sensorIdx = column - 1;  // Column 0 is timestamp, sensors start at 1
-    if (sensorIdx < 0 || sensorIdx >= 9) {
-        qWarning() << "TimeSeriesChartModel: Invalid sensor index:" << sensorIdx;
-        return;
-    }
-    auto sensorIndex = static_cast<size_t>(sensorIdx);
-
-    qreal minVal = std::numeric_limits<qreal>::max();
-    qreal maxVal = std::numeric_limits<qreal>::lowest();
-
-    for (const DataPoint &point : m_data) {
-        qreal value = point.values[sensorIndex];
-        if (value < minVal) minVal = value;
-        if (value > maxVal) maxVal = value;
-    }
-
-    // Add 10% padding to Y axis for better visualization
-    qreal padding = (maxVal - minVal) * 0.1;
-    m_yMin = minVal - padding;
-    m_yMax = maxVal + padding;
-
-    // Ensure we have some range even if all values are the same
-    if (qFuzzyCompare(m_yMin, m_yMax)) {
-        m_yMin -= 1;
-        m_yMax += 1;
-    }
+    auto [yMin, yMax] = computeColumnBounds(column);
+    m_yMin = yMin;
+    m_yMax = yMax;
 }

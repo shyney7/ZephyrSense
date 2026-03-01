@@ -19,15 +19,15 @@ Item {
     // Sensor names for display
     readonly property var sensorNames: [
         "", // 0 = Timestamp (not displayed)
-        "Partector Number",
-        "Partector Diameter",
-        "Partector Mass",
-        "Grimm Value",
+        "PNC UFP",
+        "\u00D8 UFP",
+        "PM0.3",
+        "PNC PM",
         "Temperature",
         "Humidity",
         "Pressure",
         "Altitude",
-        "CO2"
+        "CO\u2082"
     ]
 
     // Sensor colors

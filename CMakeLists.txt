@@ -115,6 +115,7 @@ qt_add_qml_module(appZephyrSense
         qml/components/DateTimePicker.qml
         qml/components/ModeBadge.qml
         qml/components/SensorDockChart.qml
+        qml/data/SensorConfigProvider.qml
         qml/views/MapView.qml
         qml/views/DashboardView.qml
         qml/views/SensorGraphsView.qml

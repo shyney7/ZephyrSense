@@ -181,14 +181,14 @@ private slots:
         QCOMPARE(countSpy.count(), 1);
     }
 
-    void getYBoundsForColumn_emptyData()
+    void getYMinMaxForColumn_emptyData()
     {
         TimeSeriesChartModel model;
         QCOMPARE(model.getYMinForColumn(TimeSeriesChartModel::TemperatureColumn), 0.0);
         QCOMPARE(model.getYMaxForColumn(TimeSeriesChartModel::TemperatureColumn), 100.0);
     }
 
-    void getYBoundsForColumn_invalidColumn()
+    void getYMinMaxForColumn_invalidColumn()
     {
         TimeSeriesChartModel model;
         addSimpleDataPoint(model, 1000, 22.5);
@@ -202,7 +202,7 @@ private slots:
         QCOMPARE(model.getYMaxForColumn(10), 100.0);
     }
 
-    void getYBoundsForColumn_range()
+    void getYMinMaxForColumn_range()
     {
         TimeSeriesChartModel model;
         // Temperature column (index 4 in values array, column 5)
@@ -219,7 +219,7 @@ private slots:
         QVERIFY(qAbs(yMax - 31.0) < 0.01);
     }
 
-    void getYBoundsForColumn_allSameValue()
+    void getYMinMaxForColumn_allSameValue()
     {
         TimeSeriesChartModel model;
         qreal v1[9] = {0, 0, 0, 0, 25.0, 0, 0, 0, 0};

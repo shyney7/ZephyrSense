@@ -73,6 +73,7 @@ private:
 
     void calculateBounds();
     void calculateYBoundsForColumn(int column);
+    std::pair<qreal, qreal> computeColumnBounds(int column) const;
 
     QList<DataPoint> m_data;
     qreal m_xMin = 0;

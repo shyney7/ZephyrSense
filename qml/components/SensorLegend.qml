@@ -16,15 +16,15 @@ Rectangle {
 
     // Sensor definitions (use "sensorColumn" to avoid QModelIndex::column() shadowing)
     readonly property var sensors: [
-        { sensorColumn: 1, name: "Partector #", sensorColor: "#E91E63" },
-        { sensorColumn: 2, name: "Diameter", sensorColor: "#9C27B0" },
-        { sensorColumn: 3, name: "Mass", sensorColor: "#673AB7" },
-        { sensorColumn: 4, name: "Grimm", sensorColor: "#3F51B5" },
-        { sensorColumn: 5, name: "Temp", sensorColor: "#FF5722" },
+        { sensorColumn: 1, name: "PNC UFP", sensorColor: "#E91E63" },
+        { sensorColumn: 2, name: "\u00D8 UFP", sensorColor: "#9C27B0" },
+        { sensorColumn: 3, name: "PM0.3", sensorColor: "#673AB7" },
+        { sensorColumn: 4, name: "PNC PM", sensorColor: "#3F51B5" },
+        { sensorColumn: 5, name: "Temperature", sensorColor: "#FF5722" },
         { sensorColumn: 6, name: "Humidity", sensorColor: "#2196F3" },
         { sensorColumn: 7, name: "Pressure", sensorColor: "#009688" },
         { sensorColumn: 8, name: "Altitude", sensorColor: "#4CAF50" },
-        { sensorColumn: 9, name: "CO2", sensorColor: "#795548" }
+        { sensorColumn: 9, name: "CO\u2082", sensorColor: "#795548" }
     ]
 
     color: "#F5F5F5"

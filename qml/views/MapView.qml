@@ -8,7 +8,6 @@ import QtLocation as QtLoc
 import QtPositioning
 import ZephyrSense
 
-
 Item {
     id: mapViewRoot
 
@@ -45,7 +44,7 @@ Item {
         }
 
         // Default view: Wuppertal, Germany
-        map.center: QtPositioning.coordinate(51.2562, 7.1508)
+        map.center: QtPositioning.coordinate(51.2562, 7.1508) // qmllint disable compiler
         map.zoomLevel: 10
 
         // Marker layer using MapItemView
@@ -294,7 +293,6 @@ Item {
                     onClicked: sensorModel.clear()
                 }
             }
-
         }
     }
 
@@ -327,7 +325,7 @@ Item {
                     Layout.fillWidth: true
                     availableDates: mapViewRoot.availableDates
 
-                    onDateTimeChanged: function(dt) {
+                    onDateTimeChanged: function (dt) {
                         mapViewRoot.historicalStart = dt;
                     }
                 }
@@ -338,19 +336,23 @@ Item {
                     Layout.fillWidth: true
                     availableDates: mapViewRoot.availableDates
 
-                    onDateTimeChanged: function(dt) {
+                    onDateTimeChanged: function (dt) {
                         mapViewRoot.historicalEnd = dt;
                     }
                 }
             }
 
-            Item { Layout.fillHeight: true }
+            Item {
+                Layout.fillHeight: true
+            }
 
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 8
 
-                Item { Layout.fillWidth: true }
+                Item {
+                    Layout.fillWidth: true
+                }
 
                 Button {
                     text: "Cancel"
@@ -447,7 +449,7 @@ Item {
     function centerOnData(): void {
         if (sensorModel.count > 0) {
             var first = sensorModel.getReading(0);
-            mapView.map.center = QtPositioning.coordinate(first.latitude, first.longitude);
+            mapView.map.center = QtPositioning.coordinate(first.latitude, first.longitude); // qmllint disable compiler
         }
     }
 
