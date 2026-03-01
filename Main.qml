@@ -1,3 +1,6 @@
+pragma ComponentBehavior: Bound
+pragma FunctionSignatureBehavior: Enforced
+
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -5,6 +8,8 @@ import ZephyrSense
 
 ApplicationWindow {
     id: mainWindow
+
+    readonly property DatabaseManager dbManager: DatabaseManager
     width: 1024
     height: 768
     visible: true
@@ -92,8 +97,8 @@ ApplicationWindow {
     // Initialize data layer
     Component.onCompleted: {
         // Initialize database (creates tables if needed)
-        if (DatabaseManager.initialize()) {
-            console.log("Database initialized at:", DatabaseManager.databasePath);
+        if (mainWindow.dbManager.initialize()) {
+            console.log("Database initialized at:", mainWindow.dbManager.databasePath);
         }
         console.log("CSV export enabled:", CsvExporter.enabled);
     }

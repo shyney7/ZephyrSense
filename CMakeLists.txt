@@ -18,22 +18,22 @@ qt_standard_project_setup(REQUIRES 6.8)
 # Aggressive release optimizations for clang-cl
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND MSVC)
     add_compile_options(
-		-Wno-c++98-compat
-		-Wno-c++98-compat-pedantic
-		-Wno-unique-object-duplication
-		-Wno-switch-default
-		$<$<CONFIG:Release>:/O2>
+  -Wno-c++98-compat
+  -Wno-c++98-compat-pedantic
+  -Wno-unique-object-duplication
+  -Wno-switch-default
+  $<$<CONFIG:Release>:/O2>
         $<$<CONFIG:Release>:/clang:-O3>
-		$<$<CONFIG:Release>:/clang:-funroll-loops>
-		$<$<CONFIG:Release>:/clang:-fvectorize>
-		$<$<CONFIG:Release>:/clang:-fslp-vectorize>
+  $<$<CONFIG:Release>:/clang:-funroll-loops>
+  $<$<CONFIG:Release>:/clang:-fvectorize>
+  $<$<CONFIG:Release>:/clang:-fslp-vectorize>
         $<$<CONFIG:Release>:/clang:-flto=full>
         $<$<CONFIG:Release>:/fp:fast>
         $<$<CONFIG:Release>:/Oy>
     )
     add_link_options(
         $<$<CONFIG:Release>:-fuse-ld=lld>
-		$<$<CONFIG:Release>:-flto=full>
+  $<$<CONFIG:Release>:-flto=full>
         $<$<CONFIG:Release>:/OPT:REF>
         $<$<CONFIG:Release>:/OPT:ICF>
     )
@@ -150,6 +150,7 @@ set_target_properties(appZephyrSense PROPERTIES
     WIN32_EXECUTABLE $<NOT:$<CONFIG:Debug>>
     RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${CMAKE_BINARY_DIR}/Debug
     RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/Release
+    QT_QMLLINT_AUTO ON
 )
 
 target_include_directories(appZephyrSense PRIVATE

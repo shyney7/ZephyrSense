@@ -9,6 +9,8 @@ import ZephyrSense
 Rectangle {
     id: connectionPanel
 
+    readonly property SerialHandler serialHandler: SerialHandler
+
     implicitWidth: 280
     implicitHeight: contentColumn.implicitHeight + 32
     color: "#f5f5f5"
@@ -52,15 +54,15 @@ Rectangle {
                 id: portComboBox
                 objectName: "portComboBox"
                 Layout.fillWidth: true
-                model: SerialHandler.availablePorts
-                enabled: !SerialHandler.connected
+                model: connectionPanel.serialHandler.availablePorts
+                enabled: !connectionPanel.serialHandler.connected
             }
 
             Button {
                 objectName: "refreshButton"
                 text: "Refresh"
-                enabled: !SerialHandler.connected
-                onClicked: SerialHandler.refreshPorts()
+                enabled: !connectionPanel.serialHandler.connected
+                onClicked: connectionPanel.serialHandler.refreshPorts()
                 palette.buttonText: "#333333"
             }
         }
@@ -81,10 +83,10 @@ Rectangle {
                 Layout.fillWidth: true
                 model: [9600, 19200, 38400, 57600, 115200]
                 currentIndex: 4  // Default to 115200
-                enabled: !SerialHandler.connected
+                enabled: !connectionPanel.serialHandler.connected
                 onCurrentValueChanged: {
                     if (currentValue !== undefined) {
-                        SerialHandler.baudRate = currentValue
+                        connectionPanel.serialHandler.baudRate = currentValue;
                     }
                 }
             }
@@ -106,15 +108,13 @@ Rectangle {
                 Layout.preferredWidth: 12
                 Layout.preferredHeight: 12
                 radius: 6
-                color: SerialHandler.connected ? "#4CAF50" : "#9E9E9E"
+                color: connectionPanel.serialHandler.connected ? "#4CAF50" : "#9E9E9E"
             }
 
             Label {
-                text: SerialHandler.connected
-                      ? "Connected to " + SerialHandler.currentPort
-                      : "Disconnected"
-                color: SerialHandler.connected ? "#4CAF50" : "#757575"
-                font.weight: SerialHandler.connected ? Font.Medium : Font.Normal
+                text: connectionPanel.serialHandler.connected ? "Connected to " + connectionPanel.serialHandler.currentPort : "Disconnected"
+                color: connectionPanel.serialHandler.connected ? "#4CAF50" : "#757575"
+                font.weight: connectionPanel.serialHandler.connected ? Font.Medium : Font.Normal
                 Layout.fillWidth: true
                 elide: Text.ElideRight
             }
@@ -127,7 +127,7 @@ Rectangle {
             Layout.preferredHeight: errorLabel.implicitHeight + 16
             color: "#FFEBEE"
             radius: 4
-            visible: SerialHandler.errorString !== ""
+            visible: connectionPanel.serialHandler.errorString !== ""
             border.color: "#FFCDD2"
             border.width: 1
 
@@ -135,7 +135,7 @@ Rectangle {
                 id: errorLabel
                 anchors.fill: parent
                 anchors.margins: 8
-                text: SerialHandler.errorString
+                text: connectionPanel.serialHandler.errorString
                 color: "#C62828"
                 wrapMode: Text.WordWrap
                 font.pixelSize: 12
@@ -152,12 +152,12 @@ Rectangle {
                 objectName: "connectButton"
                 text: "Connect"
                 Layout.fillWidth: true
-                enabled: !SerialHandler.connected && portComboBox.currentText !== ""
+                enabled: !connectionPanel.serialHandler.connected && portComboBox.currentText !== ""
                 highlighted: true
                 palette.buttonText: highlighted ? "#ffffff" : "#333333"
                 palette.highlightedText: "#ffffff"
                 onClicked: {
-                    SerialHandler.openPort(portComboBox.currentText)
+                    connectionPanel.serialHandler.openPort(portComboBox.currentText);
                 }
             }
 
@@ -166,10 +166,10 @@ Rectangle {
                 objectName: "disconnectButton"
                 text: "Disconnect"
                 Layout.fillWidth: true
-                enabled: SerialHandler.connected
+                enabled: connectionPanel.serialHandler.connected
                 palette.buttonText: "#333333"
                 onClicked: {
-                    SerialHandler.closePort()
+                    connectionPanel.serialHandler.closePort();
                 }
             }
         }
@@ -177,14 +177,14 @@ Rectangle {
 
     // Handle error signal
     Connections {
-        target: SerialHandler
+        target: connectionPanel.serialHandler
         function onErrorOccurred(message: string): void {
-            console.log("Serial error:", message)
+            console.log("Serial error:", message);
         }
     }
 
     // Initialize port list on component creation
     Component.onCompleted: {
-        SerialHandler.refreshPorts()
+        connectionPanel.serialHandler.refreshPorts();
     }
 }

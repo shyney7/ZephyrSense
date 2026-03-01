@@ -8,6 +8,8 @@ import ZephyrSense
 Item {
     id: root
 
+    readonly property ThresholdManager thresholdMgr: ThresholdManager
+
     SystemPalette { id: palette; colorGroup: SystemPalette.Active }
     QtObject {
         id: internalState
@@ -39,16 +41,16 @@ Item {
 
     function computeAdaptiveSweep(_thresholdsEpoch: int): real {
         // _thresholdsEpoch is a reactivity dependency; value is intentionally unused.
-        return ThresholdManager.getSweepAngleForSensor(root.sensorKey, root.value, root.minValue, root.maxValue);
+        return root.thresholdMgr.getSweepAngleForSensor(root.sensorKey, root.value, root.minValue, root.maxValue);
     }
 
     function computeProgressColor(_thresholdsEpoch: int): string {
         // _thresholdsEpoch is a reactivity dependency; value is intentionally unused.
-        return ThresholdManager.getColorForSensor(root.sensorKey, root.normalizedValue);
+        return root.thresholdMgr.getColorForSensor(root.sensorKey, root.normalizedValue);
     }
 
     Connections {
-        target: ThresholdManager
+        target: root.thresholdMgr
         function onThresholdsChanged(): void {
             internalState.thresholdsEpoch += 1;
         }

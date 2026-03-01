@@ -12,6 +12,7 @@ TestCase {
         property int currentMode: 0  // 0 = Live, 1 = Historical
         property date historicalStart: new Date()
         property date historicalEnd: new Date()
+        property int selectedWindowMinutes: 60
 
         function loadPreset(preset) {
             var now = new Date()
@@ -70,6 +71,10 @@ TestCase {
         logic.loadPreset("30d")
         var diff = logic.historicalEnd.getTime() - logic.historicalStart.getTime()
         verify(Math.abs(diff - 30 * 24 * 3600000) < 100, "30d preset: diff=" + diff)
+    }
+
+    function test_selectedWindowMinutes_default() {
+        compare(logic.selectedWindowMinutes, 60)
     }
 
     function test_switchToHistoricalMode() {

@@ -95,8 +95,8 @@ Item {
 
     // Update Y bounds when active column changes
     onActiveColumnChanged: {
-        if (chartModel) {
-            chartModel.updateYBoundsForColumn(activeColumn)
+        if (chartView.chartModel) {
+            chartView.chartModel.updateYBoundsForColumn(chartView.activeColumn)
         }
     }
 }

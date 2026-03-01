@@ -11,6 +11,8 @@ import ZephyrSense
 Item {
     id: mapViewRoot
 
+    readonly property DatabaseManager dbManager: DatabaseManager
+
     // Signal to request navigation to dashboard with specific reading
     signal showDashboardForReading(int readingId, sensorReading reading)
 
@@ -21,6 +23,7 @@ Item {
     }
     property int currentMode: MapView.VisualizationMode.Live
     property int updateIntervalMs: 2000  // Default 2 seconds for live mode
+    property int selectedWindowMinutes: 60  // Default matches checked: index === 2 (1h)
     property date historicalStart: new Date()
     property date historicalEnd: new Date()
     property list<string> availableDates: []
@@ -214,17 +217,19 @@ Item {
                     ]
 
                     Button {
+                        id: presetButton
                         required property int index
                         required property string label
                         required property int minutes
 
-                        text: label
+                        text: presetButton.label
                         checkable: true
-                        checked: index === 2  // Default to 1h
+                        checked: presetButton.index === 2  // Default to 1h
                         ButtonGroup.group: windowGroup
                         Layout.preferredWidth: 50
 
                         onClicked: {
+                            mapViewRoot.selectedWindowMinutes = presetButton.minutes;
                             // Clicking time window stays in current mode but reloads with new window
                             if (mapViewRoot.currentMode === MapView.VisualizationMode.Live) {
                                 mapViewRoot.switchToLiveMode(true);  // force reload with new window
@@ -373,14 +378,7 @@ Item {
 
     // Helper functions
     function getWindowMinutes(): int {
-        var windowMinutes = 60;  // Default
-        for (var i = 0; i < windowGroup.buttons.length; i++) {
-            if (windowGroup.buttons[i].checked) {
-                windowMinutes = windowGroup.buttons[i].minutes;
-                break;
-            }
-        }
-        return windowMinutes;
+        return mapViewRoot.selectedWindowMinutes;
     }
 
     function switchToLiveMode(forceReload: bool): void {
@@ -454,7 +452,7 @@ Item {
     }
 
     function refreshAvailableDates(): void {
-        availableDates = DatabaseManager.getAvailableDates();
+        availableDates = mapViewRoot.dbManager.getAvailableDates();
     }
 
     Component.onCompleted: {

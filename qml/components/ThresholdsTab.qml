@@ -7,6 +7,10 @@ import QtQuick.Layouts
 import ZephyrSense
 
 Item {
+    id: thresholdsTabRoot
+
+    readonly property ThresholdManager thresholdMgr: ThresholdManager
+
     ScrollView {
         anchors.fill: parent
         anchors.margins: 16
@@ -329,7 +333,7 @@ Item {
                 Layout.alignment: Qt.AlignRight
                 highlighted: true
                 onClicked: {
-                    ThresholdManager.resetToDefaults();
+                    thresholdsTabRoot.thresholdMgr.resetToDefaults();
                 }
             }
 

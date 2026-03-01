@@ -116,9 +116,9 @@ Item {
     }
 
     function updateLocalBounds(): void {
-        if (chartModel) {
-            localYMin = chartModel.getYMinForColumn(sensorColumn)
-            localYMax = chartModel.getYMaxForColumn(sensorColumn)
+        if (chartView.chartModel) {
+            chartView.localYMin = chartView.chartModel.getYMinForColumn(chartView.sensorColumn)
+            chartView.localYMax = chartView.chartModel.getYMaxForColumn(chartView.sensorColumn)
         }
     }
 

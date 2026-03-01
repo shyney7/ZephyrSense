@@ -238,20 +238,20 @@ Item {
                 model: dashboardRoot.sensorConfig
 
                 RadialBarGauge {
-                    required property var modelData
+                    id: gaugeDelegate
+                    required sensorKey
+                    required sensorName
+                    required unit
+                    required minValue
+                    required maxValue
+                    required precision
 
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     Layout.minimumWidth: 140
                     Layout.minimumHeight: 140
 
-                    value: dashboardRoot.currentReading[modelData.sensorKey] ?? 0
-                    minValue: modelData.minValue
-                    maxValue: modelData.maxValue
-                    sensorKey: modelData.sensorKey
-                    sensorName: modelData.sensorName
-                    unit: modelData.unit
-                    precision: modelData.precision
+                    value: dashboardRoot.currentReading[gaugeDelegate.sensorKey] ?? 0
                 }
             }
         }

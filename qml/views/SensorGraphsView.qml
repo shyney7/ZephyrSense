@@ -12,6 +12,9 @@ import "../components"
 Item {
     id: graphsViewRoot
 
+    readonly property DockStateTracker dockTracker: DockStateTracker
+    readonly property DatabaseManager dbManager: DatabaseManager
+
     // Mode state
     enum VisualizationMode { Live, Historical }
     property int currentMode: SensorGraphsView.VisualizationMode.Live
@@ -32,7 +35,7 @@ Item {
         id: liveUpdateTimer
         interval: graphsViewRoot.updateIntervalMs
         running: graphsViewRoot.currentMode === SensorGraphsView.VisualizationMode.Live
-                 && (graphsViewRoot.visible || DockStateTracker.hasDocksOutsideMainWindow)
+                 && (graphsViewRoot.visible || graphsViewRoot.dockTracker.hasDocksOutsideMainWindow)
         repeat: true
         onTriggered: graphsViewRoot.loadLiveData()
     }
@@ -263,15 +266,15 @@ Item {
             // Initial layout: all 9 as tabs in a single group
             Component.onCompleted: {
                 // Register docks for outside-main-window tracking
-                DockStateTracker.trackDockWidget(dockPartectorNum)
-                DockStateTracker.trackDockWidget(dockPartectorDiam)
-                DockStateTracker.trackDockWidget(dockPartectorMass)
-                DockStateTracker.trackDockWidget(dockGrimmValue)
-                DockStateTracker.trackDockWidget(dockTemperature)
-                DockStateTracker.trackDockWidget(dockHumidity)
-                DockStateTracker.trackDockWidget(dockPressure)
-                DockStateTracker.trackDockWidget(dockAltitude)
-                DockStateTracker.trackDockWidget(dockCo2)
+                graphsViewRoot.dockTracker.trackDockWidget(dockPartectorNum)
+                graphsViewRoot.dockTracker.trackDockWidget(dockPartectorDiam)
+                graphsViewRoot.dockTracker.trackDockWidget(dockPartectorMass)
+                graphsViewRoot.dockTracker.trackDockWidget(dockGrimmValue)
+                graphsViewRoot.dockTracker.trackDockWidget(dockTemperature)
+                graphsViewRoot.dockTracker.trackDockWidget(dockHumidity)
+                graphsViewRoot.dockTracker.trackDockWidget(dockPressure)
+                graphsViewRoot.dockTracker.trackDockWidget(dockAltitude)
+                graphsViewRoot.dockTracker.trackDockWidget(dockCo2)
 
                 dockingArea.addDockWidget(dockPartectorNum, dockingArea.locationOnBottom)
                 dockPartectorNum.addDockWidgetAsTab(dockPartectorDiam)
@@ -398,7 +401,7 @@ Item {
     }
 
     function refreshAvailableDates(): void {
-        availableDates = DatabaseManager.getAvailableDates()
+        availableDates = graphsViewRoot.dbManager.getAvailableDates()
     }
 
     function formatTime(msecs: real): string {
