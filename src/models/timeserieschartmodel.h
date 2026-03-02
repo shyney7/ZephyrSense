@@ -6,6 +6,7 @@
 #include <QDateTime>
 #include <QPointF>
 #include <array>
+#include <utility>
 #include "sensorreading.h"
 
 class TimeSeriesChartModel : public QAbstractTableModel

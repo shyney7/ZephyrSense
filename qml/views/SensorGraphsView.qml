@@ -25,6 +25,9 @@ Item {
     property date historicalEnd: new Date()
     property list<string> availableDates: []
     property alias rangeGroup: rangeGroupInst
+    property int defaultPresetIndex: 2
+    // Invariant: selectedPresetMinutes matches the preset minutes at defaultPresetIndex (2 => 60).
+    property int selectedPresetMinutes: 60
 
     // Chart data model (shared by all 9 dock charts)
     TimeSeriesChartModel {
@@ -113,10 +116,13 @@ Item {
                     required property int minutes
                     text: label
                     checkable: true
-                    checked: index === 2  // Default: 1h
+                    checked: index === graphsViewRoot.defaultPresetIndex
                     ButtonGroup.group: graphsViewRoot.rangeGroup
 
                     onClicked: {
+                        // Preset click immediately switches to Historical mode; this persists
+                        // the selected range for future Live timer refreshes after switching back.
+                        graphsViewRoot.selectedPresetMinutes = minutes
                         graphsViewRoot.loadPresetFromNow(minutes)
                     }
                 }
@@ -376,15 +382,7 @@ Item {
     }
 
     function loadLiveData(): void {
-        // Use selected time range from preset buttons
-        var minutes = 60  // Default
-        for (var i = 0; i < graphsViewRoot.rangeGroup.buttons.length; i++) {
-            if (graphsViewRoot.rangeGroup.buttons[i].checked) {
-                minutes = [10, 30, 60, 300][i]
-                break
-            }
-        }
-        graphsViewRoot.loadDataForRange(minutes)
+        graphsViewRoot.loadDataForRange(graphsViewRoot.selectedPresetMinutes)
     }
 
     function loadDataForRange(minutes: int): void {
@@ -396,10 +394,9 @@ Item {
     function loadPresetFromNow(minutes: int): void {
         var now = new Date()
         var start = new Date(now.getTime() - minutes * 60 * 1000)
-        graphsViewRoot.switchToHistoricalMode()
         graphsViewRoot.historicalStart = start
         graphsViewRoot.historicalEnd = now
-        chartModel.loadData(start, now)
+        graphsViewRoot.switchToHistoricalMode()
     }
 
     function refreshAvailableDates(): void {

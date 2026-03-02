@@ -25,7 +25,9 @@ Item {
     }
     property int currentMode: MapView.VisualizationMode.Live
     property int updateIntervalMs: 2000  // Default 2 seconds for live mode
-    property int selectedWindowMinutes: 60  // Default matches checked: index === 2 (1h)
+    readonly property int defaultWindowIndex: 2
+    // Invariant: selectedWindowMinutes matches the preset minutes at defaultWindowIndex (2 => 60).
+    property int selectedWindowMinutes: 60
     property date historicalStart: new Date()
     property date historicalEnd: new Date()
     property list<string> availableDates: []
@@ -226,7 +228,7 @@ Item {
 
                         text: presetButton.label
                         checkable: true
-                        checked: presetButton.index === 2  // Default to 1h
+                        checked: presetButton.index === mapViewRoot.defaultWindowIndex
                         ButtonGroup.group: windowGroup
                         Layout.preferredWidth: 50
 

@@ -12,6 +12,7 @@ TestCase {
         property int currentMode: 0  // 0 = Live, 1 = Historical
         property date historicalStart: new Date()
         property date historicalEnd: new Date()
+        readonly property int defaultWindowIndex: 2
         property int selectedWindowMinutes: 60
 
         function loadPreset(preset) {
@@ -75,6 +76,22 @@ TestCase {
 
     function test_selectedWindowMinutes_default() {
         compare(logic.selectedWindowMinutes, 60)
+    }
+
+    function test_defaultWindowIndex() {
+        compare(logic.defaultWindowIndex, 2)
+    }
+
+    function test_defaultWindowIndex_matchesSelectedMinutes() {
+        // Invariant: index 2 in [10, 30, 60, 360, 1440] maps to 60 minutes
+        compare(logic.selectedWindowMinutes, 60)
+        compare(logic.defaultWindowIndex, 2)
+    }
+
+    function test_windowSelection_updatesMinutes() {
+        logic.selectedWindowMinutes = 10
+        compare(logic.selectedWindowMinutes, 10)
+        logic.selectedWindowMinutes = 60
     }
 
     function test_switchToHistoricalMode() {
