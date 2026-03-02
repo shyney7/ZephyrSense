@@ -6,12 +6,15 @@
 #define MOCKS_H
 
 #include <QObject>
+#include <QAbstractTableModel>
 #include <QQmlEngine>
 #include <QStringList>
 #include <QVariantList>
 #include <QVariantMap>
 #include <QDateTime>
+#include <QPointF>
 #include <QUrl>
+#include <array>
 
 class MockSerialHandler final : public QObject
 {
@@ -96,6 +99,103 @@ signals:
 
 private:
     QVariantList m_dates;
+};
+
+class MockTimeSeriesChartModel : public QAbstractTableModel
+{
+    Q_OBJECT
+    QML_NAMED_ELEMENT(TimeSeriesChartModel)
+
+    Q_PROPERTY(qreal xMin READ xMin NOTIFY boundsChanged FINAL)
+    Q_PROPERTY(qreal xMax READ xMax NOTIFY boundsChanged FINAL)
+    Q_PROPERTY(qreal yMin READ yMin NOTIFY boundsChanged FINAL)
+    Q_PROPERTY(qreal yMax READ yMax NOTIFY boundsChanged FINAL)
+    Q_PROPERTY(int dataCount READ dataCount NOTIFY dataCountChanged FINAL)
+    Q_PROPERTY(int boundsCallCount READ boundsCallCount NOTIFY boundsCallCountChanged FINAL)
+
+public:
+    explicit MockTimeSeriesChartModel(QObject *parent = nullptr)
+        : QAbstractTableModel(parent)
+    {
+        m_bounds.fill(QPointF(0.0, 100.0));
+    }
+
+    int rowCount(const QModelIndex &parent = QModelIndex()) const override
+    {
+        if (parent.isValid()) {
+            return 0;
+        }
+        return 0;
+    }
+
+    int columnCount(const QModelIndex &parent = QModelIndex()) const override
+    {
+        if (parent.isValid()) {
+            return 0;
+        }
+        return 10;
+    }
+
+    QVariant data(const QModelIndex &, int = Qt::DisplayRole) const override
+    {
+        return QVariant();
+    }
+
+    Q_INVOKABLE QPointF getYBoundsForColumn(int column)
+    {
+        ++m_boundsCallCount;
+        emit boundsCallCountChanged();
+
+        if (column < 1 || column > 9) {
+            return QPointF(0.0, 100.0);
+        }
+
+        return m_bounds[static_cast<size_t>(column - 1)];
+    }
+
+    Q_INVOKABLE void setBoundsForColumn(int column, qreal minValue, qreal maxValue)
+    {
+        if (column < 1 || column > 9) {
+            return;
+        }
+        m_bounds[static_cast<size_t>(column - 1)] = QPointF(minValue, maxValue);
+    }
+
+    Q_INVOKABLE void emitBoundsChanged() { emit boundsChanged(); }
+
+    Q_INVOKABLE void setXRange(qreal minValue, qreal maxValue)
+    {
+        m_xMin = minValue;
+        m_xMax = maxValue;
+        emit boundsChanged();
+    }
+
+    Q_INVOKABLE void resetForTest()
+    {
+        m_bounds.fill(QPointF(0.0, 100.0));
+        if (m_boundsCallCount != 0) {
+            m_boundsCallCount = 0;
+            emit boundsCallCountChanged();
+        }
+    }
+
+    int boundsCallCount() const { return m_boundsCallCount; }
+    qreal xMin() const { return m_xMin; }
+    qreal xMax() const { return m_xMax; }
+    qreal yMin() const { return 0.0; }
+    qreal yMax() const { return 100.0; }
+    int dataCount() const { return 0; }
+
+signals:
+    void boundsChanged();
+    void dataCountChanged();
+    void boundsCallCountChanged();
+
+private:
+    std::array<QPointF, 9> m_bounds{};
+    int m_boundsCallCount = 0;
+    qreal m_xMin = 0.0;
+    qreal m_xMax = 0.0;
 };
 
 class MockCsvExporter final : public QObject

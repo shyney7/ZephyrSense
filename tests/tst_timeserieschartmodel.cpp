@@ -24,6 +24,7 @@ private:
         for (size_t i = 0; i < 9; ++i)
             point.values[i] = values[i];
         model.m_data.append(point);
+        model.invalidateBoundsCache();
     }
 
     void addSimpleDataPoint(TimeSeriesChartModel &model, qint64 timestamp, qreal temp)
@@ -184,6 +185,9 @@ private slots:
     void getYMinMaxForColumn_emptyData()
     {
         TimeSeriesChartModel model;
+        const QPointF bounds = model.getYBoundsForColumn(TimeSeriesChartModel::TemperatureColumn);
+        QCOMPARE(bounds.x(), 0.0);
+        QCOMPARE(bounds.y(), 100.0);
         QCOMPARE(model.getYMinForColumn(TimeSeriesChartModel::TemperatureColumn), 0.0);
         QCOMPARE(model.getYMaxForColumn(TimeSeriesChartModel::TemperatureColumn), 100.0);
     }
@@ -194,10 +198,16 @@ private slots:
         addSimpleDataPoint(model, 1000, 22.5);
 
         // Column 0 (timestamp) is invalid for Y bounds
+        QPointF bounds = model.getYBoundsForColumn(0);
+        QCOMPARE(bounds.x(), 0.0);
+        QCOMPARE(bounds.y(), 100.0);
         QCOMPARE(model.getYMinForColumn(0), 0.0);
         QCOMPARE(model.getYMaxForColumn(0), 100.0);
 
         // Column 10 is out of range
+        bounds = model.getYBoundsForColumn(10);
+        QCOMPARE(bounds.x(), 0.0);
+        QCOMPARE(bounds.y(), 100.0);
         QCOMPARE(model.getYMinForColumn(10), 0.0);
         QCOMPARE(model.getYMaxForColumn(10), 100.0);
     }
@@ -211,12 +221,17 @@ private slots:
         addDataPoint(model, 1000, v1);
         addDataPoint(model, 2000, v2);
 
+        const QPointF bounds = model.getYBoundsForColumn(TimeSeriesChartModel::TemperatureColumn);
         qreal yMin = model.getYMinForColumn(TimeSeriesChartModel::TemperatureColumn);
         qreal yMax = model.getYMaxForColumn(TimeSeriesChartModel::TemperatureColumn);
 
         // 10% padding: range is 10, padding is 1
+        QVERIFY(qAbs(bounds.x() - 19.0) < 0.01);
+        QVERIFY(qAbs(bounds.y() - 31.0) < 0.01);
         QVERIFY(qAbs(yMin - 19.0) < 0.01);
         QVERIFY(qAbs(yMax - 31.0) < 0.01);
+        QVERIFY(qAbs(bounds.x() - yMin) < 0.01);
+        QVERIFY(qAbs(bounds.y() - yMax) < 0.01);
     }
 
     void getYMinMaxForColumn_allSameValue()
@@ -227,12 +242,34 @@ private slots:
         addDataPoint(model, 1000, v1);
         addDataPoint(model, 2000, v2);
 
+        const QPointF bounds = model.getYBoundsForColumn(TimeSeriesChartModel::TemperatureColumn);
         qreal yMin = model.getYMinForColumn(TimeSeriesChartModel::TemperatureColumn);
         qreal yMax = model.getYMaxForColumn(TimeSeriesChartModel::TemperatureColumn);
 
         // When all values are the same, should have min-1 to max+1
+        QVERIFY(qAbs(bounds.x() - 24.0) < 0.01);
+        QVERIFY(qAbs(bounds.y() - 26.0) < 0.01);
         QVERIFY(qAbs(yMin - 24.0) < 0.01);
         QVERIFY(qAbs(yMax - 26.0) < 0.01);
+        QVERIFY(qAbs(bounds.x() - yMin) < 0.01);
+        QVERIFY(qAbs(bounds.y() - yMax) < 0.01);
+    }
+
+    void getYBoundsForColumn_updatesAfterDirectAppend()
+    {
+        TimeSeriesChartModel model;
+        qreal first[9] = {0, 0, 0, 0, 20.0, 0, 0, 0, 0};
+        qreal second[9] = {0, 0, 0, 0, 40.0, 0, 0, 0, 0};
+
+        addDataPoint(model, 1000, first);
+        QPointF initialBounds = model.getYBoundsForColumn(TimeSeriesChartModel::TemperatureColumn);
+        QVERIFY(qAbs(initialBounds.x() - 19.0) < 0.01);
+        QVERIFY(qAbs(initialBounds.y() - 21.0) < 0.01);
+
+        addDataPoint(model, 2000, second);
+        QPointF updatedBounds = model.getYBoundsForColumn(TimeSeriesChartModel::TemperatureColumn);
+        QVERIFY(qAbs(updatedBounds.x() - 18.0) < 0.01);
+        QVERIFY(qAbs(updatedBounds.y() - 42.0) < 0.01);
     }
 
     void updateYBoundsForColumn_valid()

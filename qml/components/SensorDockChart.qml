@@ -58,8 +58,9 @@ Item {
     ]
 
     // Per-chart Y-bounds (local, not shared)
-    property real localYMin: 0
-    property real localYMax: 100
+    property point localBounds: Qt.point(0, 100)
+    property real localYMin: chartView.localBounds.x
+    property real localYMax: chartView.localBounds.y
 
     XYModelMapper {
         model: chartView.chartModel
@@ -119,8 +120,7 @@ Item {
 
     function updateLocalBounds(): void {
         if (chartView.chartModel) {
-            chartView.localYMin = chartView.chartModel.getYMinForColumn(chartView.sensorColumn)
-            chartView.localYMax = chartView.chartModel.getYMaxForColumn(chartView.sensorColumn)
+            chartView.localBounds = chartView.chartModel.getYBoundsForColumn(chartView.sensorColumn)
         }
     }
 

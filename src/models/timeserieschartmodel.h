@@ -4,6 +4,7 @@
 #include <QAbstractTableModel>
 #include <QQmlEngine>
 #include <QDateTime>
+#include <QPointF>
 #include <array>
 #include "sensorreading.h"
 
@@ -54,6 +55,9 @@ public:
     Q_INVOKABLE void loadData(const QDateTime &start, const QDateTime &end);
     Q_INVOKABLE void clear();
     Q_INVOKABLE void updateYBoundsForColumn(int column);
+    // Returns per-column Y bounds as QPointF (x = paddedMin, y = paddedMax).
+    // Returns (0.0, 100.0) for invalid columns or empty model data.
+    Q_INVOKABLE QPointF getYBoundsForColumn(int column) const;
     Q_INVOKABLE qreal getYMinForColumn(int column) const;
     Q_INVOKABLE qreal getYMaxForColumn(int column) const;
 
@@ -73,7 +77,9 @@ private:
 
     void calculateBounds();
     void calculateYBoundsForColumn(int column);
-    std::pair<qreal, qreal> computeColumnBounds(int column) const;
+    void invalidateBoundsCache();
+    std::pair<qreal, qreal> boundsForColumn(int column) const;
+    void rebuildBoundsCacheIfNeeded() const;
 
     QList<DataPoint> m_data;
     qreal m_xMin = 0;
@@ -81,6 +87,8 @@ private:
     qreal m_yMin = 0;
     qreal m_yMax = 0;
     int m_activeColumn = TemperatureColumn;  // Default to temperature
+    mutable std::array<std::pair<qreal, qreal>, 9> m_cachedBounds{};
+    mutable bool m_boundsCacheValid = false;
 };
 
 #endif // TIMESERIESCHARTMODEL_H
