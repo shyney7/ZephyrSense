@@ -121,7 +121,7 @@ TestCase {
         var gauge = createTemporaryObject(gaugeComponent, testCase,
                                           { sensorKey: "temperature", value: 25 })
         verify(gauge)
-        // Mock always returns "#4CAF50"
+        // Mock returns "#4CAF50", QML normalizes hex colors to lowercase
         compare(gauge.progressColor, "#4caf50")
     }
 }

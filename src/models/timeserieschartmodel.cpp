@@ -124,21 +124,9 @@ void TimeSeriesChartModel::setActiveColumn(int column)
     if (m_activeColumn == column)
         return;
     m_activeColumn = column;
+    calculateYBoundsForColumn(column);
+    emit boundsChanged();
     emit activeColumnChanged();
-    calculateYBoundsForColumn(column);
-    emit boundsChanged();
-}
-
-void TimeSeriesChartModel::updateYBoundsForColumn(int column)
-{
-    if (column < PartectorNumberColumn || column >= ColumnCount) {
-        qWarning() << "TimeSeriesChartModel: Invalid column for Y bounds:" << column;
-        return;
-    }
-
-    m_activeColumn = column;
-    calculateYBoundsForColumn(column);
-    emit boundsChanged();
 }
 
 QPointF TimeSeriesChartModel::getYBoundsForColumn(int column) const

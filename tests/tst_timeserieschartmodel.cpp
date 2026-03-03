@@ -272,35 +272,6 @@ private slots:
         QVERIFY(qAbs(updatedBounds.y() - 42.0) < 0.01);
     }
 
-    void updateYBoundsForColumn_valid()
-    {
-        TimeSeriesChartModel model;
-        qreal v1[9] = {0, 0, 0, 0, 20.0, 0, 0, 0, 0};
-        qreal v2[9] = {0, 0, 0, 0, 30.0, 0, 0, 0, 0};
-        addDataPoint(model, 1000, v1);
-        addDataPoint(model, 2000, v2);
-
-        QSignalSpy spy(&model, &TimeSeriesChartModel::boundsChanged);
-        model.updateYBoundsForColumn(TimeSeriesChartModel::TemperatureColumn);
-
-        QCOMPARE(spy.count(), 1);
-        // yMin/yMax should be updated with 10% padding
-        QVERIFY(qAbs(model.yMin() - 19.0) < 0.01);
-        QVERIFY(qAbs(model.yMax() - 31.0) < 0.01);
-    }
-
-    void updateYBoundsForColumn_invalidColumn()
-    {
-        TimeSeriesChartModel model;
-        addSimpleDataPoint(model, 1000, 22.5);
-
-        QSignalSpy spy(&model, &TimeSeriesChartModel::boundsChanged);
-        model.updateYBoundsForColumn(0);   // Timestamp column - invalid
-        model.updateYBoundsForColumn(10);  // Out of range
-
-        QCOMPARE(spy.count(), 0);
-    }
-
     void setActiveColumn_valid_emitsSignalsAndUpdatesBounds()
     {
         TimeSeriesChartModel model;
@@ -362,6 +333,21 @@ private slots:
         QCOMPARE(model.activeColumn(), TimeSeriesChartModel::Co2Column);
     }
 
+    void setActiveColumn_boundsCoherentDuringSignal()
+    {
+        TimeSeriesChartModel model;
+        qreal v[9] = {0, 0, 0, 0, 20.0, 50.0, 0, 0, 0};
+        addDataPoint(model, 1000, v);
+
+        qreal capturedYMin = -1.0;
+        connect(&model, &TimeSeriesChartModel::activeColumnChanged, [&]() {
+            capturedYMin = model.yMin();  // must see humidity bounds, not stale temp
+        });
+
+        model.setActiveColumn(TimeSeriesChartModel::HumidityColumn);
+        QVERIFY(qAbs(capturedYMin - 49.0) < 0.01);
+    }
+
     void calculateBounds_xMinMax()
     {
         TimeSeriesChartModel model;
@@ -402,31 +388,6 @@ private slots:
         // Y bounds for temperature with 10% padding
         QVERIFY(qAbs(model.yMin() - 19.0) < 0.01);
         QVERIFY(qAbs(model.yMax() - 31.0) < 0.01);
-    }
-
-    void calculateYBoundsForColumn_flatValues()
-    {
-        TimeSeriesChartModel model;
-        qreal v1[9] = {0, 0, 0, 0, 25.0, 0, 0, 0, 0};
-        qreal v2[9] = {0, 0, 0, 0, 25.0, 0, 0, 0, 0};
-        addDataPoint(model, 1000, v1);
-        addDataPoint(model, 2000, v2);
-
-        model.updateYBoundsForColumn(TimeSeriesChartModel::TemperatureColumn);
-
-        // All same values → ±1 fallback
-        QVERIFY(qAbs(model.yMin() - 24.0) < 0.01);
-        QVERIFY(qAbs(model.yMax() - 26.0) < 0.01);
-    }
-
-    void calculateYBoundsForColumn_emptyData()
-    {
-        TimeSeriesChartModel model;
-        model.updateYBoundsForColumn(TimeSeriesChartModel::TemperatureColumn);
-
-        // Empty data → sane default range consistent with boundsForColumn()
-        QCOMPARE(model.yMin(), 0.0);
-        QCOMPARE(model.yMax(), 100.0);
     }
 
     void qenum_accessible()

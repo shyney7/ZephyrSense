@@ -79,7 +79,6 @@ public:
     // QML-invokable methods
     Q_INVOKABLE void loadData(const QDateTime &start, const QDateTime &end);
     Q_INVOKABLE void clear();
-    Q_INVOKABLE void updateYBoundsForColumn(int column);
     // Returns per-column Y bounds as QPointF (x = paddedMin, y = paddedMax).
     // Returns (0.0, 100.0) for invalid columns or empty model data.
     Q_INVOKABLE QPointF getYBoundsForColumn(int column) const;
