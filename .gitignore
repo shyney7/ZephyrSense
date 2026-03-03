@@ -38,6 +38,7 @@ Thumbs.db
 *.pro.user*
 *.qbs.user*
 CMakeLists.txt.user*
+.qmlls.ini
 
 # xemacs temporary files
 *.flc
@@ -72,6 +73,17 @@ CMakeLists.txt.user*
 *.dll
 *.exe
 
+# agent files
+.claude/
+CLAUDE.md
+AGENTS.md
+TO-DOS.md
+.planning
+/research.claude/
+commands.html
+init_PRD/
+NUL
+
 # Directories with generated files
 .moc/
 .obj/
@@ -82,19 +94,13 @@ CMakeLists.txt.user*
 node_modules/
 package-lock.json
 .DS_Store
-TO-DOS.md
-CLAUDE.md
-AGENTS.md
-.planning
-/research.claude/
-commands.html
-init_PRD/
-NUL
-compile_commands.json
-libs/
+
+# CMake generated files
 .cache/
-.claude/
-.github/copilot*
+compile_commands.json
+
+# 3rd party libraries
+libs/
 
 # Installer output
 /installer/Output/
