@@ -1,5 +1,7 @@
 pragma ComponentBehavior: Bound
 pragma FunctionSignatureBehavior: Enforced
+pragma NativeMethodBehavior: AcceptThisObject
+pragma ValueTypeBehavior: Addressable
 
 import QtQuick
 import QtQuick.Controls
@@ -7,6 +9,10 @@ import QtQuick.Layouts
 import ZephyrSense
 
 Item {
+    id: thresholdsTabRoot
+
+    readonly property ThresholdManager thresholdMgr: ThresholdManager
+
     ScrollView {
         anchors.fill: parent
         anchors.margins: 16
@@ -50,14 +56,14 @@ Item {
                         }
                         Label { text: "PNC UFP [#/cm\u00B3]"; Layout.preferredWidth: 150 }
                         SpinBox {
-                            from: 1; to: 500; editable: true
-                            value: ThresholdManager.partectorNumberWarning / 1000
-                            onValueModified: ThresholdManager.partectorNumberWarning = value * 1000
+                            from: 100; to: 500000; stepSize: 1000; editable: true
+                            value: ThresholdManager.partectorNumberWarning
+                            onValueModified: ThresholdManager.partectorNumberWarning = value
                         }
                         SpinBox {
-                            from: 10; to: 500; editable: true
-                            value: ThresholdManager.partectorNumberDanger / 1000
-                            onValueModified: ThresholdManager.partectorNumberDanger = value * 1000
+                            from: 100; to: 500000; stepSize: 1000; editable: true
+                            value: ThresholdManager.partectorNumberDanger
+                            onValueModified: ThresholdManager.partectorNumberDanger = value
                         }
                     }
 
@@ -329,7 +335,7 @@ Item {
                 Layout.alignment: Qt.AlignRight
                 highlighted: true
                 onClicked: {
-                    ThresholdManager.resetToDefaults();
+                    thresholdsTabRoot.thresholdMgr.resetToDefaults();
                 }
             }
 

@@ -1,5 +1,7 @@
 pragma ComponentBehavior: Bound
 pragma FunctionSignatureBehavior: Enforced
+pragma NativeMethodBehavior: AcceptThisObject
+pragma ValueTypeBehavior: Addressable
 
 import QtQuick
 import QtQuick.Controls
@@ -138,37 +140,39 @@ Item {
 
                 delegate: Rectangle {
                     id: dayCell
-                    required property var model
+                    required property int day
+                    required property int month
+                    required property bool today
                     required property date date
 
                     width: monthGrid.width / 7
                     height: 36
                     radius: 4
 
-                    property bool isSelected: date.toDateString() === internal.selectedDate.toDateString()
+                    property bool isSelected: dayCell.date.toDateString() === internal.selectedDate.toDateString()
                     property bool hasData: {
-                        var dateStr = Qt.formatDate(date, "yyyy-MM-dd")
+                        var dateStr = Qt.formatDate(dayCell.date, "yyyy-MM-dd")
                         return root.availableDates.indexOf(dateStr) !== -1
                     }
-                    property bool isCurrentMonth: model.month === monthGrid.month
+                    property bool isCurrentMonth: dayCell.month === monthGrid.month
 
-                    color: isSelected ? "#2196F3" : (hasData ? "#E3F2FD" : "transparent")
+                    color: dayCell.isSelected ? "#2196F3" : (dayCell.hasData ? "#E3F2FD" : "transparent")
 
                     Text {
                         anchors.centerIn: parent
-                        text: dayCell.model.day
-                        font.bold: parent.hasData
+                        text: dayCell.day
+                        font.bold: dayCell.hasData
                         color: {
-                            if (parent.isSelected) return "white"
-                            if (!parent.isCurrentMonth) return "#BDBDBD"
-                            if (dayCell.model.today) return "#2196F3"
+                            if (dayCell.isSelected) return "white"
+                            if (!dayCell.isCurrentMonth) return "#BDBDBD"
+                            if (dayCell.today) return "#2196F3"
                             return "#333333"
                         }
                     }
 
                     // Data indicator dot
                     Rectangle {
-                        visible: parent.hasData && !parent.isSelected
+                        visible: dayCell.hasData && !dayCell.isSelected
                         width: 4
                         height: 4
                         radius: 2
@@ -181,7 +185,7 @@ Item {
                     MouseArea {
                         anchors.fill: parent
                         onClicked: {
-                            if (parent.isCurrentMonth) {
+                            if (dayCell.isCurrentMonth) {
                                 internal.selectedDate = dayCell.date
                                 root.emitDateTime()
                                 calendarPopup.close()

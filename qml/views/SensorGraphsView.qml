@@ -1,5 +1,7 @@
 pragma ComponentBehavior: Bound
 pragma FunctionSignatureBehavior: Enforced
+pragma NativeMethodBehavior: AcceptThisObject
+pragma ValueTypeBehavior: Addressable
 
 import QtQuick
 import QtQuick.Controls
@@ -12,6 +14,9 @@ import "../components"
 Item {
     id: graphsViewRoot
 
+    readonly property DockStateTracker dockTracker: DockStateTracker
+    readonly property DatabaseManager dbManager: DatabaseManager
+
     // Mode state
     enum VisualizationMode { Live, Historical }
     property int currentMode: SensorGraphsView.VisualizationMode.Live
@@ -20,6 +25,9 @@ Item {
     property date historicalEnd: new Date()
     property list<string> availableDates: []
     property alias rangeGroup: rangeGroupInst
+    property int defaultPresetIndex: 2
+    // Invariant: selectedPresetMinutes matches the preset minutes at defaultPresetIndex (2 => 60).
+    property int selectedPresetMinutes: 60
 
     // Chart data model (shared by all 9 dock charts)
     TimeSeriesChartModel {
@@ -32,7 +40,7 @@ Item {
         id: liveUpdateTimer
         interval: graphsViewRoot.updateIntervalMs
         running: graphsViewRoot.currentMode === SensorGraphsView.VisualizationMode.Live
-                 && (graphsViewRoot.visible || DockStateTracker.hasDocksOutsideMainWindow)
+                 && (graphsViewRoot.visible || graphsViewRoot.dockTracker.hasDocksOutsideMainWindow)
         repeat: true
         onTriggered: graphsViewRoot.loadLiveData()
     }
@@ -104,14 +112,18 @@ Item {
 
                 Button {
                     required property int index
-                    required property var modelData
-                    text: modelData.label
+                    required property string label
+                    required property int minutes
+                    text: label
                     checkable: true
-                    checked: index === 2  // Default: 1h
+                    checked: index === graphsViewRoot.defaultPresetIndex
                     ButtonGroup.group: graphsViewRoot.rangeGroup
 
                     onClicked: {
-                        graphsViewRoot.loadPresetFromNow(modelData.minutes)
+                        // Preset click immediately switches to Historical mode; this persists
+                        // the selected range for future Live timer refreshes after switching back.
+                        graphsViewRoot.selectedPresetMinutes = minutes
+                        graphsViewRoot.loadPresetFromNow(minutes)
                     }
                 }
             }
@@ -168,6 +180,7 @@ Item {
                 SensorDockChart {
                     chartModel: chartModel
                     sensorColumn: 1
+                    columnBounds: chartModel.boundsCol1
                 }
             }
 
@@ -179,6 +192,7 @@ Item {
                 SensorDockChart {
                     chartModel: chartModel
                     sensorColumn: 2
+                    columnBounds: chartModel.boundsCol2
                 }
             }
 
@@ -190,6 +204,7 @@ Item {
                 SensorDockChart {
                     chartModel: chartModel
                     sensorColumn: 3
+                    columnBounds: chartModel.boundsCol3
                 }
             }
 
@@ -201,6 +216,7 @@ Item {
                 SensorDockChart {
                     chartModel: chartModel
                     sensorColumn: 4
+                    columnBounds: chartModel.boundsCol4
                 }
             }
 
@@ -212,6 +228,7 @@ Item {
                 SensorDockChart {
                     chartModel: chartModel
                     sensorColumn: 5
+                    columnBounds: chartModel.boundsCol5
                 }
             }
 
@@ -223,6 +240,7 @@ Item {
                 SensorDockChart {
                     chartModel: chartModel
                     sensorColumn: 6
+                    columnBounds: chartModel.boundsCol6
                 }
             }
 
@@ -234,6 +252,7 @@ Item {
                 SensorDockChart {
                     chartModel: chartModel
                     sensorColumn: 7
+                    columnBounds: chartModel.boundsCol7
                 }
             }
 
@@ -245,6 +264,7 @@ Item {
                 SensorDockChart {
                     chartModel: chartModel
                     sensorColumn: 8
+                    columnBounds: chartModel.boundsCol8
                 }
             }
 
@@ -256,21 +276,22 @@ Item {
                 SensorDockChart {
                     chartModel: chartModel
                     sensorColumn: 9
+                    columnBounds: chartModel.boundsCol9
                 }
             }
 
             // Initial layout: all 9 as tabs in a single group
             Component.onCompleted: {
                 // Register docks for outside-main-window tracking
-                DockStateTracker.trackDockWidget(dockPartectorNum)
-                DockStateTracker.trackDockWidget(dockPartectorDiam)
-                DockStateTracker.trackDockWidget(dockPartectorMass)
-                DockStateTracker.trackDockWidget(dockGrimmValue)
-                DockStateTracker.trackDockWidget(dockTemperature)
-                DockStateTracker.trackDockWidget(dockHumidity)
-                DockStateTracker.trackDockWidget(dockPressure)
-                DockStateTracker.trackDockWidget(dockAltitude)
-                DockStateTracker.trackDockWidget(dockCo2)
+                graphsViewRoot.dockTracker.trackDockWidget(dockPartectorNum)
+                graphsViewRoot.dockTracker.trackDockWidget(dockPartectorDiam)
+                graphsViewRoot.dockTracker.trackDockWidget(dockPartectorMass)
+                graphsViewRoot.dockTracker.trackDockWidget(dockGrimmValue)
+                graphsViewRoot.dockTracker.trackDockWidget(dockTemperature)
+                graphsViewRoot.dockTracker.trackDockWidget(dockHumidity)
+                graphsViewRoot.dockTracker.trackDockWidget(dockPressure)
+                graphsViewRoot.dockTracker.trackDockWidget(dockAltitude)
+                graphsViewRoot.dockTracker.trackDockWidget(dockCo2)
 
                 dockingArea.addDockWidget(dockPartectorNum, dockingArea.locationOnBottom)
                 dockPartectorNum.addDockWidgetAsTab(dockPartectorDiam)
@@ -314,7 +335,7 @@ Item {
                     Layout.fillWidth: true
                     availableDates: graphsViewRoot.availableDates
 
-                    onDateTimeChanged: function(dt) {
+                    onDateTimeChanged: function(dt: date): void {
                         graphsViewRoot.historicalStart = dt
                     }
                 }
@@ -325,7 +346,7 @@ Item {
                     Layout.fillWidth: true
                     availableDates: graphsViewRoot.availableDates
 
-                    onDateTimeChanged: function(dt) {
+                    onDateTimeChanged: function(dt: date): void {
                         graphsViewRoot.historicalEnd = dt
                     }
                 }
@@ -358,27 +379,19 @@ Item {
 
     // Helper functions
     function switchToLiveMode(): void {
-        currentMode = SensorGraphsView.VisualizationMode.Live
+        graphsViewRoot.currentMode = SensorGraphsView.VisualizationMode.Live
         liveUpdateTimer.restart()
-        loadLiveData()
+        graphsViewRoot.loadLiveData()
     }
 
     function switchToHistoricalMode(): void {
-        currentMode = SensorGraphsView.VisualizationMode.Historical
+        graphsViewRoot.currentMode = SensorGraphsView.VisualizationMode.Historical
         liveUpdateTimer.stop()
-        chartModel.loadData(historicalStart, historicalEnd)
+        chartModel.loadData(graphsViewRoot.historicalStart, graphsViewRoot.historicalEnd)
     }
 
     function loadLiveData(): void {
-        // Use selected time range from preset buttons
-        var minutes = 60  // Default
-        for (var i = 0; i < rangeGroup.buttons.length; i++) {
-            if (rangeGroup.buttons[i].checked) {
-                minutes = [10, 30, 60, 300][i]
-                break
-            }
-        }
-        loadDataForRange(minutes)
+        graphsViewRoot.loadDataForRange(graphsViewRoot.selectedPresetMinutes)
     }
 
     function loadDataForRange(minutes: int): void {
@@ -390,14 +403,13 @@ Item {
     function loadPresetFromNow(minutes: int): void {
         var now = new Date()
         var start = new Date(now.getTime() - minutes * 60 * 1000)
-        switchToHistoricalMode()
         graphsViewRoot.historicalStart = start
         graphsViewRoot.historicalEnd = now
-        chartModel.loadData(start, now)
+        graphsViewRoot.switchToHistoricalMode()
     }
 
     function refreshAvailableDates(): void {
-        availableDates = DatabaseManager.getAvailableDates()
+        graphsViewRoot.availableDates = graphsViewRoot.dbManager.getAvailableDates()
     }
 
     function formatTime(msecs: real): string {
@@ -407,7 +419,7 @@ Item {
 
     // Load default data on component completion
     Component.onCompleted: {
-        refreshAvailableDates()
+        graphsViewRoot.refreshAvailableDates()
         // Small delay to ensure model is ready
         Qt.callLater(function() {
             graphsViewRoot.loadLiveData()

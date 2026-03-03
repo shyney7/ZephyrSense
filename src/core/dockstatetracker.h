@@ -10,12 +10,12 @@ namespace KDDockWidgets::Core {
 class DockWidget;
 }
 
-class DockStateTracker : public QObject
+class DockStateTracker final : public QObject
 {
     Q_OBJECT
     QML_ELEMENT
     QML_SINGLETON
-    Q_PROPERTY(bool hasDocksOutsideMainWindow READ hasDocksOutsideMainWindow NOTIFY changed)
+    Q_PROPERTY(bool hasDocksOutsideMainWindow READ hasDocksOutsideMainWindow NOTIFY changed FINAL)
 
 public:
     explicit DockStateTracker(QObject *parent = nullptr);

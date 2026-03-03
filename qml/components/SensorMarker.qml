@@ -1,5 +1,7 @@
 pragma ComponentBehavior: Bound
 pragma FunctionSignatureBehavior: Enforced
+pragma NativeMethodBehavior: AcceptThisObject
+pragma ValueTypeBehavior: Addressable
 
 import QtQuick
 import QtQuick.Controls
@@ -19,7 +21,7 @@ MapQuickItem {
     // Signal for click handling
     signal markerClicked(int id)
 
-    coordinate: QtPositioning.coordinate(latitude, longitude)
+    coordinate: QtPositioning.coordinate(latitude, longitude) // qmllint disable compiler
     anchorPoint.x: markerCircle.width / 2
     anchorPoint.y: markerCircle.height / 2
 
@@ -33,15 +35,17 @@ MapQuickItem {
             anchors.fill: parent
             radius: width / 2
             color: marker.hazardLevel === 2 ? "#F44336" :  // Red (danger)
-                   marker.hazardLevel === 1 ? "#FFC107" :  // Yellow/Amber (warning)
-                                              "#4CAF50"    // Green (normal)
+            marker.hazardLevel === 1 ? "#FFC107" :  // Yellow/Amber (warning)
+            "#4CAF50"    // Green (normal)
             border.color: "white"
             border.width: 2
 
             // Hover effect
             scale: hoverHandler.hovered ? 1.3 : 1.0
             Behavior on scale {
-                NumberAnimation { duration: 100 }
+                NumberAnimation {
+                    duration: 100
+                }
             }
         }
 

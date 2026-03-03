@@ -6,24 +6,27 @@
 #define MOCKS_H
 
 #include <QObject>
+#include <QAbstractTableModel>
 #include <QQmlEngine>
 #include <QStringList>
 #include <QVariantList>
 #include <QVariantMap>
 #include <QDateTime>
+#include <QPointF>
 #include <QUrl>
+#include <array>
 
-class MockSerialHandler : public QObject
+class MockSerialHandler final : public QObject
 {
     Q_OBJECT
     QML_NAMED_ELEMENT(SerialHandler)
     QML_SINGLETON
 
-    Q_PROPERTY(QStringList availablePorts READ availablePorts NOTIFY portsChanged)
-    Q_PROPERTY(bool connected READ isConnected WRITE setConnected NOTIFY connectionStateChanged)
-    Q_PROPERTY(QString errorString READ errorString WRITE setErrorString NOTIFY errorOccurred)
-    Q_PROPERTY(QString currentPort READ currentPort NOTIFY connectionStateChanged)
-    Q_PROPERTY(int baudRate READ baudRate WRITE setBaudRate NOTIFY baudRateChanged)
+    Q_PROPERTY(QStringList availablePorts READ availablePorts NOTIFY portsChanged FINAL)
+    Q_PROPERTY(bool connected READ isConnected WRITE setConnected NOTIFY connectionStateChanged FINAL)
+    Q_PROPERTY(QString errorString READ errorString WRITE setErrorString NOTIFY errorOccurred FINAL)
+    Q_PROPERTY(QString currentPort READ currentPort NOTIFY connectionStateChanged FINAL)
+    Q_PROPERTY(int baudRate READ baudRate WRITE setBaudRate NOTIFY baudRateChanged FINAL)
 
 public:
     explicit MockSerialHandler(QObject *parent = nullptr) : QObject(parent) {}
@@ -65,13 +68,13 @@ private:
     int m_baudRate = 115200;
 };
 
-class MockDatabaseManager : public QObject
+class MockDatabaseManager final : public QObject
 {
     Q_OBJECT
     QML_NAMED_ELEMENT(DatabaseManager)
     QML_SINGLETON
 
-    Q_PROPERTY(QString databasePath READ databasePath CONSTANT)
+    Q_PROPERTY(QString databasePath READ databasePath CONSTANT FINAL)
 
 public:
     explicit MockDatabaseManager(QObject *parent = nullptr) : QObject(parent) {}
@@ -98,14 +101,143 @@ private:
     QVariantList m_dates;
 };
 
-class MockCsvExporter : public QObject
+class MockTimeSeriesChartModel : public QAbstractTableModel
+{
+    Q_OBJECT
+    QML_NAMED_ELEMENT(TimeSeriesChartModel)
+
+    Q_PROPERTY(qreal xMin READ xMin NOTIFY boundsChanged FINAL)
+    Q_PROPERTY(qreal xMax READ xMax NOTIFY boundsChanged FINAL)
+    Q_PROPERTY(qreal yMin READ yMin NOTIFY boundsChanged FINAL)
+    Q_PROPERTY(qreal yMax READ yMax NOTIFY boundsChanged FINAL)
+    Q_PROPERTY(int dataCount READ dataCount NOTIFY dataCountChanged FINAL)
+    Q_PROPERTY(int boundsCallCount READ boundsCallCount NOTIFY boundsCallCountChanged FINAL)
+    Q_PROPERTY(int activeColumn READ activeColumn WRITE setActiveColumn NOTIFY activeColumnChanged FINAL)
+
+    Q_PROPERTY(QPointF boundsCol1 READ boundsCol1 NOTIFY boundsChanged FINAL)
+    Q_PROPERTY(QPointF boundsCol2 READ boundsCol2 NOTIFY boundsChanged FINAL)
+    Q_PROPERTY(QPointF boundsCol3 READ boundsCol3 NOTIFY boundsChanged FINAL)
+    Q_PROPERTY(QPointF boundsCol4 READ boundsCol4 NOTIFY boundsChanged FINAL)
+    Q_PROPERTY(QPointF boundsCol5 READ boundsCol5 NOTIFY boundsChanged FINAL)
+    Q_PROPERTY(QPointF boundsCol6 READ boundsCol6 NOTIFY boundsChanged FINAL)
+    Q_PROPERTY(QPointF boundsCol7 READ boundsCol7 NOTIFY boundsChanged FINAL)
+    Q_PROPERTY(QPointF boundsCol8 READ boundsCol8 NOTIFY boundsChanged FINAL)
+    Q_PROPERTY(QPointF boundsCol9 READ boundsCol9 NOTIFY boundsChanged FINAL)
+
+public:
+    explicit MockTimeSeriesChartModel(QObject *parent = nullptr)
+        : QAbstractTableModel(parent)
+    {
+        m_bounds.fill(QPointF(0.0, 100.0));
+    }
+
+    int rowCount(const QModelIndex &parent = QModelIndex()) const override
+    {
+        if (parent.isValid()) {
+            return 0;
+        }
+        return 0;
+    }
+
+    int columnCount(const QModelIndex &parent = QModelIndex()) const override
+    {
+        if (parent.isValid()) {
+            return 0;
+        }
+        return 10;
+    }
+
+    QVariant data(const QModelIndex &, int = Qt::DisplayRole) const override
+    {
+        return QVariant();
+    }
+
+    Q_INVOKABLE QPointF getYBoundsForColumn(int column)
+    {
+        ++m_boundsCallCount;
+        emit boundsCallCountChanged();
+
+        if (column < 1 || column > 9) {
+            return QPointF(0.0, 100.0);
+        }
+
+        return m_bounds[static_cast<size_t>(column - 1)];
+    }
+
+    Q_INVOKABLE void setBoundsForColumn(int column, qreal minValue, qreal maxValue)
+    {
+        if (column < 1 || column > 9) {
+            return;
+        }
+        m_bounds[static_cast<size_t>(column - 1)] = QPointF(minValue, maxValue);
+    }
+
+    Q_INVOKABLE void emitBoundsChanged() { emit boundsChanged(); }
+
+    Q_INVOKABLE void setXRange(qreal minValue, qreal maxValue)
+    {
+        m_xMin = minValue;
+        m_xMax = maxValue;
+        emit boundsChanged();
+    }
+
+    Q_INVOKABLE void resetForTest()
+    {
+        m_bounds.fill(QPointF(0.0, 100.0));
+        if (m_boundsCallCount != 0) {
+            m_boundsCallCount = 0;
+            emit boundsCallCountChanged();
+        }
+    }
+
+    int boundsCallCount() const { return m_boundsCallCount; }
+    qreal xMin() const { return m_xMin; }
+    qreal xMax() const { return m_xMax; }
+    qreal yMin() const { return 0.0; }
+    qreal yMax() const { return 100.0; }
+    int dataCount() const { return 0; }
+
+    int activeColumn() const { return m_activeColumn; }
+    void setActiveColumn(int c)
+    {
+        if (m_activeColumn == c)
+            return;
+        m_activeColumn = c;
+        emit activeColumnChanged();
+    }
+
+    QPointF boundsCol1() const { return m_bounds[0]; }
+    QPointF boundsCol2() const { return m_bounds[1]; }
+    QPointF boundsCol3() const { return m_bounds[2]; }
+    QPointF boundsCol4() const { return m_bounds[3]; }
+    QPointF boundsCol5() const { return m_bounds[4]; }
+    QPointF boundsCol6() const { return m_bounds[5]; }
+    QPointF boundsCol7() const { return m_bounds[6]; }
+    QPointF boundsCol8() const { return m_bounds[7]; }
+    QPointF boundsCol9() const { return m_bounds[8]; }
+
+signals:
+    void boundsChanged();
+    void dataCountChanged();
+    void boundsCallCountChanged();
+    void activeColumnChanged();
+
+private:
+    std::array<QPointF, 9> m_bounds{};
+    int m_boundsCallCount = 0;
+    int m_activeColumn = 5;
+    qreal m_xMin = 0.0;
+    qreal m_xMax = 0.0;
+};
+
+class MockCsvExporter final : public QObject
 {
     Q_OBJECT
     QML_NAMED_ELEMENT(CsvExporter)
     QML_SINGLETON
 
-    Q_PROPERTY(bool enabled READ isEnabled WRITE setEnabled NOTIFY enabledChanged)
-    Q_PROPERTY(QString filePath READ filePath WRITE setFilePath NOTIFY filePathChanged)
+    Q_PROPERTY(bool enabled READ isEnabled WRITE setEnabled NOTIFY enabledChanged FINAL)
+    Q_PROPERTY(QString filePath READ filePath WRITE setFilePath NOTIFY filePathChanged FINAL)
 
 public:
     explicit MockCsvExporter(QObject *parent = nullptr) : QObject(parent) {}
@@ -127,7 +259,7 @@ private:
     QString m_filePath;
 };
 
-class MockThresholdManager : public QObject
+class MockThresholdManager final : public QObject
 {
     Q_OBJECT
     QML_NAMED_ELEMENT(ThresholdManager)

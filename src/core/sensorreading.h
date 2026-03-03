@@ -30,18 +30,18 @@ class SensorReading
 {
     Q_GADGET
     QML_VALUE_TYPE(sensorReading)
-    Q_PROPERTY(QDateTime timestamp MEMBER timestamp)
-    Q_PROPERTY(int partectorNumber MEMBER partectorNumber)
-    Q_PROPERTY(int partectorDiam MEMBER partectorDiam)
-    Q_PROPERTY(float partectorMass MEMBER partectorMass)
-    Q_PROPERTY(float grimmValue MEMBER grimmValue)
-    Q_PROPERTY(float temperature MEMBER temperature)
-    Q_PROPERTY(float humidity MEMBER humidity)
-    Q_PROPERTY(float pressure MEMBER pressure)
-    Q_PROPERTY(float altitude MEMBER altitude)
-    Q_PROPERTY(float latitude MEMBER latitude)
-    Q_PROPERTY(float longitude MEMBER longitude)
-    Q_PROPERTY(int co2 MEMBER co2)
+    Q_PROPERTY(QDateTime timestamp MEMBER timestamp FINAL)
+    Q_PROPERTY(int partectorNumber MEMBER partectorNumber FINAL)
+    Q_PROPERTY(int partectorDiam MEMBER partectorDiam FINAL)
+    Q_PROPERTY(float partectorMass MEMBER partectorMass FINAL)
+    Q_PROPERTY(float grimmValue MEMBER grimmValue FINAL)
+    Q_PROPERTY(float temperature MEMBER temperature FINAL)
+    Q_PROPERTY(float humidity MEMBER humidity FINAL)
+    Q_PROPERTY(float pressure MEMBER pressure FINAL)
+    Q_PROPERTY(float altitude MEMBER altitude FINAL)
+    Q_PROPERTY(float latitude MEMBER latitude FINAL)
+    Q_PROPERTY(float longitude MEMBER longitude FINAL)
+    Q_PROPERTY(int co2 MEMBER co2 FINAL)
 
 public:
     SensorReading() = default;

@@ -1,5 +1,7 @@
 pragma ComponentBehavior: Bound
 pragma FunctionSignatureBehavior: Enforced
+pragma NativeMethodBehavior: AcceptThisObject
+pragma ValueTypeBehavior: Addressable
 
 import QtQuick
 import QtQuick.Controls
@@ -8,6 +10,8 @@ import QtQuick.Dialogs
 import ZephyrSense
 
 Item {
+    id: exportTabRoot
+
     ScrollView {
         anchors.fill: parent
         anchors.margins: 16

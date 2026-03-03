@@ -168,6 +168,9 @@ add_zephyr_test(tst_iothread
 # ── QML Test Suite ──────────────────────────────────────────────────────────
 qt_add_executable(tst_qml qml/setup/tst_qml_setup.cpp)
 
+# IMPORTANT: keep tst_qml isolated from production QML_ELEMENT classes.
+# The ZephyrSense test module below provides mock replacements (e.g. TimeSeriesChartModel),
+# so production sources like src/models/timeserieschartmodel.cpp must not be added here.
 qt_add_qml_module(tst_qml
     URI ZephyrSense
     VERSION 1.0
@@ -189,7 +192,7 @@ target_include_directories(tst_qml PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/qml/setup
 )
 target_link_libraries(tst_qml PRIVATE
-    Qt6::QuickTest Qt6::Quick Qt6::QuickControls2 Qt6::Qml
+    Qt6::QuickTest Qt6::Quick Qt6::QuickControls2 Qt6::Qml Qt6::Graphs
     Qt6::QmlIntegration Qt6::QuickDialogs2
 )
 

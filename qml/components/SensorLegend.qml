@@ -1,5 +1,7 @@
 pragma ComponentBehavior: Bound
 pragma FunctionSignatureBehavior: Enforced
+pragma NativeMethodBehavior: AcceptThisObject
+pragma ValueTypeBehavior: Addressable
 
 import QtQuick
 import QtQuick.Controls
@@ -14,17 +16,17 @@ Rectangle {
     // Signal emitted when user selects a sensor
     signal sensorSelected(int column)
 
-    // Sensor definitions
+    // Sensor definitions (use "sensorColumn" to avoid QModelIndex::column() shadowing)
     readonly property var sensors: [
-        { column: 1, name: "Partector #", color: "#E91E63" },
-        { column: 2, name: "Diameter", color: "#9C27B0" },
-        { column: 3, name: "Mass", color: "#673AB7" },
-        { column: 4, name: "Grimm", color: "#3F51B5" },
-        { column: 5, name: "Temp", color: "#FF5722" },
-        { column: 6, name: "Humidity", color: "#2196F3" },
-        { column: 7, name: "Pressure", color: "#009688" },
-        { column: 8, name: "Altitude", color: "#4CAF50" },
-        { column: 9, name: "CO2", color: "#795548" }
+        { sensorColumn: 1, name: "PNC UFP", sensorColor: "#E91E63" },
+        { sensorColumn: 2, name: "\u00D8 UFP", sensorColor: "#9C27B0" },
+        { sensorColumn: 3, name: "PM0.3", sensorColor: "#673AB7" },
+        { sensorColumn: 4, name: "PNC PM", sensorColor: "#3F51B5" },
+        { sensorColumn: 5, name: "Temperature", sensorColor: "#FF5722" },
+        { sensorColumn: 6, name: "Humidity", sensorColor: "#2196F3" },
+        { sensorColumn: 7, name: "Pressure", sensorColor: "#009688" },
+        { sensorColumn: 8, name: "Altitude", sensorColor: "#4CAF50" },
+        { sensorColumn: 9, name: "CO\u2082", sensorColor: "#795548" }
     ]
 
     color: "#F5F5F5"
@@ -42,31 +44,33 @@ Rectangle {
             Rectangle {
                 id: sensorRect
 
-                required property var modelData
                 required property int index
+                required property int sensorColumn
+                required property string name
+                required property color sensorColor
 
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                color: legendRoot.selectedSensor === sensorRect.modelData.column ? sensorRect.modelData.color : "transparent"
-                border.color: sensorRect.modelData.color
+                color: legendRoot.selectedSensor === sensorRect.sensorColumn ? sensorRect.sensorColor : "transparent"
+                border.color: sensorRect.sensorColor
                 border.width: 2
                 radius: 4
-                opacity: legendRoot.selectedSensor === sensorRect.modelData.column ? 1.0 : 0.6
+                opacity: legendRoot.selectedSensor === sensorRect.sensorColumn ? 1.0 : 0.6
 
                 Label {
                     anchors.centerIn: parent
-                    text: sensorRect.modelData.name
+                    text: sensorRect.name
                     font.pixelSize: 11
-                    font.bold: legendRoot.selectedSensor === sensorRect.modelData.column
-                    color: legendRoot.selectedSensor === sensorRect.modelData.column ? "white" : sensorRect.modelData.color
+                    font.bold: legendRoot.selectedSensor === sensorRect.sensorColumn
+                    color: legendRoot.selectedSensor === sensorRect.sensorColumn ? "white" : sensorRect.sensorColor
                 }
 
                 MouseArea {
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor
                     onClicked: {
-                        legendRoot.selectedSensor = sensorRect.modelData.column
-                        legendRoot.sensorSelected(sensorRect.modelData.column)
+                        legendRoot.selectedSensor = sensorRect.sensorColumn
+                        legendRoot.sensorSelected(sensorRect.sensorColumn)
                     }
                 }
             }

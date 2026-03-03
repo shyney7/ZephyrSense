@@ -24,6 +24,7 @@ private:
         for (size_t i = 0; i < 9; ++i)
             point.values[i] = values[i];
         model.m_data.append(point);
+        model.invalidateBoundsCache();
     }
 
     void addSimpleDataPoint(TimeSeriesChartModel &model, qint64 timestamp, qreal temp)
@@ -62,7 +63,7 @@ private slots:
         QCOMPARE(model.xMin(), 0.0);
         QCOMPARE(model.xMax(), 0.0);
         QCOMPARE(model.yMin(), 0.0);
-        QCOMPARE(model.yMax(), 0.0);
+        QCOMPARE(model.yMax(), 100.0);
         QCOMPARE(model.dataCount(), 0);
     }
 
@@ -166,7 +167,7 @@ private slots:
         QCOMPARE(model.xMin(), 0.0);
         QCOMPARE(model.xMax(), 0.0);
         QCOMPARE(model.yMin(), 0.0);
-        QCOMPARE(model.yMax(), 0.0);
+        QCOMPARE(model.yMax(), 100.0);
     }
 
     void clear_emitsSignals()
@@ -181,31 +182,37 @@ private slots:
         QCOMPARE(countSpy.count(), 1);
     }
 
-    void getYBoundsForColumn_emptyData()
+    void getYMinMaxForColumn_emptyData()
     {
         TimeSeriesChartModel model;
-        QVariantMap bounds = model.getYBoundsForColumn(TimeSeriesChartModel::TemperatureColumn);
-        QCOMPARE(bounds[QStringLiteral("yMin")].toReal(), 0.0);
-        QCOMPARE(bounds[QStringLiteral("yMax")].toReal(), 100.0);
+        const QPointF bounds = model.getYBoundsForColumn(TimeSeriesChartModel::TemperatureColumn);
+        QCOMPARE(bounds.x(), 0.0);
+        QCOMPARE(bounds.y(), 100.0);
+        QCOMPARE(model.getYMinForColumn(TimeSeriesChartModel::TemperatureColumn), 0.0);
+        QCOMPARE(model.getYMaxForColumn(TimeSeriesChartModel::TemperatureColumn), 100.0);
     }
 
-    void getYBoundsForColumn_invalidColumn()
+    void getYMinMaxForColumn_invalidColumn()
     {
         TimeSeriesChartModel model;
         addSimpleDataPoint(model, 1000, 22.5);
 
         // Column 0 (timestamp) is invalid for Y bounds
-        QVariantMap bounds0 = model.getYBoundsForColumn(0);
-        QCOMPARE(bounds0[QStringLiteral("yMin")].toReal(), 0.0);
-        QCOMPARE(bounds0[QStringLiteral("yMax")].toReal(), 100.0);
+        QPointF bounds = model.getYBoundsForColumn(0);
+        QCOMPARE(bounds.x(), 0.0);
+        QCOMPARE(bounds.y(), 100.0);
+        QCOMPARE(model.getYMinForColumn(0), 0.0);
+        QCOMPARE(model.getYMaxForColumn(0), 100.0);
 
         // Column 10 is out of range
-        QVariantMap bounds10 = model.getYBoundsForColumn(10);
-        QCOMPARE(bounds10[QStringLiteral("yMin")].toReal(), 0.0);
-        QCOMPARE(bounds10[QStringLiteral("yMax")].toReal(), 100.0);
+        bounds = model.getYBoundsForColumn(10);
+        QCOMPARE(bounds.x(), 0.0);
+        QCOMPARE(bounds.y(), 100.0);
+        QCOMPARE(model.getYMinForColumn(10), 0.0);
+        QCOMPARE(model.getYMaxForColumn(10), 100.0);
     }
 
-    void getYBoundsForColumn_range()
+    void getYMinMaxForColumn_range()
     {
         TimeSeriesChartModel model;
         // Temperature column (index 4 in values array, column 5)
@@ -214,16 +221,20 @@ private slots:
         addDataPoint(model, 1000, v1);
         addDataPoint(model, 2000, v2);
 
-        QVariantMap bounds = model.getYBoundsForColumn(TimeSeriesChartModel::TemperatureColumn);
-        qreal yMin = bounds[QStringLiteral("yMin")].toReal();
-        qreal yMax = bounds[QStringLiteral("yMax")].toReal();
+        const QPointF bounds = model.getYBoundsForColumn(TimeSeriesChartModel::TemperatureColumn);
+        qreal yMin = model.getYMinForColumn(TimeSeriesChartModel::TemperatureColumn);
+        qreal yMax = model.getYMaxForColumn(TimeSeriesChartModel::TemperatureColumn);
 
         // 10% padding: range is 10, padding is 1
+        QVERIFY(qAbs(bounds.x() - 19.0) < 0.01);
+        QVERIFY(qAbs(bounds.y() - 31.0) < 0.01);
         QVERIFY(qAbs(yMin - 19.0) < 0.01);
         QVERIFY(qAbs(yMax - 31.0) < 0.01);
+        QVERIFY(qAbs(bounds.x() - yMin) < 0.01);
+        QVERIFY(qAbs(bounds.y() - yMax) < 0.01);
     }
 
-    void getYBoundsForColumn_allSameValue()
+    void getYMinMaxForColumn_allSameValue()
     {
         TimeSeriesChartModel model;
         qreal v1[9] = {0, 0, 0, 0, 25.0, 0, 0, 0, 0};
@@ -231,42 +242,110 @@ private slots:
         addDataPoint(model, 1000, v1);
         addDataPoint(model, 2000, v2);
 
-        QVariantMap bounds = model.getYBoundsForColumn(TimeSeriesChartModel::TemperatureColumn);
-        qreal yMin = bounds[QStringLiteral("yMin")].toReal();
-        qreal yMax = bounds[QStringLiteral("yMax")].toReal();
+        const QPointF bounds = model.getYBoundsForColumn(TimeSeriesChartModel::TemperatureColumn);
+        qreal yMin = model.getYMinForColumn(TimeSeriesChartModel::TemperatureColumn);
+        qreal yMax = model.getYMaxForColumn(TimeSeriesChartModel::TemperatureColumn);
 
         // When all values are the same, should have min-1 to max+1
+        QVERIFY(qAbs(bounds.x() - 24.0) < 0.01);
+        QVERIFY(qAbs(bounds.y() - 26.0) < 0.01);
         QVERIFY(qAbs(yMin - 24.0) < 0.01);
         QVERIFY(qAbs(yMax - 26.0) < 0.01);
+        QVERIFY(qAbs(bounds.x() - yMin) < 0.01);
+        QVERIFY(qAbs(bounds.y() - yMax) < 0.01);
     }
 
-    void updateYBoundsForColumn_valid()
+    void getYBoundsForColumn_updatesAfterDirectAppend()
     {
         TimeSeriesChartModel model;
-        qreal v1[9] = {0, 0, 0, 0, 20.0, 0, 0, 0, 0};
-        qreal v2[9] = {0, 0, 0, 0, 30.0, 0, 0, 0, 0};
+        qreal first[9] = {0, 0, 0, 0, 20.0, 0, 0, 0, 0};
+        qreal second[9] = {0, 0, 0, 0, 40.0, 0, 0, 0, 0};
+
+        addDataPoint(model, 1000, first);
+        QPointF initialBounds = model.getYBoundsForColumn(TimeSeriesChartModel::TemperatureColumn);
+        QVERIFY(qAbs(initialBounds.x() - 19.0) < 0.01);
+        QVERIFY(qAbs(initialBounds.y() - 21.0) < 0.01);
+
+        addDataPoint(model, 2000, second);
+        QPointF updatedBounds = model.getYBoundsForColumn(TimeSeriesChartModel::TemperatureColumn);
+        QVERIFY(qAbs(updatedBounds.x() - 18.0) < 0.01);
+        QVERIFY(qAbs(updatedBounds.y() - 42.0) < 0.01);
+    }
+
+    void setActiveColumn_valid_emitsSignalsAndUpdatesBounds()
+    {
+        TimeSeriesChartModel model;
+        qreal v1[9] = {0, 0, 0, 0, 20.0, 50.0, 0, 0, 0};
+        qreal v2[9] = {0, 0, 0, 0, 30.0, 60.0, 0, 0, 0};
         addDataPoint(model, 1000, v1);
         addDataPoint(model, 2000, v2);
 
-        QSignalSpy spy(&model, &TimeSeriesChartModel::boundsChanged);
-        model.updateYBoundsForColumn(TimeSeriesChartModel::TemperatureColumn);
+        QSignalSpy activeColumnSpy(&model, &TimeSeriesChartModel::activeColumnChanged);
+        QSignalSpy boundsSpy(&model, &TimeSeriesChartModel::boundsChanged);
 
-        QCOMPARE(spy.count(), 1);
-        // yMin/yMax should be updated with 10% padding
-        QVERIFY(qAbs(model.yMin() - 19.0) < 0.01);
-        QVERIFY(qAbs(model.yMax() - 31.0) < 0.01);
+        // Default is TemperatureColumn (5), switch to HumidityColumn (6)
+        model.setActiveColumn(TimeSeriesChartModel::HumidityColumn);
+
+        QCOMPARE(activeColumnSpy.count(), 1);
+        QCOMPARE(boundsSpy.count(), 1);
+        // Y bounds should reflect humidity column with 10% padding
+        // Range 50-60, padding=1 → 49.0 to 61.0
+        QVERIFY(qAbs(model.yMin() - 49.0) < 0.01);
+        QVERIFY(qAbs(model.yMax() - 61.0) < 0.01);
     }
 
-    void updateYBoundsForColumn_invalidColumn()
+    void setActiveColumn_sameColumn_noOp()
     {
         TimeSeriesChartModel model;
         addSimpleDataPoint(model, 1000, 22.5);
 
-        QSignalSpy spy(&model, &TimeSeriesChartModel::boundsChanged);
-        model.updateYBoundsForColumn(0);   // Timestamp column - invalid
-        model.updateYBoundsForColumn(10);  // Out of range
+        QSignalSpy activeColumnSpy(&model, &TimeSeriesChartModel::activeColumnChanged);
+        QSignalSpy boundsSpy(&model, &TimeSeriesChartModel::boundsChanged);
 
-        QCOMPARE(spy.count(), 0);
+        // Default is TemperatureColumn (5), set same value
+        model.setActiveColumn(TimeSeriesChartModel::TemperatureColumn);
+
+        QCOMPARE(activeColumnSpy.count(), 0);
+        QCOMPARE(boundsSpy.count(), 0);
+    }
+
+    void setActiveColumn_invalidColumn_noOp()
+    {
+        TimeSeriesChartModel model;
+        addSimpleDataPoint(model, 1000, 22.5);
+
+        QSignalSpy activeColumnSpy(&model, &TimeSeriesChartModel::activeColumnChanged);
+        QSignalSpy boundsSpy(&model, &TimeSeriesChartModel::boundsChanged);
+
+        model.setActiveColumn(0);   // TimestampColumn — invalid
+        model.setActiveColumn(10);  // Out of range
+
+        QCOMPARE(activeColumnSpy.count(), 0);
+        QCOMPARE(boundsSpy.count(), 0);
+    }
+
+    void setActiveColumn_updatesActiveColumnGetter()
+    {
+        TimeSeriesChartModel model;
+        QCOMPARE(model.activeColumn(), TimeSeriesChartModel::TemperatureColumn);
+
+        model.setActiveColumn(TimeSeriesChartModel::Co2Column);
+        QCOMPARE(model.activeColumn(), TimeSeriesChartModel::Co2Column);
+    }
+
+    void setActiveColumn_boundsCoherentDuringSignal()
+    {
+        TimeSeriesChartModel model;
+        qreal v[9] = {0, 0, 0, 0, 20.0, 50.0, 0, 0, 0};
+        addDataPoint(model, 1000, v);
+
+        qreal capturedYMin = -1.0;
+        connect(&model, &TimeSeriesChartModel::activeColumnChanged, [&]() {
+            capturedYMin = model.yMin();  // must see humidity bounds, not stale temp
+        });
+
+        model.setActiveColumn(TimeSeriesChartModel::HumidityColumn);
+        QVERIFY(qAbs(capturedYMin - 49.0) < 0.01);
     }
 
     void calculateBounds_xMinMax()
@@ -290,7 +369,7 @@ private slots:
         QCOMPARE(model.xMin(), 0.0);
         QCOMPARE(model.xMax(), 0.0);
         QCOMPARE(model.yMin(), 0.0);
-        QCOMPARE(model.yMax(), 0.0);
+        QCOMPARE(model.yMax(), 100.0);
     }
 
     void calculateBounds_setsActiveColumnBounds()
@@ -309,31 +388,6 @@ private slots:
         // Y bounds for temperature with 10% padding
         QVERIFY(qAbs(model.yMin() - 19.0) < 0.01);
         QVERIFY(qAbs(model.yMax() - 31.0) < 0.01);
-    }
-
-    void calculateYBoundsForColumn_flatValues()
-    {
-        TimeSeriesChartModel model;
-        qreal v1[9] = {0, 0, 0, 0, 25.0, 0, 0, 0, 0};
-        qreal v2[9] = {0, 0, 0, 0, 25.0, 0, 0, 0, 0};
-        addDataPoint(model, 1000, v1);
-        addDataPoint(model, 2000, v2);
-
-        model.updateYBoundsForColumn(TimeSeriesChartModel::TemperatureColumn);
-
-        // All same values → ±1 fallback
-        QVERIFY(qAbs(model.yMin() - 24.0) < 0.01);
-        QVERIFY(qAbs(model.yMax() - 26.0) < 0.01);
-    }
-
-    void calculateYBoundsForColumn_emptyData()
-    {
-        TimeSeriesChartModel model;
-        model.updateYBoundsForColumn(TimeSeriesChartModel::TemperatureColumn);
-
-        // Empty data → yMin/yMax stay at 0
-        QCOMPARE(model.yMin(), 0.0);
-        QCOMPARE(model.yMax(), 0.0);
     }
 
     void qenum_accessible()

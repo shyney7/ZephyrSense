@@ -8,13 +8,13 @@
 #include <QVariantList>
 #include "sensorreading.h"
 
-class DatabaseManager : public QObject
+class DatabaseManager final : public QObject
 {
     Q_OBJECT
     QML_ELEMENT
     QML_SINGLETON
 
-    Q_PROPERTY(QString databasePath READ databasePath CONSTANT)
+    Q_PROPERTY(QString databasePath READ databasePath CONSTANT FINAL)
 
 public:
     explicit DatabaseManager(QObject *parent = nullptr);

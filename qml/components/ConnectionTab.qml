@@ -1,5 +1,7 @@
 pragma ComponentBehavior: Bound
 pragma FunctionSignatureBehavior: Enforced
+pragma NativeMethodBehavior: AcceptThisObject
+pragma ValueTypeBehavior: Addressable
 
 import QtQuick
 import QtQuick.Controls
@@ -7,6 +9,10 @@ import QtQuick.Layouts
 import ZephyrSense
 
 Item {
+    id: connectionTabRoot
+
+    readonly property SerialHandler serialHandler: SerialHandler
+
     ScrollView {
         anchors.fill: parent
         anchors.margins: 16
@@ -40,15 +46,15 @@ Item {
                         ComboBox {
                             id: portComboBox
                             Layout.fillWidth: true
-                            model: SerialHandler.availablePorts
+                            model: connectionTabRoot.serialHandler.availablePorts
                             currentIndex: {
-                                var idx = SerialHandler.availablePorts.indexOf(SerialHandler.currentPort);
+                                var idx = connectionTabRoot.serialHandler.availablePorts.indexOf(connectionTabRoot.serialHandler.currentPort);
                                 return idx >= 0 ? idx : 0;
                             }
                         }
                         Button {
                             text: "Refresh"
-                            onClicked: SerialHandler.refreshPorts()
+                            onClicked: connectionTabRoot.serialHandler.refreshPorts()
                         }
                     }
 
@@ -64,11 +70,11 @@ Item {
                             Layout.fillWidth: true
                             model: [9600, 19200, 38400, 57600, 115200]
                             currentIndex: {
-                                var idx = model.indexOf(SerialHandler.baudRate);
+                                var idx = model.indexOf(connectionTabRoot.serialHandler.baudRate);
                                 return idx >= 0 ? idx : 4; // Default to 115200
                             }
                             onActivated: {
-                                SerialHandler.baudRate = model[currentIndex];
+                                connectionTabRoot.serialHandler.baudRate = model[currentIndex];
                             }
                         }
                     }
@@ -88,12 +94,12 @@ Item {
                             spacing: 4
 
                             Label {
-                                text: "Status: " + (SerialHandler.connected ? "Connected" : "Disconnected")
+                                text: "Status: " + (connectionTabRoot.serialHandler.connected ? "Connected" : "Disconnected")
                                 font.bold: true
-                                color: SerialHandler.connected ? "green" : "red"
+                                color: connectionTabRoot.serialHandler.connected ? "green" : "red"
                             }
                             Label {
-                                text: "Current Port: " + (SerialHandler.currentPort || "None")
+                                text: "Current Port: " + (connectionTabRoot.serialHandler.currentPort || "None")
                             }
                         }
                     }
@@ -105,30 +111,34 @@ Item {
 
                         Button {
                             text: "Connect"
-                            enabled: !SerialHandler.connected && portComboBox.currentText !== ""
+                            enabled: !connectionTabRoot.serialHandler.connected && portComboBox.currentText !== ""
                             highlighted: true
-                            onClicked: SerialHandler.openPort(portComboBox.currentText)
+                            onClicked: connectionTabRoot.serialHandler.openPort(portComboBox.currentText)
                         }
 
                         Button {
                             text: "Disconnect"
-                            enabled: SerialHandler.connected
-                            onClicked: SerialHandler.closePort()
+                            enabled: connectionTabRoot.serialHandler.connected
+                            onClicked: connectionTabRoot.serialHandler.closePort()
                         }
 
-                        Item { Layout.fillWidth: true }
+                        Item {
+                            Layout.fillWidth: true
+                        }
 
                         Button {
                             text: "Reset to Default (115200)"
                             onClicked: {
-                                SerialHandler.baudRate = 115200;
+                                connectionTabRoot.serialHandler.baudRate = 115200;
                             }
                         }
                     }
                 }
             }
 
-            Item { Layout.fillHeight: true }
+            Item {
+                Layout.fillHeight: true
+            }
         }
     }
 }

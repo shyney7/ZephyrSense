@@ -1,5 +1,7 @@
 pragma ComponentBehavior: Bound
 pragma FunctionSignatureBehavior: Enforced
+pragma NativeMethodBehavior: AcceptThisObject
+pragma ValueTypeBehavior: Addressable
 
 import QtQuick
 import QtQuick.Controls
@@ -8,9 +10,10 @@ import QtLocation as QtLoc
 import QtPositioning
 import ZephyrSense
 
-
 Item {
     id: mapViewRoot
+
+    readonly property DatabaseManager dbManager: DatabaseManager
 
     // Signal to request navigation to dashboard with specific reading
     signal showDashboardForReading(int readingId, sensorReading reading)
@@ -22,6 +25,9 @@ Item {
     }
     property int currentMode: MapView.VisualizationMode.Live
     property int updateIntervalMs: 2000  // Default 2 seconds for live mode
+    readonly property int defaultWindowIndex: 2
+    // Invariant: selectedWindowMinutes matches the preset minutes at defaultWindowIndex (2 => 60).
+    property int selectedWindowMinutes: 60
     property date historicalStart: new Date()
     property date historicalEnd: new Date()
     property list<string> availableDates: []
@@ -45,7 +51,7 @@ Item {
         }
 
         // Default view: Wuppertal, Germany
-        map.center: QtPositioning.coordinate(51.2562, 7.1508)
+        map.center: QtPositioning.coordinate(51.2562, 7.1508) // qmllint disable compiler
         map.zoomLevel: 10
 
         // Marker layer using MapItemView
@@ -59,7 +65,7 @@ Item {
                 // latitude, longitude, tooltipText, readingId
                 required property int index
 
-                onMarkerClicked: function (id) {
+                onMarkerClicked: function (id: int): void {
                     mapViewRoot.showDashboardForReading(id, sensorModel.readingAt(index));
                 }
             }
@@ -193,39 +199,41 @@ Item {
                 Repeater {
                     model: [
                         {
-                            text: "10m",
+                            label: "10m",
                             minutes: 10
                         },
                         {
-                            text: "30m",
+                            label: "30m",
                             minutes: 30
                         },
                         {
-                            text: "1h",
+                            label: "1h",
                             minutes: 60
                         },
                         {
-                            text: "6h",
+                            label: "6h",
                             minutes: 360
                         },
                         {
-                            text: "24h",
+                            label: "24h",
                             minutes: 1440
                         }
                     ]
 
                     Button {
-                        required property var modelData
+                        id: presetButton
                         required property int index
-                        property int minutes: modelData.minutes
+                        required property string label
+                        required property int minutes
 
-                        text: modelData.text
+                        text: presetButton.label
                         checkable: true
-                        checked: index === 2  // Default to 1h
+                        checked: presetButton.index === mapViewRoot.defaultWindowIndex
                         ButtonGroup.group: windowGroup
                         Layout.preferredWidth: 50
 
                         onClicked: {
+                            mapViewRoot.selectedWindowMinutes = presetButton.minutes;
                             // Clicking time window stays in current mode but reloads with new window
                             if (mapViewRoot.currentMode === MapView.VisualizationMode.Live) {
                                 mapViewRoot.switchToLiveMode(true);  // force reload with new window
@@ -248,34 +256,35 @@ Item {
                 Repeater {
                     model: [
                         {
-                            text: "Last 1h",
+                            label: "Last 1h",
                             preset: "1h"
                         },
                         {
-                            text: "Last 6h",
+                            label: "Last 6h",
                             preset: "6h"
                         },
                         {
-                            text: "Last 24h",
+                            label: "Last 24h",
                             preset: "24h"
                         },
                         {
-                            text: "Last 7d",
+                            label: "Last 7d",
                             preset: "7d"
                         },
                         {
-                            text: "Last 30d",
+                            label: "Last 30d",
                             preset: "30d"
                         }
                     ]
 
                     Button {
-                        required property var modelData
+                        required property string label
+                        required property string preset
 
-                        text: modelData.text
+                        text: label
                         Layout.preferredWidth: 80
 
-                        onClicked: mapViewRoot.loadPreset(modelData.preset)
+                        onClicked: mapViewRoot.loadPreset(preset)
                     }
                 }
 
@@ -293,7 +302,6 @@ Item {
                     onClicked: sensorModel.clear()
                 }
             }
-
         }
     }
 
@@ -326,7 +334,7 @@ Item {
                     Layout.fillWidth: true
                     availableDates: mapViewRoot.availableDates
 
-                    onDateTimeChanged: function(dt) {
+                    onDateTimeChanged: function (dt: date): void {
                         mapViewRoot.historicalStart = dt;
                     }
                 }
@@ -337,19 +345,23 @@ Item {
                     Layout.fillWidth: true
                     availableDates: mapViewRoot.availableDates
 
-                    onDateTimeChanged: function(dt) {
+                    onDateTimeChanged: function (dt: date): void {
                         mapViewRoot.historicalEnd = dt;
                     }
                 }
             }
 
-            Item { Layout.fillHeight: true }
+            Item {
+                Layout.fillHeight: true
+            }
 
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 8
 
-                Item { Layout.fillWidth: true }
+                Item {
+                    Layout.fillWidth: true
+                }
 
                 Button {
                     text: "Cancel"
@@ -370,19 +382,12 @@ Item {
 
     // Helper functions
     function getWindowMinutes(): int {
-        var windowMinutes = 60;  // Default
-        for (var i = 0; i < windowGroup.buttons.length; i++) {
-            if (windowGroup.buttons[i].checked) {
-                windowMinutes = windowGroup.buttons[i].minutes;
-                break;
-            }
-        }
-        return windowMinutes;
+        return mapViewRoot.selectedWindowMinutes;
     }
 
     function switchToLiveMode(forceReload: bool): void {
-        var wasLive = (currentMode === MapView.VisualizationMode.Live);
-        currentMode = MapView.VisualizationMode.Live;
+        var wasLive = (mapViewRoot.currentMode === MapView.VisualizationMode.Live);
+        mapViewRoot.currentMode = MapView.VisualizationMode.Live;
 
         // If already in live mode and not forcing reload, just restart timer
         if (wasLive && !forceReload) {
@@ -391,7 +396,7 @@ Item {
         }
 
         // Load initial data from database for the time window
-        var windowMinutes = getWindowMinutes();
+        var windowMinutes = mapViewRoot.getWindowMinutes();
         var now = new Date();
         var start = new Date(now.getTime() - windowMinutes * 60 * 1000);
         sensorModel.loadFromDatabase(start, now);
@@ -402,16 +407,16 @@ Item {
     }
 
     function switchToHistoricalMode(): void {
-        currentMode = MapView.VisualizationMode.Historical;
+        mapViewRoot.currentMode = MapView.VisualizationMode.Historical;
         liveUpdateTimer.stop();
         sensorModel.stopLiveUpdates();
         sensorModel.loadFromDatabase(mapViewRoot.historicalStart, mapViewRoot.historicalEnd);
-        centerOnData();
+        mapViewRoot.centerOnData();
     }
 
     function loadLiveData(): void {
         // Initial load when starting live mode
-        var windowMinutes = getWindowMinutes();
+        var windowMinutes = mapViewRoot.getWindowMinutes();
         var now = new Date();
         var start = new Date(now.getTime() - windowMinutes * 60 * 1000);
         sensorModel.loadFromDatabase(start, now);
@@ -440,24 +445,24 @@ Item {
         }
         mapViewRoot.historicalStart = start;
         mapViewRoot.historicalEnd = now;
-        switchToHistoricalMode();
+        mapViewRoot.switchToHistoricalMode();
     }
 
     function centerOnData(): void {
         if (sensorModel.count > 0) {
             var first = sensorModel.getReading(0);
-            mapView.map.center = QtPositioning.coordinate(first.latitude, first.longitude);
+            mapView.map.center = QtPositioning.coordinate(first.latitude, first.longitude); // qmllint disable compiler
         }
     }
 
     function refreshAvailableDates(): void {
-        availableDates = DatabaseManager.getAvailableDates();
+        mapViewRoot.availableDates = mapViewRoot.dbManager.getAvailableDates();
     }
 
     Component.onCompleted: {
-        refreshAvailableDates();
+        mapViewRoot.refreshAvailableDates();
         // Start in live mode
-        currentMode = MapView.VisualizationMode.Live;
-        loadLiveData();
+        mapViewRoot.currentMode = MapView.VisualizationMode.Live;
+        mapViewRoot.loadLiveData();
     }
 }
