@@ -30,33 +30,32 @@ TestCase {
                 "Failed to load: " + chartComponent.errorString())
     }
 
-    function test_initialBoundsUseCombinedGetter(): void {
+    function test_initialBoundsFromColumnBounds(): void {
         const chart = createTemporaryObject(chartComponent, testCase, {
             "chartModel": chartModel,
-            "sensorColumn": 5
+            "sensorColumn": 5,
+            "columnBounds": Qt.binding(function() { return chartModel.boundsCol5 })
         })
         verify(chart)
         waitForRendering(chart)
 
         compare(chart.localYMin, 10.0)
         compare(chart.localYMax, 20.0)
-        compare(chartModel.boundsCallCount, 1)
     }
 
-    function test_boundsChangedRecomputesOnce(): void {
+    function test_boundsChangedUpdatesThroughBinding(): void {
         const chart = createTemporaryObject(chartComponent, testCase, {
             "chartModel": chartModel,
-            "sensorColumn": 5
+            "sensorColumn": 5,
+            "columnBounds": Qt.binding(function() { return chartModel.boundsCol5 })
         })
         verify(chart)
         waitForRendering(chart)
 
-        const callsBefore = chartModel.boundsCallCount
         chartModel.setBoundsForColumn(5, 11.5, 23.5)
         chartModel.emitBoundsChanged()
 
         tryCompare(chart, "localYMin", 11.5, 500)
         tryCompare(chart, "localYMax", 23.5, 500)
-        compare(chartModel.boundsCallCount, callsBefore + 1)
     }
 }

@@ -108,13 +108,25 @@ void TimeSeriesChartModel::clear()
     m_xMin = 0;
     m_xMax = 0;
     m_yMin = 0;
-    m_yMax = 0;
+    m_yMax = 100;
     invalidateBoundsCache();
 
     endResetModel();
 
     emit boundsChanged();
     emit dataCountChanged();
+}
+
+void TimeSeriesChartModel::setActiveColumn(int column)
+{
+    if (column < PartectorNumberColumn || column >= ColumnCount)
+        return;
+    if (m_activeColumn == column)
+        return;
+    m_activeColumn = column;
+    emit activeColumnChanged();
+    calculateYBoundsForColumn(column);
+    emit boundsChanged();
 }
 
 void TimeSeriesChartModel::updateYBoundsForColumn(int column)
@@ -151,7 +163,7 @@ void TimeSeriesChartModel::calculateBounds()
         m_xMin = 0;
         m_xMax = 0;
         m_yMin = 0;
-        m_yMax = 0;
+        m_yMax = 100;
         return;
     }
 
@@ -167,7 +179,7 @@ void TimeSeriesChartModel::calculateYBoundsForColumn(int column)
 {
     if (m_data.isEmpty()) {
         m_yMin = 0;
-        m_yMax = 0;
+        m_yMax = 100;
         return;
     }
 

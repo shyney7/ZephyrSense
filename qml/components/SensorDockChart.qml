@@ -57,10 +57,10 @@ Item {
         "ppm"
     ]
 
-    // Per-chart Y-bounds (local, not shared)
-    property point localBounds: Qt.point(0, 100)
-    property real localYMin: chartView.localBounds.x
-    property real localYMax: chartView.localBounds.y
+    // Per-chart Y-bounds driven by parent binding (e.g. chartModel.boundsColN)
+    required property point columnBounds
+    property real localYMin: chartView.columnBounds.x
+    property real localYMax: chartView.columnBounds.y
 
     XYModelMapper {
         model: chartView.chartModel
@@ -118,16 +118,4 @@ Item {
         }
     }
 
-    function updateLocalBounds(): void {
-        if (chartView.chartModel) {
-            chartView.localBounds = chartView.chartModel.getYBoundsForColumn(chartView.sensorColumn)
-        }
-    }
-
-    Connections {
-        target: chartView.chartModel
-        function onBoundsChanged(): void { chartView.updateLocalBounds() }
-    }
-
-    Component.onCompleted: chartView.updateLocalBounds()
 }

@@ -112,6 +112,17 @@ class MockTimeSeriesChartModel : public QAbstractTableModel
     Q_PROPERTY(qreal yMax READ yMax NOTIFY boundsChanged FINAL)
     Q_PROPERTY(int dataCount READ dataCount NOTIFY dataCountChanged FINAL)
     Q_PROPERTY(int boundsCallCount READ boundsCallCount NOTIFY boundsCallCountChanged FINAL)
+    Q_PROPERTY(int activeColumn READ activeColumn WRITE setActiveColumn NOTIFY activeColumnChanged FINAL)
+
+    Q_PROPERTY(QPointF boundsCol1 READ boundsCol1 NOTIFY boundsChanged FINAL)
+    Q_PROPERTY(QPointF boundsCol2 READ boundsCol2 NOTIFY boundsChanged FINAL)
+    Q_PROPERTY(QPointF boundsCol3 READ boundsCol3 NOTIFY boundsChanged FINAL)
+    Q_PROPERTY(QPointF boundsCol4 READ boundsCol4 NOTIFY boundsChanged FINAL)
+    Q_PROPERTY(QPointF boundsCol5 READ boundsCol5 NOTIFY boundsChanged FINAL)
+    Q_PROPERTY(QPointF boundsCol6 READ boundsCol6 NOTIFY boundsChanged FINAL)
+    Q_PROPERTY(QPointF boundsCol7 READ boundsCol7 NOTIFY boundsChanged FINAL)
+    Q_PROPERTY(QPointF boundsCol8 READ boundsCol8 NOTIFY boundsChanged FINAL)
+    Q_PROPERTY(QPointF boundsCol9 READ boundsCol9 NOTIFY boundsChanged FINAL)
 
 public:
     explicit MockTimeSeriesChartModel(QObject *parent = nullptr)
@@ -186,14 +197,35 @@ public:
     qreal yMax() const { return 100.0; }
     int dataCount() const { return 0; }
 
+    int activeColumn() const { return m_activeColumn; }
+    void setActiveColumn(int c)
+    {
+        if (m_activeColumn == c)
+            return;
+        m_activeColumn = c;
+        emit activeColumnChanged();
+    }
+
+    QPointF boundsCol1() const { return m_bounds[0]; }
+    QPointF boundsCol2() const { return m_bounds[1]; }
+    QPointF boundsCol3() const { return m_bounds[2]; }
+    QPointF boundsCol4() const { return m_bounds[3]; }
+    QPointF boundsCol5() const { return m_bounds[4]; }
+    QPointF boundsCol6() const { return m_bounds[5]; }
+    QPointF boundsCol7() const { return m_bounds[6]; }
+    QPointF boundsCol8() const { return m_bounds[7]; }
+    QPointF boundsCol9() const { return m_bounds[8]; }
+
 signals:
     void boundsChanged();
     void dataCountChanged();
     void boundsCallCountChanged();
+    void activeColumnChanged();
 
 private:
     std::array<QPointF, 9> m_bounds{};
     int m_boundsCallCount = 0;
+    int m_activeColumn = 5;
     qreal m_xMin = 0.0;
     qreal m_xMax = 0.0;
 };

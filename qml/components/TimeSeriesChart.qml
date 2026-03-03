@@ -98,7 +98,14 @@ Item {
     // Update Y bounds when active column changes
     onActiveColumnChanged: {
         if (chartView.chartModel) {
-            chartView.chartModel.updateYBoundsForColumn(chartView.activeColumn)
+            chartView.chartModel.activeColumn = chartView.activeColumn
+        }
+    }
+
+    // Sync active column when chartModel is first assigned
+    onChartModelChanged: {
+        if (chartView.chartModel) {
+            chartView.chartModel.activeColumn = chartView.activeColumn
         }
     }
 }

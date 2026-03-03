@@ -180,6 +180,7 @@ Item {
                 SensorDockChart {
                     chartModel: chartModel
                     sensorColumn: 1
+                    columnBounds: chartModel.boundsCol1
                 }
             }
 
@@ -191,6 +192,7 @@ Item {
                 SensorDockChart {
                     chartModel: chartModel
                     sensorColumn: 2
+                    columnBounds: chartModel.boundsCol2
                 }
             }
 
@@ -202,6 +204,7 @@ Item {
                 SensorDockChart {
                     chartModel: chartModel
                     sensorColumn: 3
+                    columnBounds: chartModel.boundsCol3
                 }
             }
 
@@ -213,6 +216,7 @@ Item {
                 SensorDockChart {
                     chartModel: chartModel
                     sensorColumn: 4
+                    columnBounds: chartModel.boundsCol4
                 }
             }
 
@@ -224,6 +228,7 @@ Item {
                 SensorDockChart {
                     chartModel: chartModel
                     sensorColumn: 5
+                    columnBounds: chartModel.boundsCol5
                 }
             }
 
@@ -235,6 +240,7 @@ Item {
                 SensorDockChart {
                     chartModel: chartModel
                     sensorColumn: 6
+                    columnBounds: chartModel.boundsCol6
                 }
             }
 
@@ -246,6 +252,7 @@ Item {
                 SensorDockChart {
                     chartModel: chartModel
                     sensorColumn: 7
+                    columnBounds: chartModel.boundsCol7
                 }
             }
 
@@ -257,6 +264,7 @@ Item {
                 SensorDockChart {
                     chartModel: chartModel
                     sensorColumn: 8
+                    columnBounds: chartModel.boundsCol8
                 }
             }
 
@@ -268,6 +276,7 @@ Item {
                 SensorDockChart {
                     chartModel: chartModel
                     sensorColumn: 9
+                    columnBounds: chartModel.boundsCol9
                 }
             }
 

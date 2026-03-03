@@ -63,7 +63,7 @@ private slots:
         QCOMPARE(model.xMin(), 0.0);
         QCOMPARE(model.xMax(), 0.0);
         QCOMPARE(model.yMin(), 0.0);
-        QCOMPARE(model.yMax(), 0.0);
+        QCOMPARE(model.yMax(), 100.0);
         QCOMPARE(model.dataCount(), 0);
     }
 
@@ -167,7 +167,7 @@ private slots:
         QCOMPARE(model.xMin(), 0.0);
         QCOMPARE(model.xMax(), 0.0);
         QCOMPARE(model.yMin(), 0.0);
-        QCOMPARE(model.yMax(), 0.0);
+        QCOMPARE(model.yMax(), 100.0);
     }
 
     void clear_emitsSignals()
@@ -301,6 +301,67 @@ private slots:
         QCOMPARE(spy.count(), 0);
     }
 
+    void setActiveColumn_valid_emitsSignalsAndUpdatesBounds()
+    {
+        TimeSeriesChartModel model;
+        qreal v1[9] = {0, 0, 0, 0, 20.0, 50.0, 0, 0, 0};
+        qreal v2[9] = {0, 0, 0, 0, 30.0, 60.0, 0, 0, 0};
+        addDataPoint(model, 1000, v1);
+        addDataPoint(model, 2000, v2);
+
+        QSignalSpy activeColumnSpy(&model, &TimeSeriesChartModel::activeColumnChanged);
+        QSignalSpy boundsSpy(&model, &TimeSeriesChartModel::boundsChanged);
+
+        // Default is TemperatureColumn (5), switch to HumidityColumn (6)
+        model.setActiveColumn(TimeSeriesChartModel::HumidityColumn);
+
+        QCOMPARE(activeColumnSpy.count(), 1);
+        QCOMPARE(boundsSpy.count(), 1);
+        // Y bounds should reflect humidity column with 10% padding
+        // Range 50-60, padding=1 → 49.0 to 61.0
+        QVERIFY(qAbs(model.yMin() - 49.0) < 0.01);
+        QVERIFY(qAbs(model.yMax() - 61.0) < 0.01);
+    }
+
+    void setActiveColumn_sameColumn_noOp()
+    {
+        TimeSeriesChartModel model;
+        addSimpleDataPoint(model, 1000, 22.5);
+
+        QSignalSpy activeColumnSpy(&model, &TimeSeriesChartModel::activeColumnChanged);
+        QSignalSpy boundsSpy(&model, &TimeSeriesChartModel::boundsChanged);
+
+        // Default is TemperatureColumn (5), set same value
+        model.setActiveColumn(TimeSeriesChartModel::TemperatureColumn);
+
+        QCOMPARE(activeColumnSpy.count(), 0);
+        QCOMPARE(boundsSpy.count(), 0);
+    }
+
+    void setActiveColumn_invalidColumn_noOp()
+    {
+        TimeSeriesChartModel model;
+        addSimpleDataPoint(model, 1000, 22.5);
+
+        QSignalSpy activeColumnSpy(&model, &TimeSeriesChartModel::activeColumnChanged);
+        QSignalSpy boundsSpy(&model, &TimeSeriesChartModel::boundsChanged);
+
+        model.setActiveColumn(0);   // TimestampColumn — invalid
+        model.setActiveColumn(10);  // Out of range
+
+        QCOMPARE(activeColumnSpy.count(), 0);
+        QCOMPARE(boundsSpy.count(), 0);
+    }
+
+    void setActiveColumn_updatesActiveColumnGetter()
+    {
+        TimeSeriesChartModel model;
+        QCOMPARE(model.activeColumn(), TimeSeriesChartModel::TemperatureColumn);
+
+        model.setActiveColumn(TimeSeriesChartModel::Co2Column);
+        QCOMPARE(model.activeColumn(), TimeSeriesChartModel::Co2Column);
+    }
+
     void calculateBounds_xMinMax()
     {
         TimeSeriesChartModel model;
@@ -322,7 +383,7 @@ private slots:
         QCOMPARE(model.xMin(), 0.0);
         QCOMPARE(model.xMax(), 0.0);
         QCOMPARE(model.yMin(), 0.0);
-        QCOMPARE(model.yMax(), 0.0);
+        QCOMPARE(model.yMax(), 100.0);
     }
 
     void calculateBounds_setsActiveColumnBounds()
@@ -363,9 +424,9 @@ private slots:
         TimeSeriesChartModel model;
         model.updateYBoundsForColumn(TimeSeriesChartModel::TemperatureColumn);
 
-        // Empty data → yMin/yMax stay at 0
+        // Empty data → sane default range consistent with boundsForColumn()
         QCOMPARE(model.yMin(), 0.0);
-        QCOMPARE(model.yMax(), 0.0);
+        QCOMPARE(model.yMax(), 100.0);
     }
 
     void qenum_accessible()

@@ -4,9 +4,7 @@
 #include <QAbstractListModel>
 #include <QQmlEngine>
 #include <QDateTime>
-#include "coordinatevalidator.h"
 #include "sensorreading.h"
-#include "thresholdmanager.h"
 
 class SensorReadingModel : public QAbstractListModel
 {

@@ -1,7 +1,8 @@
 #include "sensorreadingmodel.h"
+#include "coordinatevalidator.h"
 #include "databasemanager.h"
-#include "thresholdmanager.h"
 #include "serialhandler.h"
+#include "thresholdmanager.h"
 #include <QDateTime>
 
 SensorReadingModel::SensorReadingModel(QObject *parent)
