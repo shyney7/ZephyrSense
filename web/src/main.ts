@@ -5,6 +5,7 @@ import {
   Viewer,
   Ion,
   createWorldTerrainAsync,
+  EllipsoidTerrainProvider,
   ScreenSpaceEventHandler,
   ScreenSpaceEventType,
   defined,
@@ -30,8 +31,16 @@ async function init(): Promise<void> {
     console.warn("Running without Qt bridge:", err);
   }
 
+  let terrainProvider;
+  try {
+    terrainProvider = await createWorldTerrainAsync();
+  } catch (err) {
+    console.warn("World terrain unavailable, falling back to ellipsoid:", err);
+    terrainProvider = new EllipsoidTerrainProvider();
+  }
+
   const viewer = new Viewer("cesiumContainer", {
-    terrainProvider: await createWorldTerrainAsync(),
+    terrainProvider,
     animation: true,
     timeline: true,
     baseLayerPicker: false,
@@ -76,8 +85,13 @@ async function init(): Promise<void> {
 
   // Wire bridge signals if connected
   if (bridge) {
-    bridge.cesiumTokenChanged.connect(() => {
+    bridge.cesiumTokenChanged.connect(async () => {
       Ion.defaultAccessToken = bridge!.cesiumToken;
+      try {
+        viewer.terrainProvider = await createWorldTerrainAsync();
+      } catch {
+        /* stay on current provider */
+      }
     });
 
     bridge.czmlReady.connect((czmlJson: string, requestId: number) => {

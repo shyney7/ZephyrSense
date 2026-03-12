@@ -17,11 +17,9 @@ CesiumWorker::CesiumWorker(QObject *parent)
 CesiumWorker::~CesiumWorker()
 {
     if (QSqlDatabase::contains(CONNECTION_NAME)) {
-        {
-            QSqlDatabase db = QSqlDatabase::database(CONNECTION_NAME);
-            if (db.isOpen())
-                db.close();
-        }
+        if (m_db.isOpen())
+            m_db.close();
+        m_db = QSqlDatabase();
         QSqlDatabase::removeDatabase(CONNECTION_NAME);
     }
 }

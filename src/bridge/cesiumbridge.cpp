@@ -35,7 +35,7 @@ CesiumBridge::CesiumBridge(QObject *parent)
 
     connect(m_workerThread, &QThread::started, m_worker, [this]() {
         const QString dbPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)
-                               + QStringLiteral("/ZephyrSense.db");
+                               + QStringLiteral("/zephyrsense.db");
         m_worker->initialize(dbPath);
     });
     connect(m_workerThread, &QThread::finished, m_worker, &QObject::deleteLater);

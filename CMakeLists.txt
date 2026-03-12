@@ -199,24 +199,22 @@ if(NOT WEBDEV_MODE)
     set(WEB_DIST_DIR "${WEB_DIR}/dist")
 
     # Build web assets at configure time so file list is available for qt_add_resources
-    if(NOT EXISTS "${WEB_DIST_DIR}/index.html")
-        message(STATUS "Web dist not found — running npm install && npm run build...")
-        execute_process(
-            COMMAND npm install
-            WORKING_DIRECTORY "${WEB_DIR}"
-            RESULT_VARIABLE NPM_INSTALL_RESULT
-        )
-        if(NOT NPM_INSTALL_RESULT EQUAL 0)
-            message(FATAL_ERROR "npm install failed (exit code ${NPM_INSTALL_RESULT})")
-        endif()
-        execute_process(
-            COMMAND npm run build
-            WORKING_DIRECTORY "${WEB_DIR}"
-            RESULT_VARIABLE NPM_BUILD_RESULT
-        )
-        if(NOT NPM_BUILD_RESULT EQUAL 0)
-            message(FATAL_ERROR "npm run build failed (exit code ${NPM_BUILD_RESULT})")
-        endif()
+    message(STATUS "Building web assets (npm install && npm run build)...")
+    execute_process(
+        COMMAND npm install
+        WORKING_DIRECTORY "${WEB_DIR}"
+        RESULT_VARIABLE NPM_INSTALL_RESULT
+    )
+    if(NOT NPM_INSTALL_RESULT EQUAL 0)
+        message(FATAL_ERROR "npm install failed (exit code ${NPM_INSTALL_RESULT})")
+    endif()
+    execute_process(
+        COMMAND npm run build
+        WORKING_DIRECTORY "${WEB_DIR}"
+        RESULT_VARIABLE NPM_BUILD_RESULT
+    )
+    if(NOT NPM_BUILD_RESULT EQUAL 0)
+        message(FATAL_ERROR "npm run build failed (exit code ${NPM_BUILD_RESULT})")
     endif()
 
     # Collect all built web files for resource embedding

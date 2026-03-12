@@ -7,6 +7,8 @@
 #include <QDebug>
 #include <QLoggingCategory>
 
+#include <algorithm>
+
 #include "src/core/sensorreading.h"
 #include "src/data/databasemanager.h"
 #include "src/data/csvexporter.h"
@@ -46,6 +48,9 @@ int main(int argc, char *argv[])
     qputenv("QSG_RHI_BACKEND", "d3d11");
 #endif
 
+    // DevTools port for WebEngine debugging (localhost:9222). Intentionally unconditional
+    // in debug builds — this is a local developer tool, not distributed, and the port
+    // is only accessible from localhost.
 #ifdef QT_DEBUG
     qputenv("QTWEBENGINE_REMOTE_DEBUGGING", "9222");
 #endif

@@ -399,8 +399,15 @@ Item {
     // Token setup popup (shown on first launch when no Cesium Ion token is configured)
     TokenSetupPopup {
         id: tokenSetupPopup
+    }
 
-        onTokenSaved: cesiumView.reload()
+    // Reload 3D globe when a Cesium Ion token is validated and saved
+    // (handles both TokenSetupPopup and Settings > DisplayTab paths)
+    Connections {
+        target: CesiumBridge
+        function onTokenValidationSucceeded(): void {
+            cesiumView.reload()
+        }
     }
 
     // Custom date range popup
@@ -526,15 +533,6 @@ Item {
         );
     }
 
-    function loadLiveData(): void {
-        // Initial load when starting live mode
-        var windowMinutes = mapViewRoot.getWindowMinutes();
-        var now = new Date();
-        var start = new Date(now.getTime() - windowMinutes * 60 * 1000);
-        sensorModel.loadFromDatabase(start, now);
-        sensorModel.startLiveUpdates();
-    }
-
     function loadPreset(preset: string): void {
         var now = new Date();
         var start;
@@ -573,9 +571,7 @@ Item {
 
     Component.onCompleted: {
         mapViewRoot.refreshAvailableDates();
-        // Start in live mode
-        mapViewRoot.currentMode = MapView.VisualizationMode.Live;
-        mapViewRoot.loadLiveData();
+        mapViewRoot.switchToLiveMode(true);
 
         // Show token setup popup if no Cesium Ion token is configured
         if (CesiumBridge.cesiumToken === "")

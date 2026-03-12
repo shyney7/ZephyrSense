@@ -16,6 +16,11 @@ TestCase {
     when: windowShown
 
     Component {
+        id: signalSpyComponent
+        SignalSpy {}
+    }
+
+    Component {
         id: popupComponent
 
         Popup {
@@ -125,8 +130,7 @@ TestCase {
         popup.open()
         waitForRendering(testCase)
 
-        var savedSpy = createTemporaryObject(
-            Qt.createComponent("QtTest", "SignalSpy"), testCase,
+        var savedSpy = createTemporaryObject(signalSpyComponent, testCase,
             { target: popup, signalName: "tokenSaved" })
 
         popup.tokenInput.text = "valid-token-abc"
