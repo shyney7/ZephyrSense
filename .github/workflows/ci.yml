@@ -268,7 +268,7 @@ jobs:
       - name: Install clazy build dependencies
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y ninja-build clang-18 llvm-18-dev libclang-18-dev
+          sudo apt-get install -y ninja-build clang-19 llvm-19-dev libclang-19-dev
 
       - name: Resolve latest clazy tag
         id: clazy-tag
@@ -283,14 +283,14 @@ jobs:
         uses: actions/cache@v4
         with:
           path: /opt/clazy
-          key: clazy-clang18-${{ runner.os }}-${{ steps.clazy-tag.outputs.tag }}
+          key: clazy-clang19-${{ runner.os }}-${{ steps.clazy-tag.outputs.tag }}
 
       - name: Build clazy from source
         if: steps.cache-clazy.outputs.cache-hit != 'true'
         run: |
           git clone https://github.com/KDE/clazy.git --depth 1 --branch ${{ steps.clazy-tag.outputs.tag }}
           cmake -B clazy-build -S clazy -GNinja -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_INSTALL_PREFIX=/opt/clazy -DLLVM_ROOT=/usr/lib/llvm-18
+            -DCMAKE_INSTALL_PREFIX=/opt/clazy -DLLVM_ROOT=/usr/lib/llvm-19
           cmake --build clazy-build -j$(nproc)
           sudo cmake --install clazy-build
 
@@ -302,7 +302,7 @@ jobs:
           cmake -B build -GNinja
           -DCMAKE_BUILD_TYPE=Debug
           -DCMAKE_CXX_COMPILER=clazy
-          -DCMAKE_C_COMPILER=clang-18
+          -DCMAKE_C_COMPILER=clang-19
 
       - name: Build with clazy
         env:
