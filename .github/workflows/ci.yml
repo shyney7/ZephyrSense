@@ -265,24 +265,48 @@ jobs:
           modules: qtserialport qtlocation qtpositioning qtgraphs qtquick3d qtshadertools qtwebengine qtwebchannel
           cache: true
 
-      - name: Install clazy and Ninja
+      - name: Install clazy build dependencies
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y clazy ninja-build
+          sudo apt-get install -y ninja-build clang-18 llvm-18-dev libclang-18-dev
+
+      - name: Resolve latest clazy tag
+        id: clazy-tag
+        run: |
+          TAG=$(curl -s "https://api.github.com/repos/KDE/clazy/tags?per_page=1" \
+            | grep '"name"' | head -1 | sed 's/.*"name": *"\(.*\)".*/\1/')
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Using clazy tag: $TAG"
+
+      - name: Cache clazy
+        id: cache-clazy
+        uses: actions/cache@v4
+        with:
+          path: /opt/clazy
+          key: clazy-clang18-${{ runner.os }}-${{ steps.clazy-tag.outputs.tag }}
+
+      - name: Build clazy from source
+        if: steps.cache-clazy.outputs.cache-hit != 'true'
+        run: |
+          git clone https://github.com/KDE/clazy.git --depth 1 --branch ${{ steps.clazy-tag.outputs.tag }}
+          cmake -B clazy-build -S clazy -GNinja -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=/opt/clazy -DLLVM_ROOT=/usr/lib/llvm-18
+          cmake --build clazy-build -j$(nproc)
+          sudo cmake --install clazy-build
+
+      - name: Add clazy to PATH
+        run: echo "/opt/clazy/bin" >> $GITHUB_PATH
 
       - name: Configure
         run: >-
           cmake -B build -GNinja
           -DCMAKE_BUILD_TYPE=Debug
           -DCMAKE_CXX_COMPILER=clazy
-          -DCMAKE_C_COMPILER=clang
+          -DCMAKE_C_COMPILER=clang-18
 
       - name: Build with clazy
         env:
-          CLAZY_CHECKS: >-
-            level2,detaching-member,isempty-vs-count,reserve-candidates,
-            signal-with-return-value,thread-with-slots,qvariant-template-instantiation,
-            no-ctor-missing-parent-argument,no-missing-typeinfo,no-qproperty-without-notify
+          CLAZY_CHECKS: "level2,detaching-member,isempty-vs-count,reserve-candidates,signal-with-return-value,thread-with-slots,qvariant-template-instantiation,no-ctor-missing-parent-argument,no-missing-typeinfo,no-qproperty-without-notify"
           CLAZY_IGNORE_DIRS: ".*kddockwidgets.*|.*KDDockWidgets.*"
           CLAZY_HEADER_FILTER: ".*ZephyrSense/src/.*"
           CCACHE_DISABLE: "ON"
