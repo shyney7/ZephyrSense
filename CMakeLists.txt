@@ -196,44 +196,40 @@ endif()
 # Web asset embedding: build CesiumJS app and embed in Qt resources (Release)
 if(NOT WEBDEV_MODE)
     set(WEB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/web")
-    set(WEB_DIST_DIR "${WEB_DIR}/dist")
+    set(WEB_QRC "${CMAKE_CURRENT_BINARY_DIR}/web_resources.qrc")
 
-    # Build web assets at configure time so file list is available for qt_add_resources
-    message(STATUS "Building web assets (npm install && npm run build)...")
-    execute_process(
-        COMMAND npm install
+    # Track web source files for dependency-driven rebuilds.
+    # GLOB_RECURSE catches nested subdirs (src/components/, src/utils/, etc.).
+    # CONFIGURE_DEPENDS: Ninja re-globs when files are added/removed.
+    file(GLOB_RECURSE WEB_SOURCE_FILES CONFIGURE_DEPENDS
+        "${WEB_DIR}/src/*"
+        "${WEB_DIR}/public/*"
+    )
+
+    # Build-time: run npm + generate .qrc via cmake -P script.
+    # Runs only when web sources or config files change.
+    add_custom_command(
+        OUTPUT "${WEB_QRC}"
+        COMMAND ${CMAKE_COMMAND}
+            "-DWEB_DIR=${WEB_DIR}"
+            "-DOUTPUT_QRC=${WEB_QRC}"
+            -P "${WEB_DIR}/build_web.cmake"
+        DEPENDS
+            ${WEB_SOURCE_FILES}
+            "${WEB_DIR}/index.html"
+            "${WEB_DIR}/package.json"
+            "${WEB_DIR}/package-lock.json"
+            "${WEB_DIR}/tsconfig.json"
+            "${WEB_DIR}/vite.config.ts"
+            "${WEB_DIR}/build_web.cmake"
         WORKING_DIRECTORY "${WEB_DIR}"
-        RESULT_VARIABLE NPM_INSTALL_RESULT
-    )
-    if(NOT NPM_INSTALL_RESULT EQUAL 0)
-        message(FATAL_ERROR "npm install failed (exit code ${NPM_INSTALL_RESULT})")
-    endif()
-    execute_process(
-        COMMAND npm run build
-        WORKING_DIRECTORY "${WEB_DIR}"
-        RESULT_VARIABLE NPM_BUILD_RESULT
-    )
-    if(NOT NPM_BUILD_RESULT EQUAL 0)
-        message(FATAL_ERROR "npm run build failed (exit code ${NPM_BUILD_RESULT})")
-    endif()
-
-    # Collect all built web files for resource embedding
-    file(GLOB_RECURSE WEB_DIST_FILES
-        RELATIVE "${WEB_DIST_DIR}"
-        "${WEB_DIST_DIR}/*"
-    )
-    list(LENGTH WEB_DIST_FILES WEB_FILE_COUNT)
-
-    # Prepend full path for qt_add_resources FILES parameter
-    list(TRANSFORM WEB_DIST_FILES PREPEND "${WEB_DIST_DIR}/")
-
-    qt_add_resources(appZephyrSense "web_resources"
-        PREFIX "/web"
-        BASE "${WEB_DIST_DIR}"
-        FILES ${WEB_DIST_FILES}
+        COMMENT "Building web assets and generating web_resources.qrc"
+        VERBATIM
     )
 
-    message(STATUS "Embedded ${WEB_FILE_COUNT} web files from ${WEB_DIST_DIR}")
+    # AUTORCC (CMAKE_AUTORCC=ON) processes the generated .qrc at build time
+    set_source_files_properties("${WEB_QRC}" PROPERTIES GENERATED TRUE)
+    target_sources(appZephyrSense PRIVATE "${WEB_QRC}")
 endif()
 
 include(GNUInstallDirs)
