@@ -119,6 +119,119 @@ ScrollView {
             }
         }
 
+        // 3D Globe settings
+        GroupBox {
+            title: "3D Globe (CesiumJS)"
+            Layout.fillWidth: true
+
+            ColumnLayout {
+                spacing: 8
+                Layout.fillWidth: true
+
+                Label {
+                    text: "A Cesium Ion access token is required for 3D terrain and imagery tiles."
+                    wrapMode: Text.Wrap
+                    Layout.fillWidth: true
+                    color: palette.text
+                }
+
+                RowLayout {
+                    spacing: 8
+                    Layout.fillWidth: true
+
+                    Label {
+                        text: "Access Token:"
+                    }
+
+                    TextField {
+                        id: tokenField
+                        Layout.fillWidth: true
+                        placeholderText: "Paste your Cesium Ion access token here"
+                        text: CesiumBridge.cesiumToken
+                        echoMode: TextInput.Password
+                        enabled: !CesiumBridge.validatingToken
+                    }
+
+                    Button {
+                        text: tokenField.echoMode === TextInput.Password ? "Show" : "Hide"
+                        Layout.preferredWidth: 60
+
+                        onClicked: {
+                            tokenField.echoMode = tokenField.echoMode === TextInput.Password
+                                ? TextInput.Normal : TextInput.Password
+                        }
+                    }
+
+                    Button {
+                        text: CesiumBridge.validatingToken ? "Validating..." : "Save & Validate"
+                        highlighted: true
+                        enabled: tokenField.text.length > 0 && !CesiumBridge.validatingToken
+                        Layout.preferredWidth: 130
+
+                        // [compiler] validateToken is Q_INVOKABLE on singleton — QML compiler
+                        // cannot AOT-compile this call site. Low severity: one-time user
+                        // action on button click, interpreter fallback has no UX impact.
+                        onClicked: CesiumBridge.validateToken(tokenField.text)
+                    }
+                }
+
+                // Validation feedback
+                RowLayout {
+                    spacing: 8
+                    Layout.fillWidth: true
+
+                    BusyIndicator {
+                        Layout.preferredWidth: 20
+                        Layout.preferredHeight: 20
+                        running: CesiumBridge.validatingToken
+                        visible: CesiumBridge.validatingToken
+                    }
+
+                    Label {
+                        text: CesiumBridge.tokenError
+                        color: "#C62828"
+                        font.pixelSize: 12
+                        visible: CesiumBridge.tokenError !== "" && !CesiumBridge.validatingToken
+                        wrapMode: Text.Wrap
+                        Layout.fillWidth: true
+                    }
+
+                    Label {
+                        id: successLabel
+                        text: "Token validated and saved successfully."
+                        color: "#2E7D32"
+                        font.pixelSize: 12
+                        visible: false
+                        Layout.fillWidth: true
+                    }
+                }
+
+                Text {
+                    text: "<a href='https://ion.cesium.com/tokens'>Get a free token at cesium.com/ion</a>"
+                    textFormat: Text.RichText
+                    font.pixelSize: 11
+                    color: palette.mid
+
+                    onLinkActivated: function (link: string): void {
+                        Qt.openUrlExternally(link)
+                    }
+                }
+            }
+
+            Connections {
+                target: CesiumBridge
+
+                function onTokenValidationSucceeded(): void {
+                    CesiumBridge.cesiumToken = tokenField.text
+                    successLabel.visible = true
+                }
+
+                function onTokenValidationFailed(error: string): void {
+                    successLabel.visible = false
+                }
+            }
+        }
+
         Item {
             Layout.fillHeight: true
         }

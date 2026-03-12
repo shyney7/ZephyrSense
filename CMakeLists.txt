@@ -11,7 +11,7 @@ if(NOT DEFINED CMAKE_PREFIX_PATH AND NOT DEFINED ENV{CMAKE_PREFIX_PATH})
 endif()
 set(app_icon_resource_windows "${CMAKE_CURRENT_SOURCE_DIR}/installer/appicon.rc")
 
-find_package(Qt6 REQUIRED COMPONENTS Quick QuickControls2 SerialPort Sql Location Positioning Graphs Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Quick QuickControls2 SerialPort Sql Location Positioning Graphs Widgets WebEngineQuick WebChannel Network)
 
 qt_standard_project_setup(REQUIRES 6.8)
 
@@ -67,6 +67,14 @@ set_target_properties(kddockwidgets PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/Release
 )
 
+# Web development mode: load 3D view from Vite dev server instead of built assets
+# Defaults ON for Debug builds (use `npm run dev`), OFF for Release (embed in resources)
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    option(WEBDEV_MODE "Load 3D view from Vite dev server (http://localhost:5173)" ON)
+else()
+    option(WEBDEV_MODE "Load 3D view from Vite dev server (http://localhost:5173)" OFF)
+endif()
+
 qt_add_executable(appZephyrSense
     main.cpp
     ${app_icon_resource_windows}
@@ -95,6 +103,14 @@ set(ZEPHYR_SOURCES
     src/threading/ioworker.h
     src/threading/iothread.cpp
     src/threading/iothread.h
+    src/bridge/cesiumworker.cpp
+    src/bridge/cesiumworker.h
+    src/bridge/cesiumbridge.cpp
+    src/bridge/cesiumbridge.h
+    src/bridge/zephyrschemehandler.cpp
+    src/bridge/zephyrschemehandler.h
+    src/bridge/appwebprofile.cpp
+    src/bridge/appwebprofile.h
 )
 
 qt_add_qml_module(appZephyrSense
@@ -114,6 +130,7 @@ qt_add_qml_module(appZephyrSense
         qml/components/DisplayTab.qml
         qml/components/DateTimePicker.qml
         qml/components/ModeBadge.qml
+        qml/components/TokenSetupPopup.qml
         qml/components/SensorDockChart.qml
         qml/data/SensorConfigProvider.qml
         qml/views/MapView.qml
@@ -160,16 +177,66 @@ target_include_directories(appZephyrSense PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/data
     ${CMAKE_CURRENT_SOURCE_DIR}/src/models
     ${CMAKE_CURRENT_SOURCE_DIR}/src/threading
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/bridge
 )
 
 target_link_libraries(appZephyrSense
-    PRIVATE Qt6::Quick Qt6::QuickControls2 Qt6::SerialPort Qt6::Sql Qt6::Location Qt6::Positioning Qt6::Graphs Qt6::Widgets KDAB::kddockwidgets
+    PRIVATE Qt6::Quick Qt6::QuickControls2 Qt6::SerialPort Qt6::Sql Qt6::Location Qt6::Positioning Qt6::Graphs Qt6::Widgets Qt6::WebEngineQuick Qt6::WebChannel Qt6::Network KDAB::kddockwidgets
 )
 
 # Suppress qDebug() output in Release builds (compile-time elimination)
 target_compile_definitions(appZephyrSense PRIVATE
     $<$<NOT:$<CONFIG:Debug>>:QT_NO_DEBUG_OUTPUT>
 )
+
+if(WEBDEV_MODE)
+    target_compile_definitions(appZephyrSense PRIVATE WEBDEV_MODE)
+endif()
+
+# Web asset embedding: build CesiumJS app and embed in Qt resources (Release)
+if(NOT WEBDEV_MODE)
+    set(WEB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/web")
+    set(WEB_DIST_DIR "${WEB_DIR}/dist")
+
+    # Build web assets at configure time so file list is available for qt_add_resources
+    if(NOT EXISTS "${WEB_DIST_DIR}/index.html")
+        message(STATUS "Web dist not found — running npm install && npm run build...")
+        execute_process(
+            COMMAND npm install
+            WORKING_DIRECTORY "${WEB_DIR}"
+            RESULT_VARIABLE NPM_INSTALL_RESULT
+        )
+        if(NOT NPM_INSTALL_RESULT EQUAL 0)
+            message(FATAL_ERROR "npm install failed (exit code ${NPM_INSTALL_RESULT})")
+        endif()
+        execute_process(
+            COMMAND npm run build
+            WORKING_DIRECTORY "${WEB_DIR}"
+            RESULT_VARIABLE NPM_BUILD_RESULT
+        )
+        if(NOT NPM_BUILD_RESULT EQUAL 0)
+            message(FATAL_ERROR "npm run build failed (exit code ${NPM_BUILD_RESULT})")
+        endif()
+    endif()
+
+    # Collect all built web files for resource embedding
+    file(GLOB_RECURSE WEB_DIST_FILES
+        RELATIVE "${WEB_DIST_DIR}"
+        "${WEB_DIST_DIR}/*"
+    )
+    list(LENGTH WEB_DIST_FILES WEB_FILE_COUNT)
+
+    # Prepend full path for qt_add_resources FILES parameter
+    list(TRANSFORM WEB_DIST_FILES PREPEND "${WEB_DIST_DIR}/")
+
+    qt_add_resources(appZephyrSense "web_resources"
+        PREFIX "/web"
+        BASE "${WEB_DIST_DIR}"
+        FILES ${WEB_DIST_FILES}
+    )
+
+    message(STATUS "Embedded ${WEB_FILE_COUNT} web files from ${WEB_DIST_DIR}")
+endif()
 
 include(GNUInstallDirs)
 install(TARGETS appZephyrSense

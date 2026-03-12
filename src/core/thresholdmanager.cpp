@@ -759,6 +759,43 @@ int ThresholdManager::computeHazardLevel(int partectorNumber, int partectorDiam,
     return maxLevel;
 }
 
+QVariantMap ThresholdManager::getThresholds() const
+{
+    QVariantMap m;
+    m[QStringLiteral("co2Warning")] = m_co2Warning;
+    m[QStringLiteral("co2Danger")] = m_co2Danger;
+    m[QStringLiteral("co2Enabled")] = m_co2Enabled;
+    m[QStringLiteral("temperatureWarning")] = m_temperatureWarning;
+    m[QStringLiteral("temperatureDanger")] = m_temperatureDanger;
+    m[QStringLiteral("temperatureLowWarning")] = m_temperatureLowWarning;
+    m[QStringLiteral("temperatureLowDanger")] = m_temperatureLowDanger;
+    m[QStringLiteral("temperatureEnabled")] = m_temperatureEnabled;
+    m[QStringLiteral("humidityWarning")] = m_humidityWarning;
+    m[QStringLiteral("humidityDanger")] = m_humidityDanger;
+    m[QStringLiteral("humidityLowWarning")] = m_humidityLowWarning;
+    m[QStringLiteral("humidityLowDanger")] = m_humidityLowDanger;
+    m[QStringLiteral("humidityEnabled")] = m_humidityEnabled;
+    m[QStringLiteral("partectorMassWarning")] = m_partectorMassWarning;
+    m[QStringLiteral("partectorMassDanger")] = m_partectorMassDanger;
+    m[QStringLiteral("partectorMassEnabled")] = m_partectorMassEnabled;
+    m[QStringLiteral("grimmValueWarning")] = m_grimmValueWarning;
+    m[QStringLiteral("grimmValueDanger")] = m_grimmValueDanger;
+    m[QStringLiteral("grimmValueEnabled")] = m_grimmValueEnabled;
+    m[QStringLiteral("partectorNumberWarning")] = m_partectorNumberWarning;
+    m[QStringLiteral("partectorNumberDanger")] = m_partectorNumberDanger;
+    m[QStringLiteral("partectorNumberEnabled")] = m_partectorNumberEnabled;
+    m[QStringLiteral("partectorDiamWarning")] = m_partectorDiamWarning;
+    m[QStringLiteral("partectorDiamDanger")] = m_partectorDiamDanger;
+    m[QStringLiteral("partectorDiamEnabled")] = m_partectorDiamEnabled;
+    m[QStringLiteral("pressureWarning")] = m_pressureWarning;
+    m[QStringLiteral("pressureDanger")] = m_pressureDanger;
+    m[QStringLiteral("pressureEnabled")] = m_pressureEnabled;
+    m[QStringLiteral("altitudeWarning")] = m_altitudeWarning;
+    m[QStringLiteral("altitudeDanger")] = m_altitudeDanger;
+    m[QStringLiteral("altitudeEnabled")] = m_altitudeEnabled;
+    return m;
+}
+
 // Reset all thresholds and enabled states to defaults (from CONTEXT.md)
 void ThresholdManager::resetToDefaults()
 {

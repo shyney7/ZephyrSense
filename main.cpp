@@ -13,9 +13,18 @@
 #include "src/serial/serialhandler.h"
 #include "src/threading/iothread.h"
 #include "src/threading/ioworker.h"
+#include "src/bridge/cesiumbridge.h"
+#include "src/core/thresholdmanager.h"
 
+#include <QtWebEngineQuick/qtwebenginequickglobal.h>
+#include <QQuickWebEngineProfile>
+#include <QWebEngineUrlScheme>
+#include "src/bridge/zephyrschemehandler.h"
+#include "src/bridge/appwebprofile.h"
 #include <kddockwidgets/Config.h>
 #include <kddockwidgets/qtquick/Platform.h>
+#include <kddockwidgets/core/DockWidget.h>
+#include <kddockwidgets/core/Group.h>
 
 int main(int argc, char *argv[])
 {
@@ -29,6 +38,17 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationName(QStringLiteral("ZephyrSense"));
     QCoreApplication::setOrganizationDomain(QStringLiteral("zephyrsense.local"));
     QCoreApplication::setApplicationName(QStringLiteral("ZephyrSense"));
+
+    ZephyrSchemeHandler::registerScheme();
+    QtWebEngineQuick::initialize();
+
+#ifdef Q_OS_WIN
+    qputenv("QSG_RHI_BACKEND", "d3d11");
+#endif
+
+#ifdef QT_DEBUG
+    qputenv("QTWEBENGINE_REMOTE_DEBUGGING", "9222");
+#endif
 
     QApplication app(argc, argv);
 
@@ -54,6 +74,21 @@ int main(int argc, char *argv[])
     internalFlags |= KDDockWidgets::Config::InternalFlag_UseTransparentFloatingWindow;
     KDDockWidgets::Config::self().setInternalFlags(internalFlags);
 
+    // Enforce tab ordering for MapView docks when re-docking via double-click
+    // Clamp to group->dockWidgetCount() because KDDW passes the returned index
+    // directly to QList::insert without bounds checking (Layout.cpp:168)
+    KDDockWidgets::Config::self().setDockWidgetTabIndexOverrideFunc(
+        [](KDDockWidgets::Core::DockWidget *dw,
+           KDDockWidgets::Core::Group *group, int tabIndex) -> int {
+            const auto name = dw->uniqueName();
+            int desired = tabIndex;
+            if (name == QStringLiteral("dock-2d-map"))
+                desired = 0;
+            else if (name == QStringLiteral("dock-3d-globe"))
+                desired = 1;
+            return std::min(desired, group->dockWidgetCount());
+        });
+
     // Register SensorReading for use in signal/slot and QML
     qRegisterMetaType<SensorReading>("SensorReading");
 
@@ -64,6 +99,35 @@ int main(int argc, char *argv[])
 
     IOThread ioThread(dbPath);
     ioThread.start();
+
+    // -- Persistent WebEngine profile for CesiumJS tile caching --
+    // CRITICAL: This profile MUST be fully configured (cache + scheme handler + singleton
+    // registration) BEFORE engine.loadFromModule(), because StackLayout instantiates all
+    // views eagerly and WebEngineView begins loading its URL binding immediately.
+    // The default profile is off-the-record in Qt 6 (no disk cache). A named profile
+    // with a storageName enables disk-based HTTP cache and persistent storage.
+    auto *webProfile = new QQuickWebEngineProfile(QStringLiteral("ZephyrSense"), &app);
+    webProfile->setHttpCacheType(QQuickWebEngineProfile::DiskHttpCache);
+    webProfile->setHttpCacheMaximumSize(512 * 1024 * 1024); // 512 MB for 3D tiles
+    webProfile->setPersistentCookiesPolicy(QQuickWebEngineProfile::AllowPersistentCookies);
+
+    const QString webCachePath = QStandardPaths::writableLocation(QStandardPaths::CacheLocation)
+                                 + QStringLiteral("/WebEngine");
+    const QString webStoragePath = dataPath + QStringLiteral("/WebEngine");
+    QDir().mkpath(webCachePath);
+    QDir().mkpath(webStoragePath);
+    webProfile->setCachePath(webCachePath);
+    webProfile->setPersistentStoragePath(webStoragePath);
+
+    // CRITICAL: The zephyr:// scheme handler MUST be on the same profile that the
+    // WebEngineView uses. Handlers are per-profile — installing on defaultProfile()
+    // while the view uses a named profile would break zephyr:// URL resolution.
+#ifndef WEBDEV_MODE
+    auto *schemeHandler = new ZephyrSchemeHandler(&app);
+    webProfile->installUrlSchemeHandler(QByteArrayLiteral("zephyr"), schemeHandler);
+#endif
+
+    AppWebProfileForeign::setInstance(webProfile);
 
     QQmlApplicationEngine engine;
 
@@ -138,6 +202,24 @@ int main(int argc, char *argv[])
                                                   Q_ARG(QString, csvExporter->filePath()));
                     });
                 qDebug() << "Connected CsvExporter config changes -> IOWorker";
+            }
+
+            // Wire CesiumBridge for 3D map view
+            auto *bridge = engine.singletonInstance<CesiumBridge*>("ZephyrSense", "CesiumBridge");
+            auto *thresholds = engine.singletonInstance<ThresholdManager*>("ZephyrSense", "ThresholdManager");
+
+            if (bridge && serialHandler) {
+                QObject::connect(serialHandler, &SerialHandler::newReading,
+                                 bridge, &CesiumBridge::onNewReading,
+                                 Qt::QueuedConnection);
+                qDebug() << "Connected SerialHandler::newReading -> CesiumBridge::onNewReading";
+            }
+            if (bridge && thresholds) {
+                bridge->setThresholdManager(thresholds);
+                QObject::connect(thresholds, &ThresholdManager::thresholdsChanged,
+                                 bridge, &CesiumBridge::onThresholdsChanged,
+                                 Qt::QueuedConnection);
+                qDebug() << "Connected ThresholdManager::thresholdsChanged -> CesiumBridge";
             }
         }, Qt::QueuedConnection);
 

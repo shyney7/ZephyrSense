@@ -165,6 +165,31 @@ add_zephyr_test(tst_iothread
         Qt6::Core Qt6::Sql Qt6::QmlIntegration
 )
 
+# CesiumWorker tests
+add_zephyr_test(tst_cesiumworker
+    SOURCES
+        tst_cesiumworker.cpp
+        ${CMAKE_SOURCE_DIR}/src/bridge/cesiumworker.cpp
+        ${CMAKE_SOURCE_DIR}/src/core/sensorreading.cpp
+        ${CMAKE_SOURCE_DIR}/src/core/thresholdmanager.cpp
+    LIBRARIES
+        Qt6::Core Qt6::Sql Qt6::Qml Qt6::QmlIntegration
+)
+target_include_directories(tst_cesiumworker PRIVATE ${CMAKE_SOURCE_DIR}/src/bridge)
+
+# CesiumBridge tests
+add_zephyr_test(tst_cesiumbridge
+    SOURCES
+        tst_cesiumbridge.cpp
+        ${CMAKE_SOURCE_DIR}/src/bridge/cesiumbridge.cpp
+        ${CMAKE_SOURCE_DIR}/src/bridge/cesiumworker.cpp
+        ${CMAKE_SOURCE_DIR}/src/core/sensorreading.cpp
+        ${CMAKE_SOURCE_DIR}/src/core/thresholdmanager.cpp
+    LIBRARIES
+        Qt6::Core Qt6::Sql Qt6::Qml Qt6::QmlIntegration Qt6::Network
+)
+target_include_directories(tst_cesiumbridge PRIVATE ${CMAKE_SOURCE_DIR}/src/bridge)
+
 # ── QML Test Suite ──────────────────────────────────────────────────────────
 qt_add_executable(tst_qml qml/setup/tst_qml_setup.cpp)
 

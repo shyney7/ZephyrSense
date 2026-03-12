@@ -93,7 +93,9 @@ NUL
 /build*/
 node_modules/
 package-lock.json
+!web/package-lock.json
 .DS_Store
+docs/
 
 # CMake generated files
 .cache/
@@ -109,3 +111,6 @@ libs/
 .venv/
 # coverage files
 *.profraw
+
+# Web build output and copied Qt files (qwebchannel.js needed for CI builds)
+web/dist/

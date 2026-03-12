@@ -8,7 +8,10 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtLocation as QtLoc
 import QtPositioning
+import QtWebEngine
+import QtWebChannel
 import ZephyrSense
+import com.kdab.dockwidgets 2.0 as KDDW
 
 Item {
     id: mapViewRoot
@@ -31,73 +34,11 @@ Item {
     property date historicalStart: new Date()
     property date historicalEnd: new Date()
     property list<string> availableDates: []
+    property int cesiumRequestId: 0
 
     // Model instance for map markers
     SensorReadingModel {
         id: sensorModel
-    }
-
-    // Main map container
-    QtLoc.MapView {
-        id: mapView
-        anchors.fill: parent
-
-        map.plugin: QtLoc.Plugin {
-            name: "osm"
-            QtLoc.PluginParameter {
-                name: "osm.useragent"
-                value: "ZephyrSense/1.0"
-            }
-        }
-
-        // Default view: Wuppertal, Germany
-        map.center: QtPositioning.coordinate(51.2562, 7.1508) // qmllint disable compiler
-        map.zoomLevel: 10
-
-        // Marker layer using MapItemView
-        QtLoc.MapItemView {
-            id: markerView
-            model: sensorModel
-            parent: mapView.map
-
-            delegate: SensorMarker {
-                // Required properties auto-injected from model roles:
-                // latitude, longitude, tooltipText, readingId
-                required property int index
-
-                onMarkerClicked: function (id: int): void {
-                    mapViewRoot.showDashboardForReading(id, sensorModel.readingAt(index));
-                }
-            }
-        }
-    }
-
-    // Mode badge overlay
-    ModeBadge {
-        anchors.top: parent.top
-        anchors.right: parent.right
-        anchors.margins: 16
-        isLive: mapViewRoot.currentMode === MapView.VisualizationMode.Live
-        z: 2
-    }
-
-    // Info overlay showing point count (moved to left to avoid badge overlap)
-    Rectangle {
-        anchors.top: parent.top
-        anchors.left: parent.left
-        anchors.margins: 16
-        width: infoLabel.width + 24
-        height: infoLabel.height + 12
-        color: '#3f589e'
-        radius: 4
-        opacity: 0.95
-
-        Label {
-            id: infoLabel
-            anchors.centerIn: parent
-            text: sensorModel.count + " points"
-            font.pixelSize: 12
-        }
     }
 
     // Live mode prune timer (removes old readings outside time window)
@@ -113,196 +54,353 @@ Item {
         }
     }
 
-    // Control panel at bottom
-    Rectangle {
-        anchors.bottom: parent.bottom
-        anchors.left: parent.left
-        anchors.right: parent.right
-        height: controlLayout.implicitHeight + 24
-        color: '#3e3f41'
-        opacity: 0.93
-        border.color: "#CCCCCC"
-        border.width: 1
+    WebChannel {
+        id: cesiumChannel
+        Component.onCompleted: cesiumChannel.registerObject("CesiumBridge", CesiumBridge)
+    }
 
-        ColumnLayout {
-            id: controlLayout
-            anchors.fill: parent
-            anchors.margins: 12
-            spacing: 12
+    ColumnLayout {
+        anchors.fill: parent
+        spacing: 0
 
-            // Update interval selector (for live mode)
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 8
+        KDDW.DockingArea {
+            id: mapDockArea
+            uniqueName: "MapViewDockArea"
+            Layout.fillWidth: true
+            Layout.fillHeight: true
 
-                Label {
-                    text: "Update Interval:"
-                    font.pixelSize: 12
-                }
+            KDDW.DockWidget {
+                id: dock2DMap
+                uniqueName: "dock-2d-map"
+                title: "2D Map"
 
-                ComboBox {
-                    id: intervalCombo
-                    Layout.preferredWidth: 120
-                    model: [
-                        {
-                            text: "1 second",
-                            value: 1000
-                        },
-                        {
-                            text: "2 seconds",
-                            value: 2000
-                        },
-                        {
-                            text: "5 seconds",
-                            value: 5000
-                        },
-                        {
-                            text: "10 seconds",
-                            value: 10000
-                        },
-                        {
-                            text: "30 seconds",
-                            value: 30000
+                Item {
+                    anchors.fill: parent
+
+                    QtLoc.MapView {
+                        id: mapView
+                        anchors.fill: parent
+
+                        map.plugin: QtLoc.Plugin {
+                            name: "osm"
+                            QtLoc.PluginParameter {
+                                name: "osm.useragent"
+                                value: "ZephyrSense/1.0"
+                            }
                         }
-                    ]
-                    textRole: "text"
-                    valueRole: "value"
-                    currentIndex: 1  // Default to 2 seconds
 
-                    onCurrentValueChanged: {
-                        if (currentValue !== undefined) {
-                            mapViewRoot.updateIntervalMs = currentValue;
-                            // If already in live mode, don't reload - just update interval
-                            // If in historical mode, switch to live mode with full reload
-                            if (mapViewRoot.currentMode === MapView.VisualizationMode.Historical) {
-                                mapViewRoot.switchToLiveMode(true);  // force reload
-                            } else {
-                                liveUpdateTimer.restart();
+                        // Default view: Wuppertal, Germany
+                        map.center: QtPositioning.coordinate(51.2562, 7.1508) // qmllint disable compiler
+                        map.zoomLevel: 10
+
+                        // Marker layer using MapItemView
+                        QtLoc.MapItemView {
+                            id: markerView
+                            model: sensorModel
+                            parent: mapView.map
+
+                            delegate: SensorMarker {
+                                // Required properties auto-injected from model roles:
+                                // latitude, longitude, tooltipText, readingId
+                                required property int index
+
+                                onMarkerClicked: function (id: int): void {
+                                    mapViewRoot.showDashboardForReading(id, sensorModel.readingAt(index));
+                                }
                             }
                         }
                     }
+
+                    // Mode badge overlay
+                    ModeBadge {
+                        anchors.top: parent.top
+                        anchors.right: parent.right
+                        anchors.margins: 16
+                        isLive: mapViewRoot.currentMode === MapView.VisualizationMode.Live
+                        z: 2
+                    }
+
+                    // Info overlay showing point count
+                    Rectangle {
+                        anchors.top: parent.top
+                        anchors.left: parent.left
+                        anchors.margins: 16
+                        width: infoLabel.width + 24
+                        height: infoLabel.height + 12
+                        color: '#3f589e'
+                        radius: 4
+                        opacity: 0.95
+
+                        Label {
+                            id: infoLabel
+                            anchors.centerIn: parent
+                            text: sensorModel.count + " points"
+                            font.pixelSize: 12
+                        }
+                    }
                 }
+            }
+
+            KDDW.DockWidget {
+                id: dock3DGlobe
+                uniqueName: "dock-3d-globe"
+                title: "3D Globe"
 
                 Item {
-                    Layout.fillWidth: true
-                }
+                    anchors.fill: parent
 
-                Label {
-                    text: "Time Window:"
-                    font.pixelSize: 12
-                }
+                    WebEngineView {
+                        id: cesiumView
+                        anchors.fill: parent
+                        profile: AppWebProfile
+                        webChannel: cesiumChannel
+                        url: CesiumBridge.contentUrl
+                        settings.localContentCanAccessRemoteUrls: true
+                        settings.javascriptEnabled: true
+                        settings.localStorageEnabled: true
+                    }
 
-                ButtonGroup {
-                    id: windowGroup
-                }
+                    // Overlay shown when no Cesium Ion token is configured
+                    Rectangle {
+                        anchors.fill: parent
+                        color: "#E8EAF6"
+                        visible: CesiumBridge.cesiumToken === ""
+                        z: 10
 
-                Repeater {
-                    model: [
-                        {
-                            label: "10m",
-                            minutes: 10
-                        },
-                        {
-                            label: "30m",
-                            minutes: 30
-                        },
-                        {
-                            label: "1h",
-                            minutes: 60
-                        },
-                        {
-                            label: "6h",
-                            minutes: 360
-                        },
-                        {
-                            label: "24h",
-                            minutes: 1440
-                        }
-                    ]
+                        ColumnLayout {
+                            anchors.centerIn: parent
+                            spacing: 16
 
-                    Button {
-                        id: presetButton
-                        required property int index
-                        required property string label
-                        required property int minutes
+                            Label {
+                                text: "3D Globe requires a Cesium Ion access token"
+                                font.pixelSize: 16
+                                font.bold: true
+                                Layout.alignment: Qt.AlignHCenter
+                                color: "#37474F"
+                            }
 
-                        text: presetButton.label
-                        checkable: true
-                        checked: presetButton.index === mapViewRoot.defaultWindowIndex
-                        ButtonGroup.group: windowGroup
-                        Layout.preferredWidth: 50
+                            Label {
+                                text: "A free token is needed to display terrain and satellite imagery."
+                                font.pixelSize: 13
+                                Layout.alignment: Qt.AlignHCenter
+                                color: "#546E7A"
+                            }
 
-                        onClicked: {
-                            mapViewRoot.selectedWindowMinutes = presetButton.minutes;
-                            // Clicking time window stays in current mode but reloads with new window
-                            if (mapViewRoot.currentMode === MapView.VisualizationMode.Live) {
-                                mapViewRoot.switchToLiveMode(true);  // force reload with new window
+                            Button {
+                                text: "Set Up Token"
+                                highlighted: true
+                                Layout.alignment: Qt.AlignHCenter
+
+                                onClicked: tokenSetupPopup.open()
                             }
                         }
                     }
                 }
             }
 
-            // Preset buttons for quick historical ranges
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 8
+            Component.onCompleted: {
+                mapDockArea.addDockWidget(dock2DMap, KDDW.KDDockWidgets.Location_OnBottom)
+                dock2DMap.addDockWidgetAsTab(dock3DGlobe)
+                dock2DMap.setAsCurrentTab()
+            }
+        }
 
-                Label {
-                    text: "Quick Range:"
-                    font.pixelSize: 12
-                }
+        // Control panel at bottom
+        Rectangle {
+            Layout.fillWidth: true
+            implicitHeight: controlLayout.implicitHeight + 24
+            color: '#3e3f41'
+            opacity: 0.93
+            border.color: "#CCCCCC"
+            border.width: 1
 
-                Repeater {
-                    model: [
-                        {
-                            label: "Last 1h",
-                            preset: "1h"
-                        },
-                        {
-                            label: "Last 6h",
-                            preset: "6h"
-                        },
-                        {
-                            label: "Last 24h",
-                            preset: "24h"
-                        },
-                        {
-                            label: "Last 7d",
-                            preset: "7d"
-                        },
-                        {
-                            label: "Last 30d",
-                            preset: "30d"
+            ColumnLayout {
+                id: controlLayout
+                anchors.fill: parent
+                anchors.margins: 12
+                spacing: 12
+
+                // Update interval selector (for live mode)
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 8
+
+                    Label {
+                        text: "Update Interval:"
+                        font.pixelSize: 12
+                    }
+
+                    ComboBox {
+                        id: intervalCombo
+                        Layout.preferredWidth: 120
+                        model: [
+                            {
+                                text: "1 second",
+                                value: 1000
+                            },
+                            {
+                                text: "2 seconds",
+                                value: 2000
+                            },
+                            {
+                                text: "5 seconds",
+                                value: 5000
+                            },
+                            {
+                                text: "10 seconds",
+                                value: 10000
+                            },
+                            {
+                                text: "30 seconds",
+                                value: 30000
+                            }
+                        ]
+                        textRole: "text"
+                        valueRole: "value"
+                        currentIndex: 1  // Default to 2 seconds
+
+                        onCurrentValueChanged: {
+                            if (currentValue !== undefined) {
+                                mapViewRoot.updateIntervalMs = currentValue;
+                                // If already in live mode, don't reload - just update interval
+                                // If in historical mode, switch to live mode with full reload
+                                if (mapViewRoot.currentMode === MapView.VisualizationMode.Historical) {
+                                    mapViewRoot.switchToLiveMode(true);  // force reload
+                                } else {
+                                    liveUpdateTimer.restart();
+                                }
+                            }
                         }
-                    ]
+                    }
 
-                    Button {
-                        required property string label
-                        required property string preset
+                    Item {
+                        Layout.fillWidth: true
+                    }
 
-                        text: label
-                        Layout.preferredWidth: 80
+                    Label {
+                        text: "Time Window:"
+                        font.pixelSize: 12
+                    }
 
-                        onClicked: mapViewRoot.loadPreset(preset)
+                    ButtonGroup {
+                        id: windowGroup
+                    }
+
+                    Repeater {
+                        model: [
+                            {
+                                label: "10m",
+                                minutes: 10
+                            },
+                            {
+                                label: "30m",
+                                minutes: 30
+                            },
+                            {
+                                label: "1h",
+                                minutes: 60
+                            },
+                            {
+                                label: "6h",
+                                minutes: 360
+                            },
+                            {
+                                label: "24h",
+                                minutes: 1440
+                            }
+                        ]
+
+                        Button {
+                            id: presetButton
+                            required property int index
+                            required property string label
+                            required property int minutes
+
+                            text: presetButton.label
+                            checkable: true
+                            checked: presetButton.index === mapViewRoot.defaultWindowIndex
+                            ButtonGroup.group: windowGroup
+                            Layout.preferredWidth: 50
+
+                            onClicked: {
+                                mapViewRoot.selectedWindowMinutes = presetButton.minutes;
+                                // Clicking time window stays in current mode but reloads with new window
+                                if (mapViewRoot.currentMode === MapView.VisualizationMode.Live) {
+                                    mapViewRoot.switchToLiveMode(true);  // force reload with new window
+                                }
+                            }
+                        }
                     }
                 }
 
-                Item {
+                // Preset buttons for quick historical ranges
+                RowLayout {
                     Layout.fillWidth: true
-                }
+                    spacing: 8
 
-                Button {
-                    text: "Custom Range..."
-                    onClicked: customRangePopup.open()
-                }
+                    Label {
+                        text: "Quick Range:"
+                        font.pixelSize: 12
+                    }
 
-                Button {
-                    text: "Clear"
-                    onClicked: sensorModel.clear()
+                    Repeater {
+                        model: [
+                            {
+                                label: "Last 1h",
+                                preset: "1h"
+                            },
+                            {
+                                label: "Last 6h",
+                                preset: "6h"
+                            },
+                            {
+                                label: "Last 24h",
+                                preset: "24h"
+                            },
+                            {
+                                label: "Last 7d",
+                                preset: "7d"
+                            },
+                            {
+                                label: "Last 30d",
+                                preset: "30d"
+                            }
+                        ]
+
+                        Button {
+                            required property string label
+                            required property string preset
+
+                            text: label
+                            Layout.preferredWidth: 80
+
+                            onClicked: mapViewRoot.loadPreset(preset)
+                        }
+                    }
+
+                    Item {
+                        Layout.fillWidth: true
+                    }
+
+                    Button {
+                        text: "Custom Range..."
+                        onClicked: customRangePopup.open()
+                    }
+
+                    Button {
+                        text: "Clear"
+                        onClicked: sensorModel.clear()
+                    }
                 }
             }
         }
+    }
+
+    // Token setup popup (shown on first launch when no Cesium Ion token is configured)
+    TokenSetupPopup {
+        id: tokenSetupPopup
+
+        onTokenSaved: cesiumView.reload()
     }
 
     // Custom date range popup
@@ -404,6 +502,10 @@ Item {
         // Start receiving live updates
         sensorModel.startLiveUpdates();
         liveUpdateTimer.restart();
+
+        // Sync CesiumBridge to live mode
+        CesiumBridge.windowMinutes = mapViewRoot.selectedWindowMinutes;
+        CesiumBridge.liveMode = true;
     }
 
     function switchToHistoricalMode(): void {
@@ -412,6 +514,16 @@ Item {
         sensorModel.stopLiveUpdates();
         sensorModel.loadFromDatabase(mapViewRoot.historicalStart, mapViewRoot.historicalEnd);
         mapViewRoot.centerOnData();
+
+        // Sync CesiumBridge to historical mode
+        CesiumBridge.liveMode = false;
+        mapViewRoot.cesiumRequestId++;
+        CesiumBridge.pendingRequestId = mapViewRoot.cesiumRequestId;
+        CesiumBridge.loadRange(
+            mapViewRoot.historicalStart.getTime(),
+            mapViewRoot.historicalEnd.getTime(),
+            mapViewRoot.cesiumRequestId
+        );
     }
 
     function loadLiveData(): void {
@@ -464,5 +576,9 @@ Item {
         // Start in live mode
         mapViewRoot.currentMode = MapView.VisualizationMode.Live;
         mapViewRoot.loadLiveData();
+
+        // Show token setup popup if no Cesium Ion token is configured
+        if (CesiumBridge.cesiumToken === "")
+            tokenSetupPopup.open()
     }
 }

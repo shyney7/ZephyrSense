@@ -30,8 +30,19 @@ jobs:
         with:
           version: '6.10.2'
           arch: win64_msvc2022_64
-          modules: qtserialport qtlocation qtpositioning qtgraphs qtquick3d qtshadertools
+          modules: qtserialport qtlocation qtpositioning qtgraphs qtquick3d qtshadertools qtwebengine qtwebchannel
           cache: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+
+      - name: Build web assets
+        working-directory: web
+        run: npm ci && npm run build
 
       - name: Configure
         run: cmake -B build -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl
@@ -59,11 +70,22 @@ jobs:
         with:
           version: '6.10.2'
           arch: win64_msvc2022_64
-          modules: qtserialport qtlocation qtpositioning qtgraphs qtquick3d qtshadertools
+          modules: qtserialport qtlocation qtpositioning qtgraphs qtquick3d qtshadertools qtwebengine qtwebchannel
           cache: true
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+
+      - name: Build web assets
+        working-directory: web
+        run: npm ci && npm run build
+
       - name: Configure
-        run: cmake -B build -GNinja -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=ON -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl
+        run: cmake -B build -GNinja -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=ON -DWEBDEV_MODE=OFF -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl
 
       - name: Build
         run: cmake --build build
@@ -94,8 +116,19 @@ jobs:
         with:
           version: '6.10.2'
           arch: win64_msvc2022_64
-          modules: qtserialport qtlocation qtpositioning qtgraphs qtquick3d qtshadertools
+          modules: qtserialport qtlocation qtpositioning qtgraphs qtquick3d qtshadertools qtwebengine qtwebchannel
           cache: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+
+      - name: Build web assets
+        working-directory: web
+        run: npm ci && npm run build
 
       - name: Configure
         run: cmake -B build -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl
@@ -122,7 +155,7 @@ jobs:
         with:
           version: '6.10.2'
           arch: win64_msvc2022_64
-          modules: qtserialport qtlocation qtpositioning qtgraphs qtquick3d qtshadertools
+          modules: qtserialport qtlocation qtpositioning qtgraphs qtquick3d qtshadertools qtwebengine qtwebchannel
           cache: true
 
       - name: Install LLVM
@@ -142,43 +175,72 @@ jobs:
           find src -name '*.cpp' | xargs clang-tidy -p build --header-filter='^\.\./src/' 2>&1
 
   codeql:
-    name: CodeQL
+    name: CodeQL (${{ matrix.language }})
     runs-on: windows-latest
     permissions:
       security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: c-cpp
+            build-mode: manual
+          - language: javascript-typescript
+            build-mode: none
     steps:
       - uses: actions/checkout@v4
 
       - name: Setup MSVC
+        if: matrix.language == 'c-cpp'
         uses: ilammy/msvc-dev-cmd@v1
 
       - name: Install LLVM
+        if: matrix.language == 'c-cpp'
         uses: aminya/setup-cpp@v1
         with:
           llvm: "21"
 
       - name: Install Qt
+        if: matrix.language == 'c-cpp'
         uses: jurplel/install-qt-action@v4
         with:
           version: '6.10.2'
           arch: win64_msvc2022_64
-          modules: qtserialport qtlocation qtpositioning qtgraphs qtquick3d qtshadertools
+          modules: qtserialport qtlocation qtpositioning qtgraphs qtquick3d qtshadertools qtwebengine qtwebchannel
           cache: true
+
+      - name: Setup Node.js
+        if: matrix.language == 'c-cpp'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+
+      - name: Build web assets
+        if: matrix.language == 'c-cpp'
+        working-directory: web
+        run: npm ci && npm run build
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
-          languages: cpp
+          languages: ${{ matrix.language }}
           queries: security-and-quality
+          build-mode: ${{ matrix.build-mode }}
           config: |
             paths-ignore:
               - 'build'
               - 'libs'
+              - 'web/node_modules'
+              - 'web/public'
 
       - name: Configure
+        if: matrix.build-mode == 'manual'
         run: cmake -B build -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl
 
       - name: Build
+        if: matrix.build-mode == 'manual'
         run: cmake --build build
 
       - name: Perform CodeQL Analysis
@@ -195,7 +257,7 @@ jobs:
         uses: jurplel/install-qt-action@v4
         with:
           version: '6.10.2'
-          modules: qtserialport qtlocation qtpositioning qtgraphs qtquick3d qtshadertools
+          modules: qtserialport qtlocation qtpositioning qtgraphs qtquick3d qtshadertools qtwebengine qtwebchannel
           cache: true
 
       - name: Install clazy and Ninja

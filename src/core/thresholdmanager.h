@@ -165,6 +165,9 @@ public:
     // Check if a sensor is enabled for hazard calculation
     Q_INVOKABLE bool isSensorEnabledForKey(const QString &sensorKey) const;
 
+    // Get a thread-safe snapshot of all threshold values and enabled states
+    Q_INVOKABLE QVariantMap getThresholds() const;
+
     // Reset all thresholds and enabled states to defaults
     Q_INVOKABLE void resetToDefaults();
 
