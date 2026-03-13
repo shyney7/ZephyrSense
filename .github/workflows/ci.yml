@@ -269,6 +269,8 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y ninja-build clang-19 llvm-19-dev libclang-19-dev
+          sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-19 100
+          sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-19 100
 
       - name: Resolve latest clazy tag
         id: clazy-tag
