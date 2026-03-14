@@ -512,7 +512,16 @@ Item {
 
         // Sync CesiumBridge to live mode
         CesiumBridge.windowMinutes = mapViewRoot.selectedWindowMinutes;
-        CesiumBridge.liveMode = true;
+
+        if (CesiumBridge.liveMode) {
+            // Already in live mode (startup or window change) — reload 3D data
+            mapViewRoot.cesiumRequestId++;
+            CesiumBridge.pendingRequestId = mapViewRoot.cesiumRequestId;
+            CesiumBridge.loadRange(start.getTime(), now.getTime(), mapViewRoot.cesiumRequestId);
+        } else {
+            // Switching from historical → live: C++ deferred switch handles loadRange internally
+            CesiumBridge.liveMode = true;
+        }
     }
 
     function switchToHistoricalMode(): void {

@@ -1,0 +1,4 @@
+If:
+  PathMatch: tests/qml/setup/mocks\.h
+Diagnostics:
+  Suppress: '*'
