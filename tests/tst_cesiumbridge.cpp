@@ -2,6 +2,7 @@
 #include <QSignalSpy>
 #include <QJsonDocument>
 #include <QJsonArray>
+#include <QStandardPaths>
 #include "cesiumbridge.h"
 #include "thresholdmanager.h"
 
@@ -28,6 +29,7 @@ private slots:
     void testValidateTokenEmptyString();
     void testValidateTokenSetsValidating();
     void testValidateTokenPreventsDoubleDispatch();
+    void testValidateTokenResetsTokenValid();
 
 private:
     ThresholdManager *m_thresholdManager = nullptr;
@@ -35,6 +37,7 @@ private:
 
 void tst_CesiumBridge::init()
 {
+    QStandardPaths::setTestModeEnabled(true);
     QSettings settings(QStringLiteral("ZephyrSense"), QStringLiteral("ZephyrSense"));
     settings.clear();
     m_thresholdManager = new ThresholdManager();
@@ -44,6 +47,7 @@ void tst_CesiumBridge::cleanup()
 {
     delete m_thresholdManager;
     m_thresholdManager = nullptr;
+    QStandardPaths::setTestModeEnabled(false);
 }
 
 void tst_CesiumBridge::testDefaultLiveMode()
@@ -233,6 +237,20 @@ void tst_CesiumBridge::testValidateTokenPreventsDoubleDispatch()
     // Second call while first is in-flight should be a no-op
     bridge.validateToken(QStringLiteral("second-token"));
     QCOMPARE(validatingSpy.count(), 0);
+}
+
+void tst_CesiumBridge::testValidateTokenResetsTokenValid()
+{
+    CesiumBridge bridge;
+
+    QCOMPARE(bridge.tokenValid(), false);
+
+    QSignalSpy tokenValidSpy(&bridge, &CesiumBridge::tokenValidChanged);
+
+    bridge.validateToken(QStringLiteral("some-new-token"));
+
+    QCOMPARE(bridge.tokenValid(), false);
+    QCOMPARE(tokenValidSpy.count(), 1);
 }
 
 QTEST_GUILESS_MAIN(tst_CesiumBridge)

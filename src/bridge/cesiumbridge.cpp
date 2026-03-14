@@ -102,8 +102,10 @@ void CesiumBridge::validateToken(const QString &token)
     }
 
     m_validatingToken = true;
+    m_tokenValid = false;
     m_tokenError.clear();
     emit validatingTokenChanged();
+    emit tokenValidChanged();
     emit tokenErrorChanged();
 
     QNetworkRequest request(

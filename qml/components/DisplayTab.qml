@@ -229,6 +229,16 @@ ScrollView {
                 function onTokenValidationFailed(error: string): void {
                     successLabel.visible = false
                 }
+
+                function onCesiumTokenChanged(): void {
+                    tokenField.text = CesiumBridge.cesiumToken
+                }
+
+                function onValidatingTokenChanged(): void {
+                    if (CesiumBridge.validatingToken) {
+                        successLabel.visible = false
+                    }
+                }
             }
         }
 

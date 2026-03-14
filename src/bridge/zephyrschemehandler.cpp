@@ -1,5 +1,6 @@
 #include "zephyrschemehandler.h"
 
+#include <QDir>
 #include <QFile>
 #include <QUrl>
 #include <QWebEngineUrlRequestJob>
@@ -23,7 +24,12 @@ void ZephyrSchemeHandler::registerScheme()
 void ZephyrSchemeHandler::requestStarted(QWebEngineUrlRequestJob *request)
 {
     QUrl url = request->requestUrl();
-    QString path = url.path();
+    QString path = QDir::cleanPath(url.path());
+
+    if (path.contains(QStringLiteral(".."))) {
+        request->fail(QWebEngineUrlRequestJob::UrlNotFound);
+        return;
+    }
 
     if (path.isEmpty() || path == QStringLiteral("/"))
         path = QStringLiteral("/index.html");
