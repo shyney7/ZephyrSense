@@ -3,6 +3,7 @@ import {
   Entity,
   SampledPositionProperty,
   JulianDate,
+  TimeInterval,
   Cartesian3,
   ExtrapolationType,
   Color,
@@ -10,6 +11,9 @@ import {
 } from "cesium";
 
 export class LiveTracker {
+  private static readonly EPOCH = JulianDate.fromDate(new Date(0));
+  private static readonly PRUNE_MARGIN = 5; // seconds beyond trailTime
+
   private viewer: Viewer;
   private entity: Entity | null = null;
   private positionProperty: SampledPositionProperty | null = null;
@@ -59,6 +63,16 @@ export class LiveTracker {
     const time = JulianDate.fromDate(new Date(timestampMs));
     const position = Cartesian3.fromDegrees(lon, lat, alt);
     this.positionProperty.addSample(time, position);
+
+    // Prune samples older than the visible trail window
+    const cutoff = JulianDate.addSeconds(
+      time,
+      -(this.trailTime + LiveTracker.PRUNE_MARGIN),
+      new JulianDate(),
+    );
+    this.positionProperty.removeSamples(
+      new TimeInterval({ start: LiveTracker.EPOCH, stop: cutoff }),
+    );
   }
 
   isActive(): boolean {
