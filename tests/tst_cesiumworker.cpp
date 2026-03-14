@@ -228,6 +228,8 @@ void tst_CesiumWorker::testGenerateCzmlHazardColors()
         }
     }
 
+    QVERIFY(!point.isEmpty());
+
     auto color = point[QStringLiteral("point")].toObject()
                       [QStringLiteral("color")].toObject()
                       [QStringLiteral("rgba")].toArray();

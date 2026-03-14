@@ -13,6 +13,7 @@ import {
   ClockStep,
   CameraEventType,
   KeyboardEventModifier,
+  TerrainProvider,
 } from "cesium";
 
 import { connectBridge } from "./qt-bridge.js";
@@ -31,7 +32,7 @@ async function init(): Promise<void> {
     console.warn("Running without Qt bridge:", err);
   }
 
-  let terrainProvider;
+  let terrainProvider: TerrainProvider;
   try {
     terrainProvider = await createWorldTerrainAsync();
   } catch (err) {

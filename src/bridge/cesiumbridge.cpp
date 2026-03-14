@@ -121,9 +121,11 @@ void CesiumBridge::validateToken(const QString &token)
         m_validatingToken = false;
         emit validatingTokenChanged();
 
-        if (reply->error() == QNetworkReply::NoError) {
-            const int statusCode =
-                reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        const QVariant statusVariant =
+            reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
+
+        if (statusVariant.isValid()) {
+            const int statusCode = statusVariant.toInt();
             if (statusCode == 200) {
                 m_tokenValid = true;
                 m_tokenError.clear();
