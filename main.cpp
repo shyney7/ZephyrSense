@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
                 desired = 0;
             else if (name == QStringLiteral("dock-3d-globe"))
                 desired = 1;
-            return std::min(desired, group->dockWidgetCount());
+            return std::clamp(desired, 0, group->dockWidgetCount());
         });
 
     // Register SensorReading for use in signal/slot and QML

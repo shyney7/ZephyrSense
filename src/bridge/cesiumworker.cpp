@@ -48,14 +48,13 @@ void CesiumWorker::openDatabase(const QString &path)
         return;
     }
 
-    createTables();
-    m_dbInitialized = true;
+    m_dbInitialized = createTables();
 }
 
-void CesiumWorker::createTables()
+bool CesiumWorker::createTables()
 {
     QSqlQuery query(m_db);
-    query.exec(QStringLiteral(R"(
+    if (!query.exec(QStringLiteral(R"(
         CREATE TABLE IF NOT EXISTS readings (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             timestamp INTEGER NOT NULL,
@@ -71,10 +70,16 @@ void CesiumWorker::createTables()
             longitude REAL,
             co2 INTEGER
         )
-    )"));
-    query.exec(QStringLiteral(R"(
+    )"))) {
+        qWarning() << "CesiumWorker: Failed to create readings table:" << query.lastError().text();
+        return false;
+    }
+    if (!query.exec(QStringLiteral(R"(
         CREATE INDEX IF NOT EXISTS idx_timestamp ON readings(timestamp)
-    )"));
+    )"))) {
+        qWarning() << "CesiumWorker: Failed to create timestamp index:" << query.lastError().text();
+    }
+    return true;
 }
 
 bool CesiumWorker::isValidCoordinate(double lat, double lon)
@@ -261,7 +266,7 @@ void CesiumWorker::generateCzml(qint64 startMsecs, qint64 endMsecs, int requestI
             .arg(hazardHtmlColor, hazardLabel);
 
         // Position: [longitude, latitude, altitude] (CesiumJS convention: lon first)
-        QJsonArray cartographicDegrees = { longitude, latitude, altitude };
+        QJsonArray cartographicDegrees = { longitude, latitude, static_cast<double>(altitude) };
 
         QJsonObject position;
         position[QStringLiteral("cartographicDegrees")] = cartographicDegrees;
@@ -284,7 +289,7 @@ void CesiumWorker::generateCzml(qint64 startMsecs, qint64 endMsecs, int requestI
         // Collect for flight path
         flightPathCoords.append(longitude);
         flightPathCoords.append(latitude);
-        flightPathCoords.append(altitude);
+        flightPathCoords.append(static_cast<double>(altitude));
     }
 
     // Flight path polyline (only if we have valid coordinates)

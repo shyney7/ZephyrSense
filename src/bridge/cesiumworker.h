@@ -29,7 +29,7 @@ signals:
 
 private:
     void openDatabase(const QString &path);
-    void createTables();
+    bool createTables();
     static bool isValidCoordinate(double lat, double lon);
 
     QSqlDatabase m_db;

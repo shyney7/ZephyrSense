@@ -58,7 +58,7 @@ void tst_CesiumWorker::testGenerateCzmlEmpty()
 
     // Empty result should still have a document packet
     auto czml = QJsonDocument::fromJson(spy.at(0).at(0).toString().toUtf8()).array();
-    QVERIFY(czml.size() >= 1);
+    QVERIFY(!czml.empty());
     QCOMPARE(czml.at(0).toObject()[QStringLiteral("id")].toString(), QStringLiteral("document"));
 }
 
@@ -102,6 +102,7 @@ void tst_CesiumWorker::testGenerateCzmlDocumentPacket()
     qint64 end = start + 3600000;
     worker.generateCzml(start, end, 1, QVariantMap());
 
+    QCOMPARE(spy.count(), 1);
     auto czml = QJsonDocument::fromJson(spy.at(0).at(0).toString().toUtf8()).array();
     auto doc = czml.at(0).toObject();
 
@@ -136,11 +137,12 @@ void tst_CesiumWorker::testGenerateCzmlPointPacket()
     auto now = QDateTime::currentMSecsSinceEpoch();
     worker.generateCzml(now - 3600000, now + 3600000, 1, thresholds);
 
+    QCOMPARE(spy.count(), 1);
     auto czml = QJsonDocument::fromJson(spy.at(0).at(0).toString().toUtf8()).array();
     // Find the point packet (not document, not flight-path)
     QJsonObject point;
-    for (int i = 0; i < czml.size(); ++i) {
-        auto obj = czml.at(i).toObject();
+    for (const auto entry : czml) {
+        auto obj = entry.toObject();
         if (obj[QStringLiteral("id")].toString().startsWith(QStringLiteral("reading-"))) {
             point = obj;
             break;
@@ -178,10 +180,11 @@ void tst_CesiumWorker::testGenerateCzmlFlightPath()
     auto now = QDateTime::currentMSecsSinceEpoch();
     worker.generateCzml(now - 3600000, now + 3600000, 1, QVariantMap());
 
+    QCOMPARE(spy.count(), 1);
     auto czml = QJsonDocument::fromJson(spy.at(0).at(0).toString().toUtf8()).array();
     QJsonObject flightPath;
-    for (int i = 0; i < czml.size(); ++i) {
-        auto obj = czml.at(i).toObject();
+    for (const auto entry : czml) {
+        auto obj = entry.toObject();
         if (obj[QStringLiteral("id")].toString() == QStringLiteral("flight-path")) {
             flightPath = obj;
             break;
@@ -218,10 +221,11 @@ void tst_CesiumWorker::testGenerateCzmlHazardColors()
     auto now = QDateTime::currentMSecsSinceEpoch();
     worker.generateCzml(now - 3600000, now + 3600000, 1, thresholds);
 
+    QCOMPARE(spy.count(), 1);
     auto czml = QJsonDocument::fromJson(spy.at(0).at(0).toString().toUtf8()).array();
     QJsonObject point;
-    for (int i = 0; i < czml.size(); ++i) {
-        auto obj = czml.at(i).toObject();
+    for (const auto entry : czml) {
+        auto obj = entry.toObject();
         if (obj[QStringLiteral("id")].toString().startsWith(QStringLiteral("reading-"))) {
             point = obj;
             break;
