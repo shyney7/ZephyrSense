@@ -1,5 +1,4 @@
-#ifndef DOCKSTATETRACKER_H
-#define DOCKSTATETRACKER_H
+#pragma once
 
 #include <QObject>
 #include <QPointer>
@@ -37,4 +36,3 @@ private:
     bool m_hasDocksOutside = false;
 };
 
-#endif // DOCKSTATETRACKER_H

@@ -1,5 +1,4 @@
-#ifndef SERIALHANDLER_H
-#define SERIALHANDLER_H
+#pragma once
 
 #include <QObject>
 #include <QSerialPort>
@@ -71,4 +70,3 @@ public:
 #endif
 };
 
-#endif // SERIALHANDLER_H

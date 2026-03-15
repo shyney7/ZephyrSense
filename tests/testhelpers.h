@@ -1,5 +1,4 @@
-#ifndef TESTHELPERS_H
-#define TESTHELPERS_H
+#pragma once
 
 #include <QByteArray>
 #include <QDateTime>
@@ -8,7 +7,6 @@
 #include <QSqlError>
 #include <QTemporaryDir>
 #include <QDebug>
-#include <cstring>
 #include "sensorreading.h"
 
 // ─── SensorReadingBuilder ────────────────────────────────────────────────────
@@ -230,7 +228,7 @@ public:
 
     FrameBuilder &withDefaults()
     {
-        std::memset(&m_raw, 0, sizeof(SensorDataRaw));
+        m_raw = SensorDataRaw{};
         m_raw.partectorNumber = 1000;
         m_raw.partectorDiam = 50;
         m_raw.partectorMass = 2.5f;
@@ -298,4 +296,3 @@ private:
     SensorDataRaw m_raw = {};
 };
 
-#endif // TESTHELPERS_H

@@ -1,5 +1,4 @@
-#ifndef COORDINATEVALIDATOR_H
-#define COORDINATEVALIDATOR_H
+#pragma once
 
 /// Returns true when \a latitude and \a longitude represent a plausible GPS fix.
 /// Rejects out-of-range values and the (0, 0) "null island" default.
@@ -14,4 +13,3 @@ inline bool isValidCoordinate(float latitude, float longitude)
     return true;
 }
 
-#endif // COORDINATEVALIDATOR_H

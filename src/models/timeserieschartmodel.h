@@ -1,5 +1,4 @@
-#ifndef TIMESERIESCHARTMODEL_H
-#define TIMESERIESCHARTMODEL_H
+#pragma once
 
 #include <QAbstractTableModel>
 #include <QQmlEngine>
@@ -116,4 +115,3 @@ private:
     mutable bool m_boundsCacheValid = false;
 };
 
-#endif // TIMESERIESCHARTMODEL_H

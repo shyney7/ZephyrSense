@@ -1,5 +1,4 @@
-#ifndef THRESHOLDMANAGER_H
-#define THRESHOLDMANAGER_H
+#pragma once
 
 #include <QObject>
 #include <QQmlEngine>
@@ -260,4 +259,3 @@ private:
     bool m_altitudeEnabled;
 };
 
-#endif // THRESHOLDMANAGER_H

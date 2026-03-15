@@ -1,5 +1,4 @@
-#ifndef IOWORKER_H
-#define IOWORKER_H
+#pragma once
 
 #include <QObject>
 #include <QSqlDatabase>
@@ -57,4 +56,3 @@ private:
     static constexpr const char* CONNECTION_NAME = "ZephyrSenseIOWorker";
 };
 
-#endif // IOWORKER_H

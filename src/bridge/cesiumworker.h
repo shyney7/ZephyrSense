@@ -1,5 +1,4 @@
-#ifndef CESIUMWORKER_H
-#define CESIUMWORKER_H
+#pragma once
 
 #include <QObject>
 #include <QSqlDatabase>
@@ -38,4 +37,3 @@ private:
     static constexpr const char* CONNECTION_NAME = "ZephyrSenseCesium";
 };
 
-#endif // CESIUMWORKER_H

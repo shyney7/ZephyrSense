@@ -2,8 +2,7 @@
 // Mock singletons for QML tests — registered as the ZephyrSense module
 // so production QML files that `import ZephyrSense` resolve correctly.
 
-#ifndef MOCKS_H
-#define MOCKS_H
+#pragma once
 
 #include <QObject>
 #include <QAbstractTableModel>
@@ -406,4 +405,3 @@ private:
     qreal m_co2Danger = 2000.0;
 };
 
-#endif // MOCKS_H

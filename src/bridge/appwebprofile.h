@@ -1,5 +1,4 @@
-#ifndef APPWEBPROFILE_H
-#define APPWEBPROFILE_H
+#pragma once
 
 #include <QQuickWebEngineProfile>
 #include <QtQml/qqml.h>
@@ -24,4 +23,3 @@ public:
     static void setInstance(QQuickWebEngineProfile *profile);
 };
 
-#endif // APPWEBPROFILE_H

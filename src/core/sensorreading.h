@@ -1,12 +1,13 @@
-#ifndef SENSORREADING_H
-#define SENSORREADING_H
+#pragma once
 
 #include <QDateTime>
 #include <QObject>
 #include <QtQmlIntegration>
 #include <cstdint>
 
-// Raw binary struct matching embedded device protocol (46 bytes packed)
+// Raw binary struct matching embedded device protocol (42 bytes packed)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpragma-pack"
 #pragma pack(push, 1)
 struct SensorDataRaw {
     int32_t partectorNumber;  // 4 bytes - particle count (parts/cm3)
@@ -22,6 +23,7 @@ struct SensorDataRaw {
     uint16_t co2;             // 2 bytes - ppm
 };                            // Total: 42 bytes
 #pragma pack(pop)
+#pragma clang diagnostic pop
 
 static_assert(sizeof(SensorDataRaw) == 42, "Struct packing mismatch!");
 
@@ -64,4 +66,3 @@ public:
 
 Q_DECLARE_METATYPE(SensorReading)
 
-#endif // SENSORREADING_H

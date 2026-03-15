@@ -1,5 +1,4 @@
-#ifndef ZEPHYRSCHEMEHANDLER_H
-#define ZEPHYRSCHEMEHANDLER_H
+#pragma once
 
 #include <QWebEngineUrlSchemeHandler>
 #include <QMimeDatabase>
@@ -20,4 +19,3 @@ private:
     QMimeDatabase m_mimeDb;
 };
 
-#endif // ZEPHYRSCHEMEHANDLER_H

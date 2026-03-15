@@ -1,5 +1,4 @@
-#ifndef CESIUMBRIDGE_H
-#define CESIUMBRIDGE_H
+#pragma once
 
 #include <QObject>
 #include <QQmlEngine>
@@ -90,4 +89,3 @@ private:
     bool m_tokenValid = false;
 };
 
-#endif // CESIUMBRIDGE_H

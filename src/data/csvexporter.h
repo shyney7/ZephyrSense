@@ -1,5 +1,4 @@
-#ifndef CSVEXPORTER_H
-#define CSVEXPORTER_H
+#pragma once
 
 #include <QObject>
 #include <QQmlEngine>
@@ -39,4 +38,3 @@ private:
     bool m_enabled = false;
 };
 
-#endif // CSVEXPORTER_H
