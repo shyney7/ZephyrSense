@@ -17,6 +17,15 @@ export function connectBridge(): Promise<CesiumBridgeProxy> {
       return;
     }
 
+    if (typeof QWebChannel === "undefined") {
+      reject(
+        new Error(
+          "QWebChannel not available — qwebchannel.js failed to load",
+        ),
+      );
+      return;
+    }
+
     new QWebChannel(qt.webChannelTransport, (channel) => {
       const bridge = channel.objects["CesiumBridge"];
       if (!bridge) {

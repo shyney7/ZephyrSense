@@ -2,9 +2,9 @@
 
 #include <cmath>
 
-/// Coordinates within this distance of (0, 0) are treated as invalid
-/// "null island" defaults from uninitialised GPS hardware.
-/// 1e-5 degrees ≈ 1.1 metres at the equator.
+/// Coordinates with both latitude and longitude within this tolerance of 0
+/// are treated as invalid "null island" defaults from uninitialised GPS hardware.
+/// 1e-5 degrees ≈ 1.1 metres at the equator (per coordinate).
 static constexpr double NullIslandEpsilon = 1e-5;
 
 /// Returns true when \a latitude and \a longitude represent a plausible GPS fix.
