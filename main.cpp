@@ -41,9 +41,8 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationDomain(QStringLiteral("zephyrsense.local"));
     QCoreApplication::setApplicationName(QStringLiteral("ZephyrSense"));
 
-    ZephyrSchemeHandler::registerScheme();
-    QtWebEngineQuick::initialize();
-
+    // Must precede QtWebEngineQuick::initialize() — Chromium reads env vars
+    // during process bootstrap. Setting them after initialize() is a no-op.
 #ifdef Q_OS_WIN
     qputenv("QSG_RHI_BACKEND", "d3d11");
 #endif
@@ -54,6 +53,9 @@ int main(int argc, char *argv[])
 #ifdef QT_DEBUG
     qputenv("QTWEBENGINE_REMOTE_DEBUGGING", "127.0.0.1:9222");
 #endif
+
+    ZephyrSchemeHandler::registerScheme();
+    QtWebEngineQuick::initialize();
 
     QApplication app(argc, argv);
 
