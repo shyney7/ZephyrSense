@@ -146,19 +146,46 @@ int main(int argc, char *argv[])
         []() { QCoreApplication::exit(-1); },
         Qt::QueuedConnection);
 
-    // Connect signals after QML objects are created (singletons are now instantiated)
+    // Pre-instantiate singletons (Qt 6.5+): singletonInstance() forces eager
+    // construction before loadFromModule(), ensuring all cross-dependencies are
+    // wired before QML Component.onCompleted handlers fire.
+    auto *serialHandler = engine.singletonInstance<SerialHandler *>("ZephyrSense", "SerialHandler");
+    auto *dbManager = engine.singletonInstance<DatabaseManager *>("ZephyrSense", "DatabaseManager");
+    auto *csvExporter = engine.singletonInstance<CsvExporter *>("ZephyrSense", "CsvExporter");
+    auto *bridge = engine.singletonInstance<CesiumBridge *>("ZephyrSense", "CesiumBridge");
+    auto *thresholds = engine.singletonInstance<ThresholdManager *>("ZephyrSense", "ThresholdManager");
+
+    // Fail fast if any singleton is null — singletonInstance() returns nullptr
+    // when the type name or URI is wrong. Without this, the pre-wiring silently
+    // becomes a no-op and the original startup race bug is re-introduced.
+    // qFatal() is release-safe (Q_ASSERT is stripped in release builds).
+    if (!serialHandler || !dbManager || !csvExporter || !bridge || !thresholds) {
+        qFatal("Singleton pre-instantiation failed — SerialHandler:%p "
+               "DatabaseManager:%p CsvExporter:%p CesiumBridge:%p ThresholdManager:%p",
+               static_cast<void *>(serialHandler), static_cast<void *>(dbManager),
+               static_cast<void *>(csvExporter), static_cast<void *>(bridge),
+               static_cast<void *>(thresholds));
+    }
+
+    qDebug() << "Pre-instantiated singletons - SerialHandler:" << serialHandler
+             << "DatabaseManager:" << dbManager << "CsvExporter:" << csvExporter
+             << "CesiumBridge:" << bridge << "ThresholdManager:" << thresholds;
+
+    // Wire CesiumBridge dependencies BEFORE QML loads — MapView.Component.onCompleted
+    // calls CesiumBridge.loadRange() which needs m_thresholdManager for hazard colors
+    bridge->setThresholdManager(thresholds);
+    QObject::connect(thresholds, &ThresholdManager::thresholdsChanged,
+                     bridge, &CesiumBridge::onThresholdsChanged,
+                     Qt::QueuedConnection);
+    QObject::connect(serialHandler, &SerialHandler::newReading,
+                     bridge, &CesiumBridge::onNewReading,
+                     Qt::QueuedConnection);
+
+    // Wire IOWorker connections after QML loads (IOWorker is not a QML singleton;
+    // serial data doesn't flow until the user opens a port — no startup race)
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated, &app,
-        [&engine, &ioThread](QObject *obj, const QUrl &/*url*/) {
+        [serialHandler, dbManager, csvExporter, &ioThread](QObject *obj, const QUrl &/*url*/) {
             if (!obj) return;  // Object creation failed
-
-            // Get singleton instances - now they should be instantiated
-            auto *serialHandler = engine.singletonInstance<SerialHandler*>("ZephyrSense", "SerialHandler");
-            auto *dbManager = engine.singletonInstance<DatabaseManager*>("ZephyrSense", "DatabaseManager");
-            auto *csvExporter = engine.singletonInstance<CsvExporter*>("ZephyrSense", "CsvExporter");
-
-            qDebug() << "Singletons - SerialHandler:" << serialHandler
-                     << "DatabaseManager:" << dbManager
-                     << "CsvExporter:" << csvExporter;
 
             IOWorker *worker = ioThread.worker();
 
@@ -168,7 +195,7 @@ int main(int argc, char *argv[])
                 QObject::connect(serialHandler, &SerialHandler::newReading,
                                  worker, &IOWorker::processReading,
                                  Qt::QueuedConnection);
-                qDebug() << "Connected SerialHandler::newReading -> IOWorker::processReading (QueuedConnection)";
+                qDebug() << "Connected SerialHandler::newReading -> IOWorker::processReading";
             }
 
             // Connect IOWorker error signals to DatabaseManager/CsvExporter for UI error reporting
@@ -207,24 +234,6 @@ int main(int argc, char *argv[])
                                                   Q_ARG(QString, csvExporter->filePath()));
                     });
                 qDebug() << "Connected CsvExporter config changes -> IOWorker";
-            }
-
-            // Wire CesiumBridge for 3D map view
-            auto *bridge = engine.singletonInstance<CesiumBridge*>("ZephyrSense", "CesiumBridge");
-            auto *thresholds = engine.singletonInstance<ThresholdManager*>("ZephyrSense", "ThresholdManager");
-
-            if (bridge && serialHandler) {
-                QObject::connect(serialHandler, &SerialHandler::newReading,
-                                 bridge, &CesiumBridge::onNewReading,
-                                 Qt::QueuedConnection);
-                qDebug() << "Connected SerialHandler::newReading -> CesiumBridge::onNewReading";
-            }
-            if (bridge && thresholds) {
-                bridge->setThresholdManager(thresholds);
-                QObject::connect(thresholds, &ThresholdManager::thresholdsChanged,
-                                 bridge, &CesiumBridge::onThresholdsChanged,
-                                 Qt::QueuedConnection);
-                qDebug() << "Connected ThresholdManager::thresholdsChanged -> CesiumBridge";
             }
         }, Qt::QueuedConnection);
 
