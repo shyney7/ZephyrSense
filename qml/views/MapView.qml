@@ -522,6 +522,7 @@ Item {
         } else {
             // Switching from historical → live: C++ deferred switch handles loadRange internally
             CesiumBridge.liveMode = true;
+            mapViewRoot.cesiumRequestId = CesiumBridge.pendingRequestId;
         }
     }
 
