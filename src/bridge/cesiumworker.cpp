@@ -48,6 +48,15 @@ void CesiumWorker::openDatabase(const QString &path)
         return;
     }
 
+    // Enable WAL mode and busy timeout for concurrent access with IOWorker writes
+    QSqlQuery pragma(m_db);
+    if (!pragma.exec(QStringLiteral("PRAGMA journal_mode=WAL"))) {
+        qWarning() << "CesiumWorker: Failed to enable WAL mode:" << pragma.lastError().text();
+    }
+    if (!pragma.exec(QStringLiteral("PRAGMA busy_timeout=5000"))) {
+        qWarning() << "CesiumWorker: Failed to set busy_timeout:" << pragma.lastError().text();
+    }
+
     m_dbInitialized = createTables();
 }
 
