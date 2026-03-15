@@ -15,11 +15,13 @@
 #include <QStandardPaths>
 #include <QTimeZone>
 
-CesiumBridge::CesiumBridge(QObject *parent)
+CesiumBridge::CesiumBridge(QObject *parent, QNetworkAccessManager *networkManager)
     : QObject(parent)
 {
     setObjectName(QStringLiteral("CesiumBridge"));
-    m_networkManager = new QNetworkAccessManager(this);
+    m_networkManager = networkManager ? networkManager : new QNetworkAccessManager(this);
+    if (networkManager && !networkManager->parent())
+        networkManager->setParent(this);
 
     // Content URL based on build mode
 #ifdef WEBDEV_MODE

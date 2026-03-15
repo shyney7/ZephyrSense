@@ -4,6 +4,7 @@
 #include <QJsonArray>
 #include <QStandardPaths>
 #include "cesiumbridge.h"
+#include "networkmocks.h"
 #include "thresholdmanager.h"
 
 class tst_CesiumBridge : public QObject
@@ -30,6 +31,10 @@ private slots:
     void testValidateTokenSetsValidating();
     void testValidateTokenPreventsDoubleDispatch();
     void testValidateTokenResetsTokenValid();
+    void testValidateTokenSuccess();
+    void testValidateTokenInvalidToken();
+    void testValidateTokenUnexpectedStatus();
+    void testValidateTokenNetworkError();
 
 private:
     ThresholdManager *m_thresholdManager = nullptr;
@@ -214,7 +219,8 @@ void tst_CesiumBridge::testValidateTokenEmptyString()
 
 void tst_CesiumBridge::testValidateTokenSetsValidating()
 {
-    CesiumBridge bridge;
+    auto *mockNam = new MockNetworkAccessManager();
+    CesiumBridge bridge(nullptr, mockNam);
 
     QSignalSpy validatingSpy(&bridge, &CesiumBridge::validatingTokenChanged);
 
@@ -223,11 +229,13 @@ void tst_CesiumBridge::testValidateTokenSetsValidating()
     // Should immediately enter validating state
     QCOMPARE(bridge.validatingToken(), true);
     QCOMPARE(validatingSpy.count(), 1);
+    QCOMPARE(mockNam->requestCount(), 1);
 }
 
 void tst_CesiumBridge::testValidateTokenPreventsDoubleDispatch()
 {
-    CesiumBridge bridge;
+    auto *mockNam = new MockNetworkAccessManager();
+    CesiumBridge bridge(nullptr, mockNam);
 
     bridge.validateToken(QStringLiteral("first-token"));
     QCOMPARE(bridge.validatingToken(), true);
@@ -237,11 +245,13 @@ void tst_CesiumBridge::testValidateTokenPreventsDoubleDispatch()
     // Second call while first is in-flight should be a no-op
     bridge.validateToken(QStringLiteral("second-token"));
     QCOMPARE(validatingSpy.count(), 0);
+    QCOMPARE(mockNam->requestCount(), 1);
 }
 
 void tst_CesiumBridge::testValidateTokenResetsTokenValid()
 {
-    CesiumBridge bridge;
+    auto *mockNam = new MockNetworkAccessManager();
+    CesiumBridge bridge(nullptr, mockNam);
 
     QCOMPARE(bridge.tokenValid(), false);
 
@@ -251,6 +261,84 @@ void tst_CesiumBridge::testValidateTokenResetsTokenValid()
 
     QCOMPARE(bridge.tokenValid(), false);
     QCOMPARE(tokenValidSpy.count(), 1);
+}
+
+void tst_CesiumBridge::testValidateTokenSuccess()
+{
+    auto *mockNam = new MockNetworkAccessManager();
+    CesiumBridge bridge(nullptr, mockNam);
+
+    QSignalSpy successSpy(&bridge, &CesiumBridge::tokenValidationSucceeded);
+    QSignalSpy failSpy(&bridge, &CesiumBridge::tokenValidationFailed);
+    QSignalSpy validatingSpy(&bridge, &CesiumBridge::validatingTokenChanged);
+
+    bridge.validateToken(QStringLiteral("valid-token"));
+    QCOMPARE(bridge.validatingToken(), true);
+
+    mockNam->lastReply()->finish(200);
+
+    QCOMPARE(bridge.validatingToken(), false);
+    QCOMPARE(bridge.tokenValid(), true);
+    QVERIFY(bridge.tokenError().isEmpty());
+    QCOMPARE(successSpy.count(), 1);
+    QCOMPARE(failSpy.count(), 0);
+    QCOMPARE(validatingSpy.count(), 2); // true then false
+}
+
+void tst_CesiumBridge::testValidateTokenInvalidToken()
+{
+    auto *mockNam = new MockNetworkAccessManager();
+    CesiumBridge bridge(nullptr, mockNam);
+
+    QSignalSpy successSpy(&bridge, &CesiumBridge::tokenValidationSucceeded);
+    QSignalSpy failSpy(&bridge, &CesiumBridge::tokenValidationFailed);
+
+    bridge.validateToken(QStringLiteral("bad-token"));
+
+    mockNam->lastReply()->finish(401);
+
+    QCOMPARE(bridge.validatingToken(), false);
+    QCOMPARE(bridge.tokenValid(), false);
+    QVERIFY(bridge.tokenError().contains(QStringLiteral("Invalid token")));
+    QCOMPARE(successSpy.count(), 0);
+    QCOMPARE(failSpy.count(), 1);
+}
+
+void tst_CesiumBridge::testValidateTokenUnexpectedStatus()
+{
+    auto *mockNam = new MockNetworkAccessManager();
+    CesiumBridge bridge(nullptr, mockNam);
+
+    QSignalSpy failSpy(&bridge, &CesiumBridge::tokenValidationFailed);
+
+    bridge.validateToken(QStringLiteral("some-token"));
+
+    mockNam->lastReply()->finish(500);
+
+    QCOMPARE(bridge.validatingToken(), false);
+    QCOMPARE(bridge.tokenValid(), false);
+    QVERIFY(bridge.tokenError().contains(QStringLiteral("500")));
+    QCOMPARE(failSpy.count(), 1);
+}
+
+void tst_CesiumBridge::testValidateTokenNetworkError()
+{
+    auto *mockNam = new MockNetworkAccessManager();
+    CesiumBridge bridge(nullptr, mockNam);
+
+    QSignalSpy failSpy(&bridge, &CesiumBridge::tokenValidationFailed);
+
+    bridge.validateToken(QStringLiteral("some-token"));
+
+    mockNam->lastReply()->finishWithError(
+        QNetworkReply::ConnectionRefusedError,
+        QStringLiteral("Connection refused"));
+
+    QCOMPARE(bridge.validatingToken(), false);
+    QCOMPARE(bridge.tokenValid(), false);
+    QVERIFY(bridge.tokenError().contains(QStringLiteral("Network error")));
+    QVERIFY(bridge.tokenError().contains(QStringLiteral("Connection refused")));
+    QCOMPARE(failSpy.count(), 1);
 }
 
 QTEST_GUILESS_MAIN(tst_CesiumBridge)

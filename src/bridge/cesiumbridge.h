@@ -28,7 +28,8 @@ class CesiumBridge : public QObject
     Q_PROPERTY(QString tokenError READ tokenError NOTIFY tokenErrorChanged FINAL)
 
 public:
-    explicit CesiumBridge(QObject *parent = nullptr);
+    explicit CesiumBridge(QObject *parent = nullptr,
+                         QNetworkAccessManager *networkManager = nullptr);
     ~CesiumBridge() override;
 
     QUrl contentUrl() const;
