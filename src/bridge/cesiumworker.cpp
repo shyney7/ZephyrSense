@@ -1,4 +1,5 @@
 #include "cesiumworker.h"
+#include "coordinatevalidator.h"
 
 #include <QDateTime>
 #include <QTimeZone>
@@ -88,15 +89,6 @@ bool CesiumWorker::createTables()
     )"))) {
         qWarning() << "CesiumWorker: Failed to create timestamp index:" << query.lastError().text();
     }
-    return true;
-}
-
-bool CesiumWorker::isValidCoordinate(double lat, double lon)
-{
-    if (lat < -90.0 || lat > 90.0 || lon < -180.0 || lon > 180.0)
-        return false;
-    if (qFuzzyIsNull(lat) && qFuzzyIsNull(lon))
-        return false;
     return true;
 }
 

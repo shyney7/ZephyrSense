@@ -401,12 +401,13 @@ Item {
         id: tokenSetupPopup
     }
 
-    // Reload 3D globe when a Cesium Ion token is validated and saved
-    // (handles both TokenSetupPopup and Settings > DisplayTab paths)
+    // Reload 3D globe when the Cesium Ion token changes in QSettings
+    // (fires after setCesiumToken writes, so the new token is guaranteed persisted)
     Connections {
         target: CesiumBridge
-        function onTokenValidationSucceeded(): void {
-            cesiumView.reload()
+        function onCesiumTokenChanged(): void {
+            if (CesiumBridge.cesiumToken !== "")
+                cesiumView.reload()
         }
     }
 

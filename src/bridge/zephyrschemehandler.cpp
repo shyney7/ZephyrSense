@@ -58,8 +58,5 @@ void ZephyrSchemeHandler::requestStarted(QWebEngineUrlRequestJob *request)
     else
         contentType = m_mimeDb.mimeTypeForFile(url.fileName()).name().toLatin1();
 
-    // Device stays alive until the request is destroyed
-    connect(request, &QObject::destroyed, file, &QObject::deleteLater);
-
     request->reply(contentType, file);
 }

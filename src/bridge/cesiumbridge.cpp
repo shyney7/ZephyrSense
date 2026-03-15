@@ -1,5 +1,6 @@
 #include "cesiumbridge.h"
 #include "cesiumworker.h"
+#include "coordinatevalidator.h"
 #include "thresholdmanager.h"
 
 #include <QDateTime>
@@ -251,10 +252,7 @@ void CesiumBridge::onNewReading(const SensorReading &reading)
     if (!m_liveMode)
         return;
 
-    if (reading.latitude < -90.0f || reading.latitude > 90.0f ||
-        reading.longitude < -180.0f || reading.longitude > 180.0f)
-        return;
-    if (qFuzzyIsNull(reading.latitude) && qFuzzyIsNull(reading.longitude))
+    if (!isValidCoordinate(reading.latitude, reading.longitude))
         return;
 
     // Build single-point CZML packet
