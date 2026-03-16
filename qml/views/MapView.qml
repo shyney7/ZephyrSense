@@ -56,7 +56,6 @@ Item {
 
     WebChannel {
         id: cesiumChannel
-        Component.onCompleted: cesiumChannel.registerObject("CesiumBridge", CesiumBridge)
     }
 
     ColumnLayout {
@@ -154,7 +153,6 @@ Item {
                         anchors.fill: parent
                         profile: AppWebProfile
                         webChannel: cesiumChannel
-                        url: CesiumBridge.contentUrl
                         settings.localContentCanAccessRemoteUrls: true
                         settings.javascriptEnabled: true
                         settings.localStorageEnabled: true
@@ -581,6 +579,12 @@ Item {
     }
 
     Component.onCompleted: {
+        // Register CesiumBridge before the page loads — Qt requires
+        // WebChannel objects to be registered before any client initializes.
+        // Cannot use declarative registeredObjects (CesiumBridge is a QML_SINGLETON).
+        cesiumChannel.registerObject("CesiumBridge", CesiumBridge)
+        cesiumView.url = CesiumBridge.contentUrl
+
         mapViewRoot.refreshAvailableDates();
         mapViewRoot.switchToLiveMode(true);
 
