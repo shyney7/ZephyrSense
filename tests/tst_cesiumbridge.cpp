@@ -35,6 +35,14 @@ private slots:
     void testValidateTokenInvalidToken();
     void testValidateTokenUnexpectedStatus();
     void testValidateTokenNetworkError();
+    void testJsReadyDefaultFalse();
+    void testJsReadyChangedSignal();
+    void testLoadRangeQueuedBeforeJsReady();
+    void testSetJsReadyFlushesQueuedRequest();
+    void testMultipleLoadRangesBeforeReady();
+    void testLoadRangeAfterJsReadyDispatchesImmediately();
+    void testOnNewReadingGatedByJsReady();
+    void testDeferredLiveSwitchWithJsReadyGating();
 
 private:
     ThresholdManager *m_thresholdManager = nullptr;
@@ -164,6 +172,7 @@ void tst_CesiumBridge::testOnNewReadingEmitsCzmlPacket()
 {
     CesiumBridge bridge;
     bridge.setThresholdManager(m_thresholdManager);
+    bridge.setJsReady(true);
 
     QSignalSpy spy(&bridge, &CesiumBridge::czmlPacket);
 
@@ -339,6 +348,126 @@ void tst_CesiumBridge::testValidateTokenNetworkError()
     QVERIFY(bridge.tokenError().contains(QStringLiteral("Network error")));
     QVERIFY(bridge.tokenError().contains(QStringLiteral("Connection refused")));
     QCOMPARE(failSpy.count(), 1);
+}
+
+void tst_CesiumBridge::testJsReadyDefaultFalse()
+{
+    CesiumBridge bridge;
+    QCOMPARE(bridge.jsReady(), false);
+}
+
+void tst_CesiumBridge::testJsReadyChangedSignal()
+{
+    CesiumBridge bridge;
+    QSignalSpy spy(&bridge, &CesiumBridge::jsReadyChanged);
+
+    bridge.setJsReady(true);
+    QCOMPARE(spy.count(), 1);
+    QCOMPARE(bridge.jsReady(), true);
+
+    // Idempotent — no extra emission
+    bridge.setJsReady(true);
+    QCOMPARE(spy.count(), 1);
+}
+
+void tst_CesiumBridge::testLoadRangeQueuedBeforeJsReady()
+{
+    CesiumBridge bridge;
+    bridge.setThresholdManager(m_thresholdManager);
+
+    QSignalSpy spy(&bridge, &CesiumBridge::czmlReady);
+
+    bridge.loadRange(0, 1000, 1);
+    // loadRange returns synchronously without dispatch when !jsReady
+    QCOMPARE(spy.count(), 0);
+}
+
+void tst_CesiumBridge::testSetJsReadyFlushesQueuedRequest()
+{
+    CesiumBridge bridge;
+    bridge.setThresholdManager(m_thresholdManager);
+
+    QSignalSpy spy(&bridge, &CesiumBridge::czmlReady);
+
+    bridge.loadRange(0, 1000, 42);
+    QCOMPARE(spy.count(), 0);
+
+    bridge.setJsReady(true);
+    QTRY_COMPARE(spy.count(), 1);
+    QCOMPARE(spy.at(0).at(1).toInt(), 42);
+}
+
+void tst_CesiumBridge::testMultipleLoadRangesBeforeReady()
+{
+    CesiumBridge bridge;
+    bridge.setThresholdManager(m_thresholdManager);
+
+    QSignalSpy spy(&bridge, &CesiumBridge::czmlReady);
+
+    bridge.loadRange(0, 1000, 1);
+    bridge.loadRange(0, 2000, 2);
+    bridge.loadRange(0, 3000, 3);
+
+    bridge.setJsReady(true);
+    // Only the last request (id 3) should be flushed
+    QTRY_COMPARE(spy.count(), 1);
+    QCOMPARE(spy.at(0).at(1).toInt(), 3);
+}
+
+void tst_CesiumBridge::testLoadRangeAfterJsReadyDispatchesImmediately()
+{
+    CesiumBridge bridge;
+    bridge.setThresholdManager(m_thresholdManager);
+
+    bridge.setJsReady(true);
+
+    QSignalSpy spy(&bridge, &CesiumBridge::czmlReady);
+    bridge.loadRange(0, 1000, 7);
+    QTRY_COMPARE(spy.count(), 1);
+    QCOMPARE(spy.at(0).at(1).toInt(), 7);
+}
+
+void tst_CesiumBridge::testOnNewReadingGatedByJsReady()
+{
+    CesiumBridge bridge;
+    bridge.setThresholdManager(m_thresholdManager);
+
+    QSignalSpy spy(&bridge, &CesiumBridge::czmlPacket);
+
+    SensorReading reading;
+    reading.latitude = 51.25f;
+    reading.longitude = 7.15f;
+    reading.altitude = 100.0f;
+    reading.co2 = 400;
+
+    // Before jsReady — dropped
+    bridge.onNewReading(reading);
+    QCOMPARE(spy.count(), 0);
+
+    // After jsReady — emitted
+    bridge.setJsReady(true);
+    bridge.onNewReading(reading);
+    QCOMPARE(spy.count(), 1);
+}
+
+void tst_CesiumBridge::testDeferredLiveSwitchWithJsReadyGating()
+{
+    CesiumBridge bridge;
+    bridge.setThresholdManager(m_thresholdManager);
+
+    // Start in non-live mode
+    bridge.setLiveMode(false);
+    QCOMPARE(bridge.liveMode(), false);
+
+    // Request switch to live — internally calls loadRange which queues
+    bridge.setLiveMode(true);
+    // liveMode stays false because the switch is deferred until CZML arrives
+    QCOMPARE(bridge.liveMode(), false);
+
+    // Flush the queued loadRange
+    bridge.setJsReady(true);
+    // Worker processes the request and onCzmlGenerated completes the live switch
+    QTRY_COMPARE(bridge.liveMode(), true);
 }
 
 QTEST_GUILESS_MAIN(tst_CesiumBridge)

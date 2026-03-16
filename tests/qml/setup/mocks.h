@@ -272,6 +272,7 @@ class MockCesiumBridge final : public QObject
     Q_PROPERTY(bool validatingToken READ validatingToken NOTIFY validatingTokenChanged FINAL)
     Q_PROPERTY(bool tokenValid READ tokenValid NOTIFY tokenValidChanged FINAL)
     Q_PROPERTY(QString tokenError READ tokenError NOTIFY tokenErrorChanged FINAL)
+    Q_PROPERTY(bool jsReady READ jsReady NOTIFY jsReadyChanged FINAL)
 
 public:
     explicit MockCesiumBridge(QObject *parent = nullptr) : QObject(parent) {}
@@ -288,6 +289,8 @@ public:
     bool validatingToken() const { return m_validating; }
     bool tokenValid() const { return m_tokenValid; }
     QString tokenError() const { return m_tokenError; }
+    bool jsReady() const { return m_jsReady; }
+    Q_INVOKABLE void setJsReady(bool v) { if (m_jsReady != v) { m_jsReady = v; emit jsReadyChanged(); } }
 
     Q_INVOKABLE void validateToken(const QString &token) {
         Q_UNUSED(token)
@@ -330,6 +333,7 @@ signals:
     void tokenErrorChanged();
     void tokenValidationSucceeded();
     void tokenValidationFailed(const QString &error);
+    void jsReadyChanged();
 
 private:
     QString m_token;
@@ -338,6 +342,7 @@ private:
     int m_windowMinutes = 60;
     bool m_validating = false;
     bool m_tokenValid = false;
+    bool m_jsReady = false;
     QString m_tokenError;
 };
 

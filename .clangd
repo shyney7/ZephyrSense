@@ -1,3 +1,8 @@
+CompileFlags:
+  Add: [-Wno-padded]
+
+---
+
 If:
   PathMatch: tests/qml/setup/mocks\.h
 Diagnostics:

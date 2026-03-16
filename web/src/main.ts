@@ -127,6 +127,7 @@ async function init(): Promise<void> {
     }
 
     console.log("CesiumBridge connected successfully");
+    bridge.setJsReady(true);
   }
 }
 

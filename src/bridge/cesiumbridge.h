@@ -1,9 +1,12 @@
 #pragma once
 
 #include <QObject>
+#include <QObjectBindableProperty>
+#include <QBindable>
 #include <QQmlEngine>
 #include <QThread>
 #include <QUrl>
+#include <optional>
 #include "sensorreading.h"
 
 class QNetworkAccessManager;
@@ -26,6 +29,7 @@ class CesiumBridge : public QObject
     Q_PROPERTY(bool validatingToken READ validatingToken NOTIFY validatingTokenChanged FINAL)
     Q_PROPERTY(bool tokenValid READ tokenValid NOTIFY tokenValidChanged FINAL)
     Q_PROPERTY(QString tokenError READ tokenError NOTIFY tokenErrorChanged FINAL)
+    Q_PROPERTY(bool jsReady READ jsReady NOTIFY jsReadyChanged BINDABLE bindableJsReady FINAL)
 
 public:
     explicit CesiumBridge(QObject *parent = nullptr,
@@ -40,6 +44,8 @@ public:
     bool validatingToken() const;
     bool tokenValid() const;
     QString tokenError() const;
+    bool jsReady() const { return m_jsReady.value(); }
+    QBindable<bool> bindableJsReady() { return &m_jsReady; }
 
     void setCesiumToken(const QString &token);
     void setLiveMode(bool enabled);
@@ -50,6 +56,7 @@ public:
     Q_INVOKABLE void loadRange(qint64 startMsecs, qint64 endMsecs, int requestId);
     Q_INVOKABLE QString getThresholdConfig();
     Q_INVOKABLE void validateToken(const QString &token);
+    Q_INVOKABLE void setJsReady(bool ready);
 
 signals:
     void czmlReady(const QString &czmlJson, int requestId);
@@ -64,6 +71,7 @@ signals:
     void tokenErrorChanged();
     void tokenValidationSucceeded();
     void tokenValidationFailed(const QString &error);
+    void jsReadyChanged();
 
 public slots:
     void onNewReading(const SensorReading &reading);
@@ -88,5 +96,14 @@ private:
     bool m_pendingLiveSwitch = false;
     bool m_validatingToken = false;
     bool m_tokenValid = false;
+
+    struct PendingLoadRequest {
+        qint64 startMsecs;
+        qint64 endMsecs;
+        int requestId;
+    };
+
+    std::optional<PendingLoadRequest> m_queuedLoad;
+    Q_OBJECT_BINDABLE_PROPERTY(CesiumBridge, bool, m_jsReady, &CesiumBridge::jsReadyChanged)
 };
 

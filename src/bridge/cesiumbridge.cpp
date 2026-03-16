@@ -223,8 +223,27 @@ void CesiumBridge::setThresholdManager(ThresholdManager *manager)
     m_thresholdManager = manager;
 }
 
+void CesiumBridge::setJsReady(bool ready)
+{
+    if (m_jsReady.value() == ready)
+        return;
+
+    m_jsReady = ready; // auto-emits jsReadyChanged()
+
+    if (ready && m_queuedLoad) {
+        const auto req = *m_queuedLoad;
+        m_queuedLoad.reset();
+        loadRange(req.startMsecs, req.endMsecs, req.requestId);
+    }
+}
+
 void CesiumBridge::loadRange(qint64 startMsecs, qint64 endMsecs, int requestId)
 {
+    if (!m_jsReady.value()) {
+        m_queuedLoad = PendingLoadRequest{startMsecs, endMsecs, requestId};
+        return;
+    }
+
     QVariantMap thresholdSnapshot;
     if (m_thresholdManager)
         thresholdSnapshot = m_thresholdManager->getThresholds();
@@ -250,6 +269,9 @@ QString CesiumBridge::getThresholdConfig()
 void CesiumBridge::onNewReading(const SensorReading &reading)
 {
     if (!m_liveMode)
+        return;
+
+    if (!m_jsReady.value())
         return;
 
     if (!isValidCoordinate(reading.latitude, reading.longitude))
