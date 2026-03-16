@@ -15,74 +15,25 @@ TestCase {
     height: 500
     when: windowShown
 
+    property Component popupComponent: Qt.createComponent(
+        "file:///" + _sourceDir + "/qml/components/TokenSetupPopup.qml")
+
     Component {
         id: signalSpyComponent
         SignalSpy {}
     }
 
-    Component {
-        id: popupComponent
-
-        Popup {
-            id: tokenPopup
-            modal: true
-            width: 520
-            height: 420
-            padding: 24
-            closePolicy: Popup.NoAutoClose
-
-            signal tokenSaved()
-
-            property alias tokenInput: tokenInputField
-            property alias saveButton: saveBtn
-            property alias skipButton: skipBtn
-
-            Column {
-                spacing: 16
-
-                TextField {
-                    id: tokenInputField
-                    width: 400
-                    placeholderText: "Paste token"
-                    echoMode: TextInput.Password
-                    enabled: !CesiumBridge.validatingToken
-                }
-
-                Row {
-                    spacing: 8
-
-                    Button {
-                        id: skipBtn
-                        text: "Skip for Now"
-                        enabled: !CesiumBridge.validatingToken
-                        onClicked: tokenPopup.close()
-                    }
-
-                    Button {
-                        id: saveBtn
-                        text: "Save Token"
-                        highlighted: true
-                        enabled: tokenInputField.text.length > 0 && !CesiumBridge.validatingToken
-                        onClicked: CesiumBridge.validateToken(tokenInputField.text)
-                    }
-                }
-            }
-
-            Connections {
-                target: CesiumBridge
-
-                function onTokenValidationSucceeded(): void {
-                    CesiumBridge.cesiumToken = tokenPopup.tokenInput.text
-                    tokenPopup.tokenSaved()
-                    tokenPopup.close()
-                }
-            }
-        }
+    function init(): void {
+        // Reset all mock state: cesiumToken is writable; tokenError and validatingToken
+        // are read-only so reset them via simulateValidationSuccess (no popup exists
+        // between tests, so the emitted signal has no handler to trigger)
+        CesiumBridge.cesiumToken = ""
+        CesiumBridge.simulateValidationSuccess()
     }
 
-    function init(): void {
-        // Reset mock state before each test (use property assignment, not setter)
-        CesiumBridge.cesiumToken = ""
+    function test_componentLoaded(): void {
+        compare(popupComponent.status, Component.Ready,
+                "Failed to load: " + popupComponent.errorString())
     }
 
     function test_saveButtonDisabledWhenEmpty(): void {
@@ -91,9 +42,13 @@ TestCase {
         popup.open()
         waitForRendering(testCase)
 
-        // Token input is empty — save button should be disabled
-        compare(popup.tokenInput.text, "")
-        compare(popup.saveButton.enabled, false)
+        var tokenInput = findChild(popup, "tokenInput")
+        verify(tokenInput)
+        var saveButton = findChild(popup, "saveButton")
+        verify(saveButton)
+
+        compare(tokenInput.text, "")
+        compare(saveButton.enabled, false)
 
         popup.close()
     }
@@ -104,8 +59,13 @@ TestCase {
         popup.open()
         waitForRendering(testCase)
 
-        popup.tokenInput.text = "test-token-123"
-        compare(popup.saveButton.enabled, true)
+        var tokenInput = findChild(popup, "tokenInput")
+        verify(tokenInput)
+        var saveButton = findChild(popup, "saveButton")
+        verify(saveButton)
+
+        tokenInput.text = "test-token-123"
+        compare(saveButton.enabled, true)
 
         popup.close()
     }
@@ -117,10 +77,12 @@ TestCase {
         waitForRendering(testCase)
 
         compare(popup.visible, true)
-        popup.skipButton.clicked()
+
+        var skipButton = findChild(popup, "skipButton")
+        verify(skipButton)
+        skipButton.clicked()
         tryCompare(popup, "visible", false)
 
-        // Token should remain empty after skip
         compare(CesiumBridge.cesiumToken, "")
     }
 
@@ -133,9 +95,10 @@ TestCase {
         var savedSpy = createTemporaryObject(signalSpyComponent, testCase,
             { target: popup, signalName: "tokenSaved" })
 
-        popup.tokenInput.text = "valid-token-abc"
+        var tokenInput = findChild(popup, "tokenInput")
+        verify(tokenInput)
+        tokenInput.text = "valid-token-abc"
 
-        // Simulate validation success from the mock
         CesiumBridge.simulateValidationSuccess()
 
         tryCompare(popup, "visible", false)
@@ -149,14 +112,83 @@ TestCase {
         popup.open()
         waitForRendering(testCase)
 
-        popup.tokenInput.text = "bad-token"
+        var tokenInput = findChild(popup, "tokenInput")
+        verify(tokenInput)
+        tokenInput.text = "bad-token"
 
-        // Simulate validation failure
         CesiumBridge.simulateValidationFailure("Invalid token")
 
-        // Popup should remain open
         compare(popup.visible, true)
-        // Token should NOT have been saved
         compare(CesiumBridge.cesiumToken, "")
+    }
+
+    function test_errorDisplayOnFailure(): void {
+        var popup = createTemporaryObject(popupComponent, testCase)
+        verify(popup)
+        popup.open()
+        waitForRendering(testCase)
+
+        var errorRect = findChild(popup, "errorRect")
+        verify(errorRect)
+
+        // Initially hidden (no error)
+        compare(errorRect.visible, false)
+
+        CesiumBridge.simulateValidationFailure("Invalid token format")
+
+        // Error rect becomes visible with the error message
+        tryCompare(errorRect, "visible", true)
+    }
+
+    function test_busyIndicatorDuringValidation(): void {
+        var popup = createTemporaryObject(popupComponent, testCase)
+        verify(popup)
+        popup.open()
+        waitForRendering(testCase)
+
+        var busyIndicator = findChild(popup, "busyIndicator")
+        verify(busyIndicator)
+        var saveButton = findChild(popup, "saveButton")
+        verify(saveButton)
+
+        // Initially not validating
+        compare(busyIndicator.visible, false)
+
+        // validateToken() sets validatingToken=true (read-only from QML)
+        CesiumBridge.validateToken("test")
+
+        tryCompare(busyIndicator, "visible", true)
+        tryCompare(busyIndicator, "running", true)
+        compare(saveButton.text, "Validating...")
+
+        popup.close()
+    }
+
+    function test_showHideToggle(): void {
+        var popup = createTemporaryObject(popupComponent, testCase)
+        verify(popup)
+        popup.open()
+        waitForRendering(testCase)
+
+        var tokenInput = findChild(popup, "tokenInput")
+        verify(tokenInput)
+        var showHideButton = findChild(popup, "showHideButton")
+        verify(showHideButton)
+
+        // Initially password mode
+        compare(tokenInput.echoMode, TextInput.Password)
+        compare(showHideButton.text, "Show")
+
+        // Toggle to show
+        showHideButton.clicked()
+        compare(tokenInput.echoMode, TextInput.Normal)
+        compare(showHideButton.text, "Hide")
+
+        // Toggle back to hide
+        showHideButton.clicked()
+        compare(tokenInput.echoMode, TextInput.Password)
+        compare(showHideButton.text, "Show")
+
+        popup.close()
     }
 }

@@ -35,7 +35,7 @@ Popup {
                   + "to display terrain and satellite imagery.\n\n"
                   + "1. Visit ion.cesium.com and create a free account\n"
                   + "2. Go to Access Tokens in your account dashboard\n"
-                  + "3. Copy your default token and paste it below"
+                  + "3. Click 'Create token' and paste it below"
             wrapMode: Text.Wrap
             Layout.fillWidth: true
             font.pixelSize: 13
@@ -43,6 +43,7 @@ Popup {
         }
 
         Text {
+            id: linkText
             text: "<a href='https://ion.cesium.com/tokens'>Open Cesium Ion Token Page</a>"
             textFormat: Text.RichText
             font.pixelSize: 12
@@ -50,6 +51,12 @@ Popup {
 
             onLinkActivated: function (link: string): void {
                 Qt.openUrlExternally(link)
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                acceptedButtons: Qt.NoButton
+                cursorShape: linkText.hoveredLink !== "" ? Qt.PointingHandCursor : Qt.ArrowCursor
             }
         }
 
@@ -59,6 +66,7 @@ Popup {
 
             TextField {
                 id: tokenInput
+                objectName: "tokenInput"
                 Layout.fillWidth: true
                 placeholderText: "Paste your Cesium Ion access token here"
                 echoMode: TextInput.Password
@@ -66,6 +74,7 @@ Popup {
             }
 
             Button {
+                objectName: "showHideButton"
                 text: tokenInput.echoMode === TextInput.Password ? "Show" : "Hide"
                 Layout.preferredWidth: 60
 
@@ -78,6 +87,7 @@ Popup {
 
         // Error display
         Rectangle {
+            objectName: "errorRect"
             Layout.fillWidth: true
             Layout.preferredHeight: errorLabel.implicitHeight + 16
             color: "#FFEBEE"
@@ -106,6 +116,7 @@ Popup {
             spacing: 8
 
             BusyIndicator {
+                objectName: "busyIndicator"
                 Layout.preferredWidth: 24
                 Layout.preferredHeight: 24
                 running: CesiumBridge.validatingToken
@@ -117,6 +128,7 @@ Popup {
             }
 
             Button {
+                objectName: "skipButton"
                 text: "Skip for Now"
                 enabled: !CesiumBridge.validatingToken
 
@@ -124,6 +136,7 @@ Popup {
             }
 
             Button {
+                objectName: "saveButton"
                 text: CesiumBridge.validatingToken ? "Validating..." : "Save Token"
                 highlighted: true
                 enabled: tokenInput.text.length > 0 && !CesiumBridge.validatingToken

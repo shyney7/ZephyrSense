@@ -163,7 +163,7 @@ ScrollView {
                     }
 
                     Button {
-                        text: CesiumBridge.validatingToken ? "Validating..." : "Save & Validate"
+                        text: CesiumBridge.validatingToken ? "Validating..." : "Save Token"
                         highlighted: true
                         enabled: tokenField.text.length > 0 && !CesiumBridge.validatingToken
                         Layout.preferredWidth: 130
@@ -207,6 +207,7 @@ ScrollView {
                 }
 
                 Text {
+                    id: tokenLinkText
                     text: "<a href='https://ion.cesium.com/tokens'>Get a free token at cesium.com/ion</a>"
                     textFormat: Text.RichText
                     font.pixelSize: 11
@@ -214,6 +215,12 @@ ScrollView {
 
                     onLinkActivated: function (link: string): void {
                         Qt.openUrlExternally(link)
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        acceptedButtons: Qt.NoButton
+                        cursorShape: tokenLinkText.hoveredLink !== "" ? Qt.PointingHandCursor : Qt.ArrowCursor
                     }
                 }
             }
