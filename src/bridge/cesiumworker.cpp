@@ -196,7 +196,7 @@ void CesiumWorker::generateCzml(qint64 startMsecs, qint64 endMsecs, int requestI
         return QJsonArray{ r, g, b, a };
     };
     const QJsonArray colorNormal = makeColorArray(76, 175, 80, 255);
-    const QJsonArray colorWarning = makeColorArray(255, 193, 7, 255);
+    const QJsonArray colorWarning = makeColorArray(255, 152, 0, 255);
     const QJsonArray colorDanger = makeColorArray(244, 67, 54, 255);
 
     QJsonArray flightPathCoords;

@@ -289,7 +289,7 @@ void CesiumBridge::onNewReading(const SensorReading &reading)
         reading.pressure, reading.altitude, thresholdSnapshot);
 
     const QJsonArray pointColor = (hazard == 2) ? QJsonArray{ 244, 67, 54, 255 }
-                                : (hazard == 1) ? QJsonArray{ 255, 193, 7, 255 }
+                                : (hazard == 1) ? QJsonArray{ 255, 152, 0, 255 }
                                                 : QJsonArray{ 76, 175, 80, 255 };
 
     const QString tsStr = reading.timestamp.toUTC()
@@ -299,7 +299,7 @@ void CesiumBridge::onNewReading(const SensorReading &reading)
                               : (hazard == 1) ? QStringLiteral("Warning")
                                               : QStringLiteral("Normal");
     const QString hazardHtmlColor = (hazard == 2) ? QStringLiteral("#F44336")
-                                  : (hazard == 1) ? QStringLiteral("#FFC107")
+                                  : (hazard == 1) ? QStringLiteral("#FF9800")
                                                   : QStringLiteral("#4CAF50");
 
     const QString description = QStringLiteral(
