@@ -232,7 +232,7 @@ void CesiumWorker::generateCzml(qint64 startMsecs, qint64 endMsecs, int requestI
                                   : (hazard == 1) ? QStringLiteral("Warning")
                                                   : QStringLiteral("Normal");
         const QString hazardHtmlColor = (hazard == 2) ? QStringLiteral("#F44336")
-                                      : (hazard == 1) ? QStringLiteral("#FFC107")
+                                      : (hazard == 1) ? QStringLiteral("#FF9800")
                                                       : QStringLiteral("#4CAF50");
 
         // Build timestamp string
