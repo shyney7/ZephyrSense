@@ -153,7 +153,6 @@ Item {
                         anchors.fill: parent
                         profile: AppWebProfile
                         webChannel: cesiumChannel
-                        settings.localContentCanAccessRemoteUrls: true
                         settings.javascriptEnabled: true
                         settings.localStorageEnabled: true
                     }

@@ -15,8 +15,14 @@ void ZephyrSchemeHandler::registerScheme()
 {
     QWebEngineUrlScheme scheme(QByteArrayLiteral("zephyr"));
     scheme.setSyntax(QWebEngineUrlScheme::Syntax::Host);
+    // SecureScheme: treat zephyr:// as a secure origin (like https://), enabling
+    //   APIs that require secure contexts and standard CORS for cross-origin
+    //   requests to Cesium Ion CDNs (terrain tiles, imagery).
+    // CorsEnabled: allow cross-origin XHR/fetch from zephyr:// pages, required
+    //   for CesiumJS to load tiles from Ion-resolved CDN domains.
+    // LocalAccessAllowed intentionally omitted — the handler serves embedded
+    //   Qt resources (qrc://), never file:// paths.
     scheme.setFlags(QWebEngineUrlScheme::SecureScheme
-                    | QWebEngineUrlScheme::LocalAccessAllowed
                     | QWebEngineUrlScheme::CorsEnabled);
     QWebEngineUrlScheme::registerScheme(scheme);
 }
