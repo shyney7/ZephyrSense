@@ -150,6 +150,10 @@ ScrollView {
                         text: CesiumBridge.cesiumToken
                         echoMode: TextInput.Password
                         enabled: !CesiumBridge.validatingToken
+
+                        onTextEdited: function(): void {
+                            successLabel.visible = false
+                        }
                     }
 
                     Button {
