@@ -1,5 +1,6 @@
 #include "timeserieschartmodel.h"
 #include "databasemanager.h"
+#include <utility>
 #include <QDebug>
 #include <QVariantMap>
 #include <limits>
@@ -69,7 +70,7 @@ void TimeSeriesChartModel::loadData(const QDateTime &start, const QDateTime &end
     qDebug() << "TimeSeriesChartModel: Loaded" << readings.count() << "readings from" << start << "to" << end;
 
     // Convert to DataPoint structs
-    for (const QVariant &v : readings) {
+    for (const QVariant &v : std::as_const(readings)) {
         QVariantMap map = v.toMap();
 
         DataPoint point;

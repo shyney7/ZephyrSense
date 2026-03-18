@@ -35,4 +35,3 @@ private:
     QTimer m_deferTimer;
     bool m_hasDocksOutside = false;
 };
-

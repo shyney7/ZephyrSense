@@ -1,5 +1,6 @@
 #include "sensorreadingmodel.h"
 #include "coordinatevalidator.h"
+#include <utility>
 #include "databasemanager.h"
 #include "serialhandler.h"
 #include "thresholdmanager.h"
@@ -108,7 +109,7 @@ void SensorReadingModel::loadFromDatabase(const QDateTime &start, const QDateTim
     m_readings.clear();
 
     QVariantList results = dbManager->getReadingsInRange(start, end);
-    for (const QVariant &var : results) {
+    for (const QVariant &var : std::as_const(results)) {
         QVariantMap map = var.toMap();
         SensorReading reading;
         reading.partectorNumber = map[QStringLiteral("partectorNumber")].toInt();
@@ -135,7 +136,7 @@ void SensorReadingModel::loadFromDatabase(const QDateTime &start, const QDateTim
 
     // Sync m_nextId to avoid collisions between live reading IDs and database IDs
     qint64 maxId = 0;
-    for (const auto &entry : m_readings) {
+    for (const auto &entry : std::as_const(m_readings)) {
         maxId = qMax(maxId, entry.id);
     }
     if (maxId >= m_nextId) {

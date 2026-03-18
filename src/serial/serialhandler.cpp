@@ -67,7 +67,7 @@ void SerialHandler::refreshPorts()
     for (const QSerialPortInfo &info : portInfos) {
         QString entry = info.portName();
         if (!info.description().isEmpty()) {
-            entry += " - " + info.description();
+            entry += QStringLiteral(" - ") + info.description();
         }
         m_ports.append(entry);
     }

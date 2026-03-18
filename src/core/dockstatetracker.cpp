@@ -1,6 +1,7 @@
 #include "dockstatetracker.h"
 
 #include <QQuickItem>
+#include <utility>
 #include <QQuickWindow>
 #include <kddockwidgets/core/DockWidget.h>
 #include <kddockwidgets/qtquick/views/DockWidget.h>
@@ -22,9 +23,10 @@ void DockStateTracker::trackDockWidget(QObject *dockWidget)
     if (!dockWidget)
         return;
 
-    // The QML KDDW.DockWidget type is DockWidgetInstantiator (internal KDDW class),
-    // not QtQuick::DockWidget directly. Access the actual dock via the "dockWidget"
-    // Q_PROPERTY to avoid depending on the internal header.
+    // The QML KDDW.DockWidget type is DockWidgetInstantiator, not QtQuick::DockWidget
+    // directly. Access the actual dock via the "dockWidget" Q_PROPERTY.
+    // String-based connect is required: DockWidgetInstantiator lacks DOCKS_EXPORT,
+    // so its symbols are not exported from the KDDW DLL on Windows.
     QVariant dwVar = dockWidget->property("dockWidget");
     auto *qtquickDock = qvariant_cast<KDDockWidgets::QtQuick::DockWidget *>(dwVar);
     if (!qtquickDock) {
@@ -38,12 +40,14 @@ void DockStateTracker::trackDockWidget(QObject *dockWidget)
 
     m_coreDocks.append(coreDock);
 
-    // Connect to the instantiator's signals (string-based connect since we don't
-    // include the DockWidgetInstantiator header)
+    // NOLINTBEGIN(clazy-old-style-connect)
+    // DockWidgetInstantiator is not DLL-exported (missing DOCKS_EXPORT),
+    // so PMF (pointer-to-member-function) connects cannot link on Windows.
     connect(dockWidget, SIGNAL(isFloatingChanged(bool)),
             this, SLOT(scheduleReevaluation()));
     connect(dockWidget, SIGNAL(isOpenChanged(bool)),
             this, SLOT(scheduleReevaluation()));
+    // NOLINTEND(clazy-old-style-connect)
 
     // Connect to the actual QQuickItem's windowChanged signal — fires when the
     // dock moves between the main window and a floating window
@@ -59,7 +63,7 @@ void DockStateTracker::scheduleReevaluation()
 void DockStateTracker::reevaluate()
 {
     bool hasAny = false;
-    for (const auto &ptr : m_coreDocks) {
+    for (const auto &ptr : std::as_const(m_coreDocks)) {
         if (ptr && ptr->isOpen() && !ptr->isInMainWindow()) {
             hasAny = true;
             break;
