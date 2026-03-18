@@ -25,10 +25,8 @@ public:
 signals:
     void changed();
 
-private slots:
-    void scheduleReevaluation();
-
 private:
+    void scheduleReevaluation();
     void reevaluate();
 
     QList<QPointer<KDDockWidgets::Core::DockWidget>> m_coreDocks;
