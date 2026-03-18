@@ -6,28 +6,41 @@ A Qt/QML desktop application for real-time and historical visualization of geosp
 
 ## Table of Contents
 
-- [Overview](#overview)
-- [Features](#features)
-- [Screenshots](#screenshots)
-- [Architecture](#architecture)
-- [Sensor Data](#sensor-data)
-- [Prerequisites](#prerequisites)
-- [Building](#building)
-  - [Debug Build](#debug-build)
-  - [Release Build & Deployment](#release-build--deployment)
-  - [Web Assets (CesiumJS)](#web-assets-cesiumjs)
-- [Testing](#testing)
-  - [Running Tests](#running-tests)
-  - [Code Coverage](#code-coverage)
-- [Project Structure](#project-structure)
-- [Key Components](#key-components)
-  - [C++ Backend](#c-backend)
-  - [QML Frontend](#qml-frontend)
-  - [CesiumJS 3D Map](#cesiumjs-3d-map)
-- [Configuration & Persistence](#configuration--persistence)
-- [CI Pipeline](#ci-pipeline)
-- [Third-Party Libraries](#third-party-libraries)
-- [License](#license)
+- [ZephyrSense](#zephyrsense)
+  - [Table of Contents](#table-of-contents)
+  - [Overview](#overview)
+  - [Features](#features)
+  - [Screenshots](#screenshots)
+  - [Architecture](#architecture)
+    - [Threading Model](#threading-model)
+  - [Sensor Data](#sensor-data)
+    - [Hazard Levels](#hazard-levels)
+  - [Prerequisites](#prerequisites)
+  - [Building](#building)
+    - [Debug Build](#debug-build)
+    - [Release Build \& Deployment](#release-build--deployment)
+    - [Web Assets (CesiumJS)](#web-assets-cesiumjs)
+  - [Testing](#testing)
+    - [Running Tests](#running-tests)
+      - [Test Suites](#test-suites)
+      - [Test Helpers (`tests/testhelpers.h`)](#test-helpers-teststesthelpersh)
+    - [Code Coverage](#code-coverage)
+  - [Project Structure](#project-structure)
+  - [Key Components](#key-components)
+    - [C++ Backend](#c-backend)
+      - [Singletons (QML\_SINGLETON)](#singletons-qml_singleton)
+      - [Data Models (QML\_ELEMENT)](#data-models-qml_element)
+      - [`SensorReading` (Q\_GADGET)](#sensorreading-q_gadget)
+      - [IOThread / IOWorker](#iothread--ioworker)
+      - [CesiumWorker](#cesiumworker)
+    - [QML Frontend](#qml-frontend)
+      - [Views](#views)
+      - [SensorConfigProvider](#sensorconfigprovider)
+    - [CesiumJS 3D Map](#cesiumjs-3d-map)
+  - [Configuration \& Persistence](#configuration--persistence)
+  - [CI Pipeline](#ci-pipeline)
+  - [Third-Party Libraries](#third-party-libraries)
+  - [License](#license)
 
 ---
 
@@ -68,7 +81,7 @@ All incoming readings are persisted in a local SQLite database so historical dat
 
 > **3D Map Preview**
 >
-> ![Web/3D view](docs/WebScreenshot.png)
+> ![Web/3D view](docs/assets/webapp.png)
 
 ---
 
