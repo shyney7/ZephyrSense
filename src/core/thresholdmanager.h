@@ -1,5 +1,4 @@
-#ifndef THRESHOLDMANAGER_H
-#define THRESHOLDMANAGER_H
+#pragma once
 
 #include <QObject>
 #include <QQmlEngine>
@@ -165,6 +164,9 @@ public:
     // Check if a sensor is enabled for hazard calculation
     Q_INVOKABLE bool isSensorEnabledForKey(const QString &sensorKey) const;
 
+    // Get a snapshot of all threshold values and enabled states
+    Q_INVOKABLE QVariantMap getThresholds() const;
+
     // Reset all thresholds and enabled states to defaults
     Q_INVOKABLE void resetToDefaults();
 
@@ -257,4 +259,3 @@ private:
     bool m_altitudeEnabled;
 };
 
-#endif // THRESHOLDMANAGER_H

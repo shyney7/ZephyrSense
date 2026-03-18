@@ -1,5 +1,4 @@
-#ifndef SENSORREADINGMODEL_H
-#define SENSORREADINGMODEL_H
+#pragma once
 
 #include <QAbstractListModel>
 #include <QQmlEngine>
@@ -73,4 +72,3 @@ private slots:
     void onThresholdsChanged();
 };
 
-#endif // SENSORREADINGMODEL_H

@@ -64,6 +64,11 @@ void IOWorker::openDatabase(const QString &path)
         qWarning() << "IOWorker: Failed to enable WAL mode:" << walQuery.lastError().text();
     }
 
+    QSqlQuery timeoutQuery(m_db);
+    if (!timeoutQuery.exec(QStringLiteral("PRAGMA busy_timeout=5000"))) {
+        qWarning() << "IOWorker: Failed to set busy_timeout:" << timeoutQuery.lastError().text();
+    }
+
     createTables();
     m_dbInitialized = true;
 }

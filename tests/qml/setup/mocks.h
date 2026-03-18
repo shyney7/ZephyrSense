@@ -2,8 +2,7 @@
 // Mock singletons for QML tests — registered as the ZephyrSense module
 // so production QML files that `import ZephyrSense` resolve correctly.
 
-#ifndef MOCKS_H
-#define MOCKS_H
+#pragma once
 
 #include <QObject>
 #include <QAbstractTableModel>
@@ -259,6 +258,94 @@ private:
     QString m_filePath;
 };
 
+class MockCesiumBridge final : public QObject
+{
+    Q_OBJECT
+    QML_NAMED_ELEMENT(CesiumBridge)
+    QML_SINGLETON
+
+    Q_PROPERTY(QUrl contentUrl READ contentUrl CONSTANT FINAL)
+    Q_PROPERTY(QString cesiumToken READ cesiumToken WRITE setCesiumToken NOTIFY cesiumTokenChanged FINAL)
+    Q_PROPERTY(bool liveMode READ liveMode WRITE setLiveMode NOTIFY liveModeChanged FINAL)
+    Q_PROPERTY(int pendingRequestId READ pendingRequestId WRITE setPendingRequestId NOTIFY pendingRequestIdChanged FINAL)
+    Q_PROPERTY(int windowMinutes READ windowMinutes WRITE setWindowMinutes NOTIFY windowMinutesChanged FINAL)
+    Q_PROPERTY(bool validatingToken READ validatingToken NOTIFY validatingTokenChanged FINAL)
+    Q_PROPERTY(bool tokenValid READ tokenValid NOTIFY tokenValidChanged FINAL)
+    Q_PROPERTY(QString tokenError READ tokenError NOTIFY tokenErrorChanged FINAL)
+    Q_PROPERTY(bool jsReady READ jsReady NOTIFY jsReadyChanged FINAL)
+
+public:
+    explicit MockCesiumBridge(QObject *parent = nullptr) : QObject(parent) {}
+
+    QUrl contentUrl() const { return QUrl(QStringLiteral("about:blank")); }
+    QString cesiumToken() const { return m_token; }
+    void setCesiumToken(const QString &v) { if (m_token != v) { m_token = v; emit cesiumTokenChanged(); } }
+    bool liveMode() const { return m_liveMode; }
+    void setLiveMode(bool v) { if (m_liveMode != v) { m_liveMode = v; emit liveModeChanged(v); } }
+    int pendingRequestId() const { return m_pendingRequestId; }
+    void setPendingRequestId(int v) { if (m_pendingRequestId != v) { m_pendingRequestId = v; emit pendingRequestIdChanged(v); } }
+    int windowMinutes() const { return m_windowMinutes; }
+    void setWindowMinutes(int v) { if (m_windowMinutes != v) { m_windowMinutes = v; emit windowMinutesChanged(v); } }
+    bool validatingToken() const { return m_validating; }
+    bool tokenValid() const { return m_tokenValid; }
+    QString tokenError() const { return m_tokenError; }
+    bool jsReady() const { return m_jsReady; }
+    Q_INVOKABLE void setJsReady(bool v) { if (m_jsReady != v) { m_jsReady = v; emit jsReadyChanged(); } }
+
+    Q_INVOKABLE void validateToken(const QString &token) {
+        Q_UNUSED(token)
+        m_validating = true;
+        emit validatingTokenChanged();
+    }
+    Q_INVOKABLE void loadRange(qint64, qint64, int) {}
+    Q_INVOKABLE QString getThresholdConfig() { return QStringLiteral("{}"); }
+
+    // Test helpers for simulating validation results
+    Q_INVOKABLE void simulateValidationSuccess() {
+        m_validating = false;
+        m_tokenValid = true;
+        m_tokenError.clear();
+        emit validatingTokenChanged();
+        emit tokenValidChanged();
+        emit tokenErrorChanged();
+        emit tokenValidationSucceeded();
+    }
+    Q_INVOKABLE void simulateValidationFailure(const QString &error) {
+        m_validating = false;
+        m_tokenValid = false;
+        m_tokenError = error;
+        emit validatingTokenChanged();
+        emit tokenValidChanged();
+        emit tokenErrorChanged();
+        emit tokenValidationFailed(error);
+    }
+
+signals:
+    void cesiumTokenChanged();
+    void liveModeChanged(bool liveMode);
+    void pendingRequestIdChanged(int id);
+    void windowMinutesChanged(int minutes);
+    void czmlReady(const QString &czml, int requestId);
+    void czmlPacket(const QString &czml);
+    void thresholdsChanged(const QVariantMap &config);
+    void validatingTokenChanged();
+    void tokenValidChanged();
+    void tokenErrorChanged();
+    void tokenValidationSucceeded();
+    void tokenValidationFailed(const QString &error);
+    void jsReadyChanged();
+
+private:
+    QString m_token;
+    bool m_liveMode = true;
+    int m_pendingRequestId = -1;
+    int m_windowMinutes = 60;
+    bool m_validating = false;
+    bool m_tokenValid = false;
+    bool m_jsReady = false;
+    QString m_tokenError;
+};
+
 class MockThresholdManager final : public QObject
 {
     Q_OBJECT
@@ -323,4 +410,3 @@ private:
     qreal m_co2Danger = 2000.0;
 };
 
-#endif // MOCKS_H

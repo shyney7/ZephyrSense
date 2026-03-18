@@ -1,5 +1,4 @@
-#ifndef DATABASEMANAGER_H
-#define DATABASEMANAGER_H
+#pragma once
 
 #include <QObject>
 #include <QQmlEngine>
@@ -44,4 +43,3 @@ private:
     QString m_databasePath;
 };
 
-#endif // DATABASEMANAGER_H

@@ -48,6 +48,17 @@ bool DatabaseManager::initialize()
     }
 
     qDebug() << "Database opened at:" << m_databasePath;
+
+    // Enable WAL mode and busy timeout for concurrent access
+    // (IOWorker writes from worker thread, CesiumWorker reads from another thread)
+    QSqlQuery pragma(db);
+    if (!pragma.exec(QStringLiteral("PRAGMA journal_mode=WAL"))) {
+        qWarning() << "DatabaseManager: Failed to enable WAL mode:" << pragma.lastError().text();
+    }
+    if (!pragma.exec(QStringLiteral("PRAGMA busy_timeout=5000"))) {
+        qWarning() << "DatabaseManager: Failed to set busy_timeout:" << pragma.lastError().text();
+    }
+
     createTables();
     return true;
 }

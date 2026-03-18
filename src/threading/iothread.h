@@ -1,5 +1,4 @@
-#ifndef IOTHREAD_H
-#define IOTHREAD_H
+#pragma once
 
 #include <QObject>
 #include <QThread>
@@ -30,4 +29,3 @@ private:
     QString m_databasePath;
 };
 
-#endif // IOTHREAD_H

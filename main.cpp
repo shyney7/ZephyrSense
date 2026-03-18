@@ -7,15 +7,26 @@
 #include <QDebug>
 #include <QLoggingCategory>
 
+#include <algorithm>
+
 #include "src/core/sensorreading.h"
 #include "src/data/databasemanager.h"
 #include "src/data/csvexporter.h"
 #include "src/serial/serialhandler.h"
 #include "src/threading/iothread.h"
 #include "src/threading/ioworker.h"
+#include "src/bridge/cesiumbridge.h"
+#include "src/core/thresholdmanager.h"
 
+#include <QtWebEngineQuick/qtwebenginequickglobal.h>
+#include <QQuickWebEngineProfile>
+#include <QWebEngineUrlScheme>
+#include "src/bridge/zephyrschemehandler.h"
+#include "src/bridge/appwebprofile.h"
 #include <kddockwidgets/Config.h>
 #include <kddockwidgets/qtquick/Platform.h>
+#include <kddockwidgets/core/DockWidget.h>
+#include <kddockwidgets/core/Group.h>
 
 int main(int argc, char *argv[])
 {
@@ -29,6 +40,22 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationName(QStringLiteral("ZephyrSense"));
     QCoreApplication::setOrganizationDomain(QStringLiteral("zephyrsense.local"));
     QCoreApplication::setApplicationName(QStringLiteral("ZephyrSense"));
+
+    // Must precede QtWebEngineQuick::initialize() — Chromium reads env vars
+    // during process bootstrap. Setting them after initialize() is a no-op.
+#ifdef Q_OS_WIN
+    qputenv("QSG_RHI_BACKEND", "d3d11");
+#endif
+
+    // DevTools port for WebEngine debugging (127.0.0.1:9222). Intentionally unconditional
+    // in debug builds — this is a local developer tool, not distributed, and the port
+    // is only accessible from localhost.
+#ifdef QT_DEBUG
+    qputenv("QTWEBENGINE_REMOTE_DEBUGGING", "127.0.0.1:9222");
+#endif
+
+    ZephyrSchemeHandler::registerScheme();
+    QtWebEngineQuick::initialize();
 
     QApplication app(argc, argv);
 
@@ -54,6 +81,21 @@ int main(int argc, char *argv[])
     internalFlags |= KDDockWidgets::Config::InternalFlag_UseTransparentFloatingWindow;
     KDDockWidgets::Config::self().setInternalFlags(internalFlags);
 
+    // Enforce tab ordering for MapView docks when re-docking via double-click
+    // Clamp to group->dockWidgetCount() because KDDW passes the returned index
+    // directly to QList::insert without bounds checking (Layout.cpp:168)
+    KDDockWidgets::Config::self().setDockWidgetTabIndexOverrideFunc(
+        [](KDDockWidgets::Core::DockWidget *dw,
+           KDDockWidgets::Core::Group *group, int tabIndex) -> int {
+            const auto name = dw->uniqueName();
+            int desired = tabIndex;
+            if (name == QStringLiteral("dock-2d-map"))
+                desired = 0;
+            else if (name == QStringLiteral("dock-3d-globe"))
+                desired = 1;
+            return std::clamp(desired, 0, group->dockWidgetCount());
+        });
+
     // Register SensorReading for use in signal/slot and QML
     qRegisterMetaType<SensorReading>("SensorReading");
 
@@ -64,6 +106,35 @@ int main(int argc, char *argv[])
 
     IOThread ioThread(dbPath);
     ioThread.start();
+
+    // -- Persistent WebEngine profile for CesiumJS tile caching --
+    // CRITICAL: This profile MUST be fully configured (cache + scheme handler + singleton
+    // registration) BEFORE engine.loadFromModule(), because StackLayout instantiates all
+    // views eagerly and WebEngineView begins loading its URL binding immediately.
+    // The default profile is off-the-record in Qt 6 (no disk cache). A named profile
+    // with a storageName enables disk-based HTTP cache and persistent storage.
+    auto *webProfile = new QQuickWebEngineProfile(QStringLiteral("ZephyrSense"), &app);
+    webProfile->setHttpCacheType(QQuickWebEngineProfile::DiskHttpCache);
+    webProfile->setHttpCacheMaximumSize(512 * 1024 * 1024); // 512 MB for 3D tiles
+    webProfile->setPersistentCookiesPolicy(QQuickWebEngineProfile::AllowPersistentCookies);
+
+    const QString webCachePath = QStandardPaths::writableLocation(QStandardPaths::CacheLocation)
+                                 + QStringLiteral("/WebEngine");
+    const QString webStoragePath = dataPath + QStringLiteral("/WebEngine");
+    QDir().mkpath(webCachePath);
+    QDir().mkpath(webStoragePath);
+    webProfile->setCachePath(webCachePath);
+    webProfile->setPersistentStoragePath(webStoragePath);
+
+    // CRITICAL: The zephyr:// scheme handler MUST be on the same profile that the
+    // WebEngineView uses. Handlers are per-profile — installing on defaultProfile()
+    // while the view uses a named profile would break zephyr:// URL resolution.
+#ifndef WEBDEV_MODE
+    auto *schemeHandler = new ZephyrSchemeHandler(&app);
+    webProfile->installUrlSchemeHandler(QByteArrayLiteral("zephyr"), schemeHandler);
+#endif
+
+    AppWebProfileForeign::setInstance(webProfile);
 
     QQmlApplicationEngine engine;
 
@@ -77,19 +148,46 @@ int main(int argc, char *argv[])
         []() { QCoreApplication::exit(-1); },
         Qt::QueuedConnection);
 
-    // Connect signals after QML objects are created (singletons are now instantiated)
+    // Pre-instantiate singletons (Qt 6.5+): singletonInstance() forces eager
+    // construction before loadFromModule(), ensuring all cross-dependencies are
+    // wired before QML Component.onCompleted handlers fire.
+    auto *serialHandler = engine.singletonInstance<SerialHandler *>("ZephyrSense", "SerialHandler");
+    auto *dbManager = engine.singletonInstance<DatabaseManager *>("ZephyrSense", "DatabaseManager");
+    auto *csvExporter = engine.singletonInstance<CsvExporter *>("ZephyrSense", "CsvExporter");
+    auto *bridge = engine.singletonInstance<CesiumBridge *>("ZephyrSense", "CesiumBridge");
+    auto *thresholds = engine.singletonInstance<ThresholdManager *>("ZephyrSense", "ThresholdManager");
+
+    // Fail fast if any singleton is null — singletonInstance() returns nullptr
+    // when the type name or URI is wrong. Without this, the pre-wiring silently
+    // becomes a no-op and the original startup race bug is re-introduced.
+    // qFatal() is release-safe (Q_ASSERT is stripped in release builds).
+    if (!serialHandler || !dbManager || !csvExporter || !bridge || !thresholds) {
+        qFatal("Singleton pre-instantiation failed — SerialHandler:%p "
+               "DatabaseManager:%p CsvExporter:%p CesiumBridge:%p ThresholdManager:%p",
+               static_cast<void *>(serialHandler), static_cast<void *>(dbManager),
+               static_cast<void *>(csvExporter), static_cast<void *>(bridge),
+               static_cast<void *>(thresholds));
+    }
+
+    qDebug() << "Pre-instantiated singletons - SerialHandler:" << serialHandler
+             << "DatabaseManager:" << dbManager << "CsvExporter:" << csvExporter
+             << "CesiumBridge:" << bridge << "ThresholdManager:" << thresholds;
+
+    // Wire CesiumBridge dependencies BEFORE QML loads — MapView.Component.onCompleted
+    // calls CesiumBridge.loadRange() which needs m_thresholdManager for hazard colors
+    bridge->setThresholdManager(thresholds);
+    QObject::connect(thresholds, &ThresholdManager::thresholdsChanged,
+                     bridge, &CesiumBridge::onThresholdsChanged,
+                     Qt::QueuedConnection);
+    QObject::connect(serialHandler, &SerialHandler::newReading,
+                     bridge, &CesiumBridge::onNewReading,
+                     Qt::QueuedConnection);
+
+    // Wire IOWorker connections after QML loads (IOWorker is not a QML singleton;
+    // serial data doesn't flow until the user opens a port — no startup race)
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated, &app,
-        [&engine, &ioThread](QObject *obj, const QUrl &/*url*/) {
+        [serialHandler, dbManager, csvExporter, &ioThread](QObject *obj, const QUrl &/*url*/) {
             if (!obj) return;  // Object creation failed
-
-            // Get singleton instances - now they should be instantiated
-            auto *serialHandler = engine.singletonInstance<SerialHandler*>("ZephyrSense", "SerialHandler");
-            auto *dbManager = engine.singletonInstance<DatabaseManager*>("ZephyrSense", "DatabaseManager");
-            auto *csvExporter = engine.singletonInstance<CsvExporter*>("ZephyrSense", "CsvExporter");
-
-            qDebug() << "Singletons - SerialHandler:" << serialHandler
-                     << "DatabaseManager:" << dbManager
-                     << "CsvExporter:" << csvExporter;
 
             IOWorker *worker = ioThread.worker();
 
@@ -99,7 +197,7 @@ int main(int argc, char *argv[])
                 QObject::connect(serialHandler, &SerialHandler::newReading,
                                  worker, &IOWorker::processReading,
                                  Qt::QueuedConnection);
-                qDebug() << "Connected SerialHandler::newReading -> IOWorker::processReading (QueuedConnection)";
+                qDebug() << "Connected SerialHandler::newReading -> IOWorker::processReading";
             }
 
             // Connect IOWorker error signals to DatabaseManager/CsvExporter for UI error reporting

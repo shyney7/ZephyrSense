@@ -751,6 +751,27 @@ private slots:
         QCOMPARE(spy.count(), 1);
     }
 
+    // ── getThresholds snapshot ──
+
+    void testGetThresholds()
+    {
+        m_mgr->setCo2Warning(800);
+        m_mgr->setCo2Danger(1200);
+        m_mgr->setTemperatureWarning(35.0f);
+
+        QVariantMap thresholds = m_mgr->getThresholds();
+
+        QCOMPARE(thresholds[QStringLiteral("co2Warning")].toInt(), 800);
+        QCOMPARE(thresholds[QStringLiteral("co2Danger")].toInt(), 1200);
+        QCOMPARE(thresholds[QStringLiteral("temperatureWarning")].toFloat(), 35.0f);
+
+        // Verify all expected keys exist
+        QVERIFY(thresholds.contains(QStringLiteral("partectorNumberWarning")));
+        QVERIFY(thresholds.contains(QStringLiteral("partectorNumberDanger")));
+        QVERIFY(thresholds.contains(QStringLiteral("partectorNumberEnabled")));
+        QVERIFY(thresholds.contains(QStringLiteral("co2Enabled")));
+    }
+
     // ── Enabled state setter tests ──
 
     void setPartectorMassEnabled_emitsSignals()

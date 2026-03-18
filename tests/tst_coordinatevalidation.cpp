@@ -32,6 +32,37 @@ private slots:
         QVERIFY(isValidCoordinate(90.0f, 180.0f));
         QVERIFY(isValidCoordinate(-90.0f, -180.0f));
     }
+
+    void nearZero_float_rejected()
+    {
+        QVERIFY(!isValidCoordinate(0.000001f, 0.0f));
+        QVERIFY(!isValidCoordinate(0.0f, 0.000001f));
+        QVERIFY(!isValidCoordinate(0.000001f, 0.000001f));
+    }
+
+    void doubleOverload_valid()
+    {
+        QVERIFY(isValidCoordinate(48.12, 11.56));
+    }
+
+    void doubleOverload_nullIsland()
+    {
+        QVERIFY(!isValidCoordinate(0.0, 0.0));
+    }
+
+    void doubleOverload_outOfRange()
+    {
+        QVERIFY(!isValidCoordinate(91.0, 0.0));
+        QVERIFY(!isValidCoordinate(-91.0, 0.0));
+        QVERIFY(!isValidCoordinate(0.0, 181.0));
+        QVERIFY(!isValidCoordinate(0.0, -181.0));
+    }
+
+    void doubleOverload_boundary()
+    {
+        QVERIFY(isValidCoordinate(90.0, 180.0));
+        QVERIFY(isValidCoordinate(-90.0, -180.0));
+    }
 };
 
 QTEST_GUILESS_MAIN(TestCoordinateValidation)

@@ -47,12 +47,12 @@ Item {
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 16
-        spacing: 12
+        spacing: 0
 
         // Header with title and time range selector
         RowLayout {
             Layout.fillWidth: true
+            Layout.margins: 16
             spacing: 16
 
             Label {
@@ -137,6 +137,9 @@ Item {
         // Status bar
         Rectangle {
             Layout.fillWidth: true
+            Layout.leftMargin: 16
+            Layout.rightMargin: 16
+            Layout.bottomMargin: 12
             Layout.preferredHeight: 30
             color: "#EEEEEE"
             radius: 4
