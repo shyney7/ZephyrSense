@@ -231,12 +231,7 @@ jobs:
           languages: ${{ matrix.language }}
           queries: security-and-quality
           build-mode: ${{ matrix.build-mode }}
-          config: |
-            paths-ignore:
-              - 'build'
-              - 'libs'
-              - 'web/node_modules'
-              - 'web/public'
+          config-file: .github/codeql/codeql-config.yml
 
       - name: Configure
         if: matrix.build-mode == 'manual'
@@ -249,6 +244,24 @@ jobs:
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
         with:
+          category: "/language:${{ matrix.language }}"
+          output: sarif-results
+          upload: failure-only
+
+      - name: Filter generated files from SARIF
+        if: matrix.language == 'cpp'
+        uses: advanced-security/filter-sarif@v1
+        with:
+          patterns: |
+            -build/**
+            -libs/**
+          input: sarif-results/cpp.sarif
+          output: sarif-results/cpp.sarif
+
+      - name: Upload SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: sarif-results
           category: "/language:${{ matrix.language }}"
 
   lint-clazy:

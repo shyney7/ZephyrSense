@@ -1,0 +1,11 @@
+name: "ZephyrSense CodeQL Config"
+
+# Only effective for interpreted languages (JS/TS with build-mode: none).
+# For C++ (manual build), use filter-sarif post-analysis instead.
+paths-ignore:
+  - 'web/node_modules'
+  - 'web/public'
+
+query-filters:
+  - exclude:
+      id: cpp/useless-expression
