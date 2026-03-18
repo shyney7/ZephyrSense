@@ -53,8 +53,8 @@ else()
     message(STATUS "KDDockWidgets not found locally, fetching from GitHub...")
     include(FetchContent)
     FetchContent_Declare(KDDockWidgets
-        GIT_REPOSITORY https://github.com/KDAB/KDDockWidgets.git
-        GIT_TAG        v2.4.0
+        GIT_REPOSITORY https://github.com/shyney7/KDDockWidgets.git
+        GIT_TAG        fix-multi-dockarea-quick-windows
         GIT_SHALLOW    TRUE
         SYSTEM
     )
