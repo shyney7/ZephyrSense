@@ -54,7 +54,7 @@ else()
     include(FetchContent)
     FetchContent_Declare(KDDockWidgets
         GIT_REPOSITORY https://github.com/shyney7/KDDockWidgets.git
-        GIT_TAG        fix-multi-dockarea-quick-windows
+        GIT_TAG        v2.4.1
         GIT_SHALLOW    TRUE
         SYSTEM
     )
@@ -187,6 +187,7 @@ target_link_libraries(appZephyrSense
 # Suppress qDebug() output in Release builds (compile-time elimination)
 target_compile_definitions(appZephyrSense PRIVATE
     $<$<NOT:$<CONFIG:Debug>>:QT_NO_DEBUG_OUTPUT>
+    QT_USE_QSTRINGBUILDER
 )
 
 if(WEBDEV_MODE)

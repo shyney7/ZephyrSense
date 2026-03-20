@@ -2,7 +2,6 @@
 
 #include <QQuickItem>
 #include <utility>
-#include <QQuickWindow>
 #include <kddockwidgets/core/DockWidget.h>
 #include <DockWidgetInstantiator.h>
 #include <kddockwidgets/qtquick/views/DockWidget.h>
