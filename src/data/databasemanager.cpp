@@ -14,7 +14,7 @@ DatabaseManager::DatabaseManager(QObject *parent)
     // Set up database path in app data location
     QString dataPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
     QDir().mkpath(dataPath);
-    m_databasePath = dataPath + "/zephyrsense.db";
+    m_databasePath = dataPath + QStringLiteral("/zephyrsense.db");
 }
 
 DatabaseManager::~DatabaseManager()
@@ -278,7 +278,7 @@ bool DatabaseManager::importDatabase(const QUrl &source)
     QSqlDatabase::removeDatabase(CONNECTION_NAME);
 
     // Backup current database
-    QString backupPath = m_databasePath + ".backup";
+    QString backupPath = m_databasePath + QStringLiteral(".backup");
     bool hadExisting = QFile::exists(m_databasePath);
     if (hadExisting) {
         QFile::remove(backupPath);  // Remove old backup if exists

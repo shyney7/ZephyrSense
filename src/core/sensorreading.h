@@ -2,7 +2,7 @@
 
 #include <QDateTime>
 #include <QObject>
-#include <QtQmlIntegration>
+#include <QtQmlIntegration/qqmlintegration.h>
 #include <cstdint>
 
 // Raw binary struct matching embedded device protocol (42 bytes packed)

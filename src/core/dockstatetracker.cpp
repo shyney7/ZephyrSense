@@ -1,8 +1,9 @@
 #include "dockstatetracker.h"
 
 #include <QQuickItem>
-#include <QQuickWindow>
+#include <utility>
 #include <kddockwidgets/core/DockWidget.h>
+#include <DockWidgetInstantiator.h>
 #include <kddockwidgets/qtquick/views/DockWidget.h>
 
 DockStateTracker::DockStateTracker(QObject *parent)
@@ -22,13 +23,17 @@ void DockStateTracker::trackDockWidget(QObject *dockWidget)
     if (!dockWidget)
         return;
 
-    // The QML KDDW.DockWidget type is DockWidgetInstantiator (internal KDDW class),
-    // not QtQuick::DockWidget directly. Access the actual dock via the "dockWidget"
-    // Q_PROPERTY to avoid depending on the internal header.
-    QVariant dwVar = dockWidget->property("dockWidget");
-    auto *qtquickDock = qvariant_cast<KDDockWidgets::QtQuick::DockWidget *>(dwVar);
+    // The QML KDDW.DockWidget is a DockWidgetInstantiator, not QtQuick::DockWidget
+    // directly. Cast to the concrete type for type-safe signal connections.
+    auto *instantiator = qobject_cast<KDDockWidgets::DockWidgetInstantiator *>(dockWidget);
+    if (!instantiator) {
+        qWarning() << "[DockStateTracker] not a DockWidgetInstantiator:" << dockWidget;
+        return;
+    }
+
+    auto *qtquickDock = instantiator->dockWidget();
     if (!qtquickDock) {
-        qWarning() << "[DockStateTracker] dockWidget property cast failed for" << dockWidget;
+        qWarning() << "[DockStateTracker] dockWidget() returned null for" << dockWidget;
         return;
     }
 
@@ -38,12 +43,10 @@ void DockStateTracker::trackDockWidget(QObject *dockWidget)
 
     m_coreDocks.append(coreDock);
 
-    // Connect to the instantiator's signals (string-based connect since we don't
-    // include the DockWidgetInstantiator header)
-    connect(dockWidget, SIGNAL(isFloatingChanged(bool)),
-            this, SLOT(scheduleReevaluation()));
-    connect(dockWidget, SIGNAL(isOpenChanged(bool)),
-            this, SLOT(scheduleReevaluation()));
+    connect(instantiator, &KDDockWidgets::DockWidgetInstantiator::isFloatingChanged,
+            this, &DockStateTracker::scheduleReevaluation);
+    connect(instantiator, &KDDockWidgets::DockWidgetInstantiator::isOpenChanged,
+            this, &DockStateTracker::scheduleReevaluation);
 
     // Connect to the actual QQuickItem's windowChanged signal — fires when the
     // dock moves between the main window and a floating window
@@ -59,7 +62,7 @@ void DockStateTracker::scheduleReevaluation()
 void DockStateTracker::reevaluate()
 {
     bool hasAny = false;
-    for (const auto &ptr : m_coreDocks) {
+    for (const auto &ptr : std::as_const(m_coreDocks)) {
         if (ptr && ptr->isOpen() && !ptr->isInMainWindow()) {
             hasAny = true;
             break;

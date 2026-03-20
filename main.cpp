@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
     // Set up I/O worker thread for non-blocking database and CSV operations
     QString dataPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
     QDir().mkpath(dataPath);
-    QString dbPath = dataPath + "/zephyrsense.db";
+    QString dbPath = dataPath + QStringLiteral("/zephyrsense.db");
 
     IOThread ioThread(dbPath);
     ioThread.start();

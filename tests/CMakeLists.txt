@@ -203,7 +203,6 @@ qt_add_qml_module(tst_qml
     NO_PLUGIN
     SOURCES
         qml/setup/mocks.h
-        qml/setup/mocks.cpp
         ${CMAKE_SOURCE_DIR}/src/core/sensorreading.h
         ${CMAKE_SOURCE_DIR}/src/core/sensorreading.cpp
 )
@@ -224,7 +223,6 @@ target_link_libraries(tst_qml PRIVATE
 # Per-file warnings for tst_qml's actual sources only
 set(TST_QML_SOURCES
     qml/setup/tst_qml_setup.cpp
-    qml/setup/mocks.cpp
 )
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     set_source_files_properties(${TST_QML_SOURCES} PROPERTIES
