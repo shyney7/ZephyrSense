@@ -116,7 +116,7 @@ void CesiumBridge::validateToken(const QString &token)
 
     QHttpHeaders headers;
     headers.append(QHttpHeaders::WellKnownHeader::Authorization,
-                   QString(QStringLiteral("Bearer ") + token));
+                   QStringLiteral("Bearer ") + token);
     request.setHeaders(std::move(headers));
     request.setTransferTimeout(15000);
 
