@@ -47,8 +47,11 @@ set(KDDockWidgets_TESTS OFF CACHE BOOL "" FORCE)
 set(KDDockWidgets_DOCS OFF CACHE BOOL "" FORCE)
 # Required: generates com/kdab/dockwidgets/qmldir + .qmltypes on disk for qmllint/language server
 set(KDDockWidgets_QML_MODULE ON CACHE BOOL "" FORCE)
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/libs/KDDockWidgets-2.4.0/CMakeLists.txt")
-    add_subdirectory(libs/KDDockWidgets-2.4.0 SYSTEM)
+# KDDockWidgets — using shyney7/KDDockWidgets fork (not upstream KDAB) because
+# it includes the DOCKS_EXPORT fix on DockWidgetInstantiator, which is required
+# for type-safe PMF signal connects (see commit e5a67aa).
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/libs/KDDockWidgets/CMakeLists.txt")
+    add_subdirectory(libs/KDDockWidgets SYSTEM)
 else()
     message(STATUS "KDDockWidgets not found locally, fetching from GitHub...")
     include(FetchContent)
