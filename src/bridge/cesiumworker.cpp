@@ -1,5 +1,6 @@
 #include "cesiumworker.h"
 #include "coordinatevalidator.h"
+#include "readingsschema.h"
 
 #include <QDateTime>
 #include <QTimeZone>
@@ -64,29 +65,11 @@ void CesiumWorker::openDatabase(const QString &path)
 bool CesiumWorker::createTables()
 {
     QSqlQuery query(m_db);
-    if (!query.exec(QStringLiteral(R"(
-        CREATE TABLE IF NOT EXISTS readings (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            timestamp INTEGER NOT NULL,
-            partectorNumber INTEGER,
-            partectorDiam INTEGER,
-            partectorMass REAL,
-            grimmValue REAL,
-            temperature REAL,
-            humidity REAL,
-            pressure REAL,
-            altitude REAL,
-            latitude REAL,
-            longitude REAL,
-            co2 INTEGER
-        )
-    )"))) {
+    if (!query.exec(QString{kReadingsTableSql})) {
         qWarning() << "CesiumWorker: Failed to create readings table:" << query.lastError().text();
         return false;
     }
-    if (!query.exec(QStringLiteral(R"(
-        CREATE INDEX IF NOT EXISTS idx_timestamp ON readings(timestamp)
-    )"))) {
+    if (!query.exec(QString{kReadingsIndexSql})) {
         qWarning() << "CesiumWorker: Failed to create timestamp index:" << query.lastError().text();
     }
     return true;

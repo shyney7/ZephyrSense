@@ -1,4 +1,5 @@
 #include "ioworker.h"
+#include "readingsschema.h"
 
 #include <QSqlQuery>
 #include <QSqlError>
@@ -77,36 +78,14 @@ void IOWorker::createTables()
 {
     QSqlQuery query(m_db);
 
-    const QString createTableSql = QStringLiteral(R"(
-        CREATE TABLE IF NOT EXISTS readings (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            timestamp INTEGER NOT NULL,
-            partectorNumber INTEGER,
-            partectorDiam INTEGER,
-            partectorMass REAL,
-            grimmValue REAL,
-            temperature REAL,
-            humidity REAL,
-            pressure REAL,
-            altitude REAL,
-            latitude REAL,
-            longitude REAL,
-            co2 INTEGER
-        )
-    )");
-
-    if (!query.exec(createTableSql)) {
+    if (!query.exec(QString{kReadingsTableSql})) {
         QString error = QStringLiteral("IOWorker: Failed to create readings table: %1").arg(query.lastError().text());
         qWarning() << error;
         emit databaseError(error);
         return;
     }
 
-    const QString createIndexSql = QStringLiteral(R"(
-        CREATE INDEX IF NOT EXISTS idx_timestamp ON readings(timestamp)
-    )");
-
-    if (!query.exec(createIndexSql)) {
+    if (!query.exec(QString{kReadingsIndexSql})) {
         QString error = QStringLiteral("IOWorker: Failed to create timestamp index: %1").arg(query.lastError().text());
         qWarning() << error;
         emit databaseError(error);

@@ -1,4 +1,5 @@
 #include "databasemanager.h"
+#include "readingsschema.h"
 
 #include <QSqlDatabase>
 #include <QSqlQuery>
@@ -68,38 +69,14 @@ void DatabaseManager::createTables()
     QSqlDatabase db = QSqlDatabase::database(CONNECTION_NAME);
     QSqlQuery query(db);
 
-    // Create readings table with all sensor fields
-    const QString createTableSql = QStringLiteral(R"(
-        CREATE TABLE IF NOT EXISTS readings (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            timestamp INTEGER NOT NULL,
-            partectorNumber INTEGER,
-            partectorDiam INTEGER,
-            partectorMass REAL,
-            grimmValue REAL,
-            temperature REAL,
-            humidity REAL,
-            pressure REAL,
-            altitude REAL,
-            latitude REAL,
-            longitude REAL,
-            co2 INTEGER
-        )
-    )");
-
-    if (!query.exec(createTableSql)) {
+    if (!query.exec(QString{kReadingsTableSql})) {
         QString error = QStringLiteral("Failed to create readings table: %1").arg(query.lastError().text());
         qWarning() << error;
         emit databaseError(error);
         return;
     }
 
-    // Create index on timestamp for efficient range queries
-    const QString createIndexSql = QStringLiteral(R"(
-        CREATE INDEX IF NOT EXISTS idx_timestamp ON readings(timestamp)
-    )");
-
-    if (!query.exec(createIndexSql)) {
+    if (!query.exec(QString{kReadingsIndexSql})) {
         QString error = QStringLiteral("Failed to create timestamp index: %1").arg(query.lastError().text());
         qWarning() << error;
         emit databaseError(error);
