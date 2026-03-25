@@ -7,6 +7,7 @@
 #include <QSqlError>
 #include <QTemporaryDir>
 #include <QDebug>
+#include "readingsschema.h"
 #include "sensorreading.h"
 
 // ─── SensorReadingBuilder ────────────────────────────────────────────────────
@@ -143,29 +144,11 @@ public:
         }
 
         QSqlQuery query(db);
-        bool ok = query.exec(QStringLiteral(R"(
-            CREATE TABLE IF NOT EXISTS readings (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                timestamp INTEGER NOT NULL,
-                partectorNumber INTEGER,
-                partectorDiam INTEGER,
-                partectorMass REAL,
-                grimmValue REAL,
-                temperature REAL,
-                humidity REAL,
-                pressure REAL,
-                altitude REAL,
-                latitude REAL,
-                longitude REAL,
-                co2 INTEGER
-            )
-        )"));
+        bool ok = query.exec(QString{kReadingsTableSql});
         if (!ok)
             qWarning() << "TestDatabaseHelper: Table creation failed:" << query.lastError().text();
 
-        query.exec(QStringLiteral(R"(
-            CREATE INDEX IF NOT EXISTS idx_timestamp ON readings(timestamp)
-        )"));
+        query.exec(QString{kReadingsIndexSql});
 
         return ok;
     }
