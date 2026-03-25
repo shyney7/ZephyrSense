@@ -143,6 +143,19 @@ qt_add_qml_module(appZephyrSense
     SOURCES ${ZEPHYR_SOURCES}
 )
 
+# Enable qmlsc static mode for full AOT compilation (no shadow checking).
+# Requires Qt Quick Compiler Extensions (commercial) — skip in CI
+# and gracefully degrade for open-source contributors.
+find_program(QMLSC_EXECUTABLE NAMES qmlsc qmlsc.exe)
+if(QMLSC_EXECUTABLE AND NOT DEFINED ENV{CI})
+    message(STATUS "qmlsc found: ${QMLSC_EXECUTABLE} — enabling static mode")
+    set_target_properties(appZephyrSense PROPERTIES
+        QT_QMLCACHEGEN_ARGUMENTS "--static"
+    )
+else()
+    message(STATUS "qmlsc not found or CI build — using default qmlcachegen")
+endif()
+
 # Strict compiler warnings — applied ONLY to our source files.
 # Qt-generated files (MOC, QML AOT, type registrations) are unaffected.
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")

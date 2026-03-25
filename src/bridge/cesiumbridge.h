@@ -14,7 +14,7 @@ class QNetworkReply;
 class CesiumWorker;
 class ThresholdManager;
 
-class CesiumBridge : public QObject
+class CesiumBridge final : public QObject
 {
     Q_OBJECT
     QML_ELEMENT
